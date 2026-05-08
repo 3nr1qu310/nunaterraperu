@@ -1,0 +1,263 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+---
+
+<AdminLayout title="Tours | Admin">
+  <p class="eyebrow">Contenido turístico</p>
+  <h1 class="h2">Tours</h1>
+  <p class="lead">Administra tours de uno o dos días, full day y experiencias cortas.</p>
+
+  <div class="admin-actions">
+    <input
+      id="search"
+      placeholder="Buscar tour..."
+      style="border:1px solid rgba(90,62,43,.18);border-radius:999px;padding:11px 16px;min-width:260px"
+    />
+
+    <a class="btn btn--primary" href="/admin/paquetes/nuevo?type=tour">
+      Crear tour
+    </a>
+  </div>
+
+  <div class="admin-panel admin-table-wrap">
+    <table class="admin-table admin-products-table">
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Estado</th>
+          <th>Nombre</th>
+          <th>Duración</th>
+          <th>Precio</th>
+          <th>Dificultad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody id="rows">
+        <tr>
+          <td colspan="7">Cargando...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <style>
+    .admin-products-table td {
+      vertical-align: middle;
+    }
+
+    .admin-thumb {
+      width: 86px;
+      height: 58px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(90, 62, 43, .08);
+      border: 1px solid rgba(90, 62, 43, .1);
+      display: grid;
+      place-items: center;
+    }
+
+    .admin-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .admin-thumb span {
+      font-size: 11px;
+      color: rgba(37, 37, 37, .55);
+      text-align: center;
+      padding: 6px;
+      line-height: 1.2;
+    }
+
+    .admin-product-name {
+      display: grid;
+      gap: 4px;
+    }
+
+    .admin-product-name strong {
+      color: #5A3E2B;
+    }
+
+    .admin-danger {
+      color: #8a3a2b;
+    }
+  </style>
+
+  <script>
+    import { adminSupabase, notify } from '@/lib/admin-client';
+
+    let products = [];
+
+    const rows = document.querySelector('#rows');
+    const search = document.querySelector('#search');
+
+    function escapeHtml(value = '') {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function imageCell(product) {
+      const imageUrl = product.card_image_url || product.hero_image_url || '';
+
+      if (!imageUrl) {
+        return `
+          <div class="admin-thumb">
+            <span>Sin imagen</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="admin-thumb">
+          <img
+            src="${escapeHtml(imageUrl)}"
+            alt="${escapeHtml(product.title || 'Tour')}"
+            loading="lazy"
+            onerror="this.parentElement.innerHTML='<span>Imagen no disponible</span>'"
+          />
+        </div>
+      `;
+    }
+
+    function render() {
+      const term = (search?.value || '').toLowerCase().trim();
+
+      const filtered = products.filter((p) => {
+        const title = (p.title || '').toLowerCase();
+        const slug = (p.slug || '').toLowerCase();
+
+        return title.includes(term) || slug.includes(term);
+      });
+
+      rows.innerHTML = filtered.length
+        ? filtered.map((p) => `
+          <tr>
+            <td>
+              ${imageCell(p)}
+            </td>
+
+            <td>
+              <span class="admin-pill ${p.status !== 'published' ? 'admin-pill--draft' : ''}">
+                ${escapeHtml(p.status || 'draft')}
+              </span>
+            </td>
+
+            <td>
+              <div class="admin-product-name">
+                <strong>${escapeHtml(p.title || 'Sin título')}</strong>
+                <span class="admin-muted">/${escapeHtml(p.slug || '')}</span>
+              </div>
+            </td>
+
+            <td>${escapeHtml(p.duration_text || '—')}</td>
+
+            <td>
+              ${escapeHtml(p.currency || 'USD')} ${p.price_from ?? '—'}
+            </td>
+
+            <td>${escapeHtml(p.difficulty_level || '—')}</td>
+
+            <td>
+              <div class="admin-row-actions">
+                <a class="admin-link" href="/admin/paquetes/${p.id}">
+                  Editar
+                </a>
+
+                <button
+                  class="admin-link"
+                  data-toggle="${p.id}"
+                  data-status="${p.status}"
+                >
+                  ${p.status === 'published' ? 'Pasar a borrador' : 'Publicar'}
+                </button>
+
+                <button
+                  class="admin-link admin-danger"
+                  data-delete="${p.id}"
+                >
+                  Archivar
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('')
+        : '<tr><td colspan="7">No hay tours.</td></tr>';
+
+      document.querySelectorAll('[data-toggle]').forEach((btn) => {
+        btn.addEventListener('click', toggleStatus);
+      });
+
+      document.querySelectorAll('[data-delete]').forEach((btn) => {
+        btn.addEventListener('click', archiveProduct);
+      });
+    }
+
+    async function load() {
+      const { data, error } = await adminSupabase
+        .from('products')
+        .select('id, title, slug, product_type, status, duration_text, currency, price_from, difficulty_level, card_image_url, hero_image_url, is_active, created_at')
+        .eq('product_type', 'tour')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        return notify(error.message, 'error');
+      }
+
+      products = data || [];
+      render();
+    }
+
+    async function toggleStatus(event) {
+      const id = event.currentTarget.dataset.toggle;
+      const currentStatus = event.currentTarget.dataset.status;
+      const status = currentStatus === 'published' ? 'draft' : 'published';
+
+      const { error } = await adminSupabase
+        .from('products')
+        .update({
+          status,
+          is_active: status === 'published',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) {
+        return notify(error.message, 'error');
+      }
+
+      notify('Estado actualizado.', 'success');
+      await load();
+    }
+
+    async function archiveProduct(event) {
+      if (!confirm('¿Archivar este tour?')) return;
+
+      const { error } = await adminSupabase
+        .from('products')
+        .update({
+          status: 'archived',
+          is_active: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', event.currentTarget.dataset.delete);
+
+      if (error) {
+        return notify(error.message, 'error');
+      }
+
+      notify('Tour archivado.', 'success');
+      await load();
+    }
+
+    search?.addEventListener('input', render);
+
+    window.setTimeout(load, 250);
+  </script>
+</AdminLayout>

@@ -1,0 +1,24 @@
+---
+import type { Destination } from '@/types/content';
+interface Props { destination: Destination; }
+const { destination } = Astro.props;
+console.log(destination);
+---
+<article class="card destination-card">
+  <a href={`/destinos/${destination.slug}`}>
+    <img class="card__image" src={destination.cardImage} alt={destination.name} loading="lazy" />
+    <div class="destination-card__body">
+      <span>{destination.region}</span>
+      <h3>{destination.name}</h3>
+      <p>{destination.description}</p>
+      <b>Ver destino →</b>
+    </div>
+  </a>
+</article>
+<style lang="scss">
+.destination-card__body { padding: 22px; }
+.destination-card span { text-transform: uppercase; letter-spacing: .14em; color: var(--color-green); font-size: .72rem; font-weight: 800; }
+.destination-card h3 { font-family: var(--font-display); color: var(--color-earth); font-size: 2rem; margin: 6px 0; }
+.destination-card p { color: rgba(37,37,37,.72); }
+.destination-card b { color: var(--color-earth); }
+</style>

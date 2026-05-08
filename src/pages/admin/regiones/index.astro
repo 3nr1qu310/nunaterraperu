@@ -1,0 +1,363 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+import MediaPicker from '@/components/admin/MediaPicker.astro';
+---
+
+<AdminLayout title="Regiones | Admin">
+  <p class="eyebrow">Regiones</p>
+  <h1 class="h2">Costa, Sierra y Selva</h1>
+  <p class="lead">
+    Administra las páginas de región que alimentan /destinos/costa, /destinos/sierra y /destinos/selva.
+  </p>
+
+  <section class="admin-panel" style="margin-top:26px">
+    <h2 class="h3" id="formTitle">Nueva región</h2>
+
+    <form id="regionForm" class="admin-form">
+      <input type="hidden" name="id" />
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Nombre</label>
+          <input name="name" required />
+        </div>
+
+        <div class="admin-field">
+          <label>Slug</label>
+          <input name="slug" required />
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>Titular</label>
+        <input name="headline" />
+      </div>
+
+      <div class="admin-field">
+        <label>Descripción</label>
+        <textarea name="description"></textarea>
+      </div>
+
+      <div class="admin-form-grid">
+        <MediaPicker
+          fieldName="card_image_url"
+          label="Imagen card"
+          helperText="Imagen que se mostrará en tarjetas de regiones."
+        />
+
+        <MediaPicker
+          fieldName="hero_image_url"
+          label="Imagen hero"
+          helperText="Imagen principal para la página de la región."
+        />
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>SEO title</label>
+          <input name="seo_title" />
+        </div>
+
+        <div class="admin-field">
+          <label>SEO description</label>
+          <input name="seo_description" />
+        </div>
+      </div>
+
+      <label class="check-item">
+        <input name="is_active" type="checkbox" checked />
+        Activa
+      </label>
+
+      <div class="admin-actions" style="justify-content:flex-start">
+        <button class="btn btn--primary" type="submit">Guardar región</button>
+        <button class="admin-link" type="button" id="resetForm">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="admin-panel admin-table-wrap" style="margin-top:26px">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Región</th>
+          <th>Slug</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody id="rows">
+        <tr>
+          <td colspan="5">Cargando...</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .admin-thumb {
+      width: 86px;
+      height: 58px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(90, 62, 43, .08);
+      border: 1px solid rgba(90, 62, 43, .1);
+      display: grid;
+      place-items: center;
+    }
+
+    .admin-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .admin-thumb span {
+      font-size: 11px;
+      color: rgba(37, 37, 37, .55);
+      text-align: center;
+      padding: 6px;
+      line-height: 1.2;
+    }
+  </style>
+
+  <script>
+    import { adminSupabase, notify, slugify } from '@/lib/admin-client';
+
+    const form = document.querySelector('#regionForm');
+    const rows = document.querySelector('#rows');
+
+    let regions = [];
+
+    function getFieldValue(name) {
+      const field = form.querySelector(`[name="${name}"]`);
+      return field?.value || field?.textContent || '';
+    }
+
+    function setFieldValue(name, value = '') {
+      const field = form.querySelector(`[name="${name}"]`);
+
+      if (!field) return;
+
+      field.value = value || '';
+      field.setAttribute('value', value || '');
+
+      if (field.tagName === 'TEXTAREA') {
+        field.textContent = value || '';
+      }
+
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function updateMediaPickers(fields) {
+      document.dispatchEvent(new CustomEvent('media-picker:update', {
+        detail: { fields },
+      }));
+    }
+
+    function imageCell(region) {
+      const imageUrl = region.card_image_url || region.hero_image_url || '';
+
+      if (!imageUrl) {
+        return `
+          <div class="admin-thumb">
+            <span>Sin imagen</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="admin-thumb">
+          <img
+            src="${imageUrl}"
+            alt="${region.name || 'Región'}"
+            loading="lazy"
+            onerror="this.parentElement.innerHTML='<span>Imagen no disponible</span>'"
+          />
+        </div>
+      `;
+    }
+
+    function setForm(region = {}) {
+      setFieldValue('id', region.id || '');
+      setFieldValue('name', region.name || '');
+      setFieldValue('slug', region.slug || '');
+      setFieldValue('headline', region.headline || '');
+      setFieldValue('description', region.description || '');
+      setFieldValue('seo_title', region.seo_title || '');
+      setFieldValue('seo_description', region.seo_description || '');
+
+      setFieldValue('card_image_url', region.card_image_url || '');
+      setFieldValue('hero_image_url', region.hero_image_url || '');
+
+      updateMediaPickers({
+        card_image_url: region.card_image_url || '',
+        hero_image_url: region.hero_image_url || '',
+      });
+
+      form.elements.is_active.checked = region.is_active ?? true;
+
+      document.querySelector('#formTitle').textContent = region.id
+        ? 'Editar región'
+        : 'Nueva región';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function render() {
+      rows.innerHTML = regions.length
+        ? regions.map((r) => `
+          <tr>
+            <td>${imageCell(r)}</td>
+
+            <td>
+              <strong>${r.name}</strong>
+            </td>
+
+            <td>
+              <span class="admin-muted">/${r.slug}</span>
+            </td>
+
+            <td>
+              ${r.is_active
+                ? '<span class="admin-pill">Activa</span>'
+                : '<span class="admin-pill admin-pill--draft">Inactiva</span>'}
+            </td>
+
+            <td>
+              <div class="admin-row-actions">
+                <button class="admin-link" data-edit="${r.id}">
+                  Editar
+                </button>
+
+                <button class="admin-link" data-toggle="${r.id}">
+                  ${r.is_active ? 'Desactivar' : 'Activar'}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('')
+        : '<tr><td colspan="5">No hay regiones.</td></tr>';
+
+      document.querySelectorAll('[data-edit]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const region = regions.find((r) => r.id === btn.dataset.edit);
+          setForm(region);
+        });
+      });
+
+      document.querySelectorAll('[data-toggle]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const region = regions.find((r) => r.id === btn.dataset.toggle);
+
+          if (!region) return;
+
+          const { error } = await adminSupabase
+            .from('regions')
+            .update({
+              is_active: !region.is_active,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', region.id);
+
+          if (error) {
+            return notify(error.message, 'error');
+          }
+
+          notify('Región actualizada.', 'success');
+          await load();
+        });
+      });
+    }
+
+    async function load() {
+      const { data, error } = await adminSupabase
+        .from('regions')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        return notify(error.message, 'error');
+      }
+
+      regions = data || [];
+      render();
+    }
+
+    form.elements.name.addEventListener('input', () => {
+      if (!form.elements.slug.value) {
+        form.elements.slug.value = slugify(form.elements.name.value);
+      }
+    });
+
+    document.querySelector('#resetForm').addEventListener('click', () => {
+      setForm();
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const data = new FormData(form);
+      const id = data.get('id');
+
+      const cardImageUrl = getFieldValue('card_image_url');
+      const heroImageUrl = getFieldValue('hero_image_url');
+
+      console.log('CARD REGIÓN A GUARDAR:', cardImageUrl);
+      console.log('HERO REGIÓN A GUARDAR:', heroImageUrl);
+
+      const payload = {
+        name: data.get('name'),
+        slug: slugify(String(data.get('slug') || data.get('name'))),
+        headline: data.get('headline') || null,
+        description: data.get('description') || null,
+        card_image_url: cardImageUrl || null,
+        hero_image_url: heroImageUrl || null,
+        seo_title: data.get('seo_title') || null,
+        seo_description: data.get('seo_description') || null,
+        is_active: data.get('is_active') === 'on',
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = id
+        ? await adminSupabase
+            .from('regions')
+            .update(payload)
+            .eq('id', id)
+            .select('id, name, slug, card_image_url, hero_image_url')
+            .maybeSingle()
+        : await adminSupabase
+            .from('regions')
+            .insert(payload)
+            .select('id, name, slug, card_image_url, hero_image_url')
+            .maybeSingle();
+
+      if (result.error) {
+        console.error(result.error);
+        return notify(result.error.message, 'error');
+      }
+
+      if (!result.data) {
+        return notify('No se guardó la región. Revisa permisos RLS o vuelve a iniciar sesión.', 'error');
+      }
+
+      notify('Región guardada.', 'success');
+
+      await load();
+
+      const updatedRegion = regions.find((r) => r.id === result.data.id);
+
+      if (updatedRegion) {
+        setForm(updatedRegion);
+      } else {
+        setForm();
+      }
+    });
+
+    window.setTimeout(load, 250);
+  </script>
+</AdminLayout>

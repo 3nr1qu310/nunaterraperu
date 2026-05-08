@@ -1,0 +1,292 @@
+---
+import { site } from '@/lib/site';
+---
+
+<header class="header">
+  <div class="topbar">
+    <div class="container topbar__inner">
+      <span>Viajes con alma por todo el Perú</span>
+      <span>{site.location}</span>
+      <a href={site.whatsappUrl}>{site.whatsapp}</a>
+      <span>ES / EN</span>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="container nav__inner">
+      <a href="/" class="brand" aria-label="Nuna Terra Perú">
+        <img
+          src="/icons/logo.svg"
+          alt="Nuna Terra Perú"
+          width="200"
+          height="80"
+          loading="eager"
+        />
+      </a>
+
+      <button class="nav__toggle" aria-label="Abrir menú" type="button">
+        ☰
+      </button>
+
+      <div class="nav__links">
+        <a href="/">Inicio</a>
+        <a href="/paquetes">Paquetes</a>
+        <a href="/tours">Tours</a>
+
+        <div class="nav__dropdown">
+          <a href="/destinos" class="nav__dropdown-link">
+            Destinos
+            <span class="nav__chevron">⌄</span>
+          </a>
+
+          <div class="mega" aria-label="Destinos principales">
+            <a href="/destinos/costa" class="mega__card">
+              <span class="mega__eyebrow">Región</span>
+              <strong>Costa</strong>
+              <p>Lima, Ica, Paracas y experiencias entre mar, desierto y gastronomía.</p>
+            </a>
+
+            <a href="/destinos/sierra" class="mega__card">
+              <span class="mega__eyebrow">Región</span>
+              <strong>Sierra</strong>
+              <p>Cusco, Machu Picchu, Puno y paisajes andinos llenos de historia.</p>
+            </a>
+
+            <a href="/destinos/selva" class="mega__card">
+              <span class="mega__eyebrow">Región</span>
+              <strong>Selva</strong>
+              <p>Puerto Maldonado, Iquitos y rutas de naturaleza profunda.</p>
+            </a>
+
+            <div class="mega__footer">
+              <span>Explora todos los destinos de Nuna Terra Perú</span>
+              <a href="/destinos">Ver destinos</a>
+            </div>
+          </div>
+        </div>
+
+        <a href="/nosotros">Nosotros</a>
+        <a href="/contacto">Contacto</a>
+      </div>
+
+      <a class="btn btn--primary nav__cta" href="/contacto">
+        Diseñar mi viaje
+      </a>
+    </div>
+  </nav>
+</header>
+
+<style lang="scss">
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .topbar {
+    background: var(--color-earth);
+    color: var(--color-ivory);
+    font-size: .82rem;
+  }
+
+  .topbar__inner {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .topbar a {
+    color: var(--color-ivory);
+    font-weight: 700;
+  }
+
+  .nav {
+    background: rgba(247, 241, 231, .94);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(90, 62, 43, .10);
+  }
+
+  .nav__inner {
+    height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    color: var(--color-earth);
+    flex-shrink: 0;
+  }
+
+  .brand img {
+    width: 160px;
+    height: auto;
+    display: block;
+  }
+
+  .nav__links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    font-weight: 600;
+    font-size: .92rem;
+  }
+
+  .nav__links > a,
+  .nav__dropdown-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 78px;
+    transition: color var(--transition);
+  }
+
+  .nav__links a:hover,
+  .nav__dropdown:hover .nav__dropdown-link,
+  .nav__dropdown:focus-within .nav__dropdown-link {
+    color: var(--color-green);
+  }
+
+  .nav__chevron {
+    font-size: .9rem;
+    transform: translateY(-1px);
+  }
+
+  .nav__dropdown {
+    position: relative;
+  }
+
+  /*
+    Este ::after funciona como puente invisible entre "Destinos" y el mega menú.
+    Así no se cierra cuando mueves el mouse hacia abajo.
+  */
+  .nav__dropdown::after {
+    content: "";
+    position: absolute;
+    left: -28px;
+    right: -28px;
+    top: 58px;
+    height: 34px;
+    display: block;
+  }
+
+  .mega {
+    position: absolute;
+    top: 74px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    width: min(720px, calc(100vw - 36px));
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    padding: 18px;
+    border-radius: 24px;
+    background: var(--color-ivory);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(90, 62, 43, .10);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease, visibility .22s ease;
+  }
+
+  .nav__dropdown:hover .mega,
+  .nav__dropdown:focus-within .mega {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .mega__card {
+    display: grid;
+    gap: 7px;
+    min-height: 150px;
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(247, 241, 231, .72);
+    border: 1px solid rgba(90, 62, 43, .08);
+    transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+  }
+
+  .mega__card:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-sand);
+    box-shadow: 0 16px 34px rgba(37, 37, 37, .10);
+  }
+
+  .mega__eyebrow {
+    color: var(--color-green);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    font-size: .68rem;
+    font-weight: 800;
+  }
+
+  .mega__card strong {
+    color: var(--color-earth);
+    font-family: var(--font-display);
+    font-size: 1.32rem;
+  }
+
+  .mega__card p {
+    margin: 0;
+    color: rgba(37, 37, 37, .72);
+    font-size: .84rem;
+    line-height: 1.5;
+  }
+
+  .mega__footer {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px 2px;
+    border-top: 1px solid rgba(90, 62, 43, .10);
+    color: rgba(37, 37, 37, .68);
+    font-size: .86rem;
+  }
+
+  .mega__footer a {
+    color: var(--color-green);
+    font-weight: 800;
+  }
+
+  .nav__toggle {
+    display: none;
+    background: transparent;
+    border: 0;
+    font-size: 1.5rem;
+    color: var(--color-earth);
+  }
+
+  @media (max-width: 900px) {
+    .topbar {
+      display: none;
+    }
+
+    .nav__inner {
+      height: 72px;
+    }
+
+    .brand img {
+      width: 138px;
+    }
+
+    .nav__links,
+    .nav__cta {
+      display: none;
+    }
+
+    .nav__toggle {
+      display: block;
+    }
+  }
+</style>

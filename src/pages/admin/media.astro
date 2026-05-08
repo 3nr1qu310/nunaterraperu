@@ -1,0 +1,632 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+---
+
+<AdminLayout title="Biblioteca de medios | Admin">
+  <section class="media-page">
+    <div class="media-page__top">
+      <div>
+        <p class="eyebrow">Biblioteca de medios</p>
+        <h1 class="h2">Administrar imágenes</h1>
+        <p class="lead">
+          Sube imágenes una sola vez y reutilízalas en destinos, paquetes, tours y secciones de la web.
+        </p>
+      </div>
+
+      <div class="media-toolbar">
+        <label class="media-search">
+          <span>Buscar</span>
+          <input type="search" id="mediaSearch" placeholder="Buscar por nombre, título o alt..." />
+        </label>
+      </div>
+    </div>
+
+    <section class="media-upload-panel">
+      <div id="dropZone" class="drop-zone">
+        <input id="fileInput" type="file" accept="image/*" multiple hidden />
+        <div class="drop-zone__content">
+          <div class="drop-zone__icon">+</div>
+          <h3>Sube una o varias imágenes</h3>
+          <p>Arrastra archivos aquí o haz clic para seleccionar.</p>
+          <button type="button" class="btn btn--primary" id="uploadTrigger">
+            Seleccionar imágenes
+          </button>
+        </div>
+      </div>
+
+      <div id="uploadStatus" class="upload-status"></div>
+    </section>
+
+    <section class="media-layout">
+      <div class="media-gallery-wrap">
+        <div id="mediaGallery" class="media-gallery"></div>
+        <div id="mediaEmpty" class="media-empty" hidden>
+          <p>No hay imágenes disponibles.</p>
+        </div>
+      </div>
+
+      <aside class="media-sidebar" id="mediaSidebar">
+        <div id="mediaSidebarEmpty" class="media-sidebar__empty">
+          <p>Selecciona una imagen para ver y editar sus datos.</p>
+        </div>
+
+        <div id="mediaSidebarContent" class="media-sidebar__content" hidden>
+          <div class="media-sidebar__preview">
+            <img id="selectedPreview" src="" alt="Vista previa" />
+          </div>
+
+          <div class="media-sidebar__meta">
+            <h3 id="selectedName">Imagen</h3>
+            <p class="admin-muted" id="selectedFileName"></p>
+          </div>
+
+          <form id="mediaMetaForm" class="admin-form">
+            <div class="admin-field">
+              <label>Título</label>
+              <input name="title" id="metaTitle" />
+            </div>
+
+            <div class="admin-field">
+              <label>Alt text</label>
+              <input name="alt_text" id="metaAlt" />
+            </div>
+
+            <div class="admin-field">
+              <label>Caption</label>
+              <textarea name="caption" id="metaCaption"></textarea>
+            </div>
+
+            <div class="admin-field">
+              <label>URL pública</label>
+              <div class="media-url-box">
+                <input id="metaUrl" readonly />
+                <button type="button" class="admin-link" id="copyUrlBtn">Copiar</button>
+              </div>
+            </div>
+
+            <div class="admin-field">
+              <label>Reemplazar imagen</label>
+              <input id="replaceInput" type="file" accept="image/*" />
+              <small class="admin-muted">
+                Sube una nueva imagen para reemplazar visualmente esta. La anterior se desactivará.
+              </small>
+            </div>
+
+            <div class="media-sidebar__actions">
+              <button type="submit" class="btn btn--primary">Guardar cambios</button>
+              <button type="button" class="admin-link" id="deactivateBtn">Desactivar</button>
+            </div>
+          </form>
+        </div>
+      </aside>
+    </section>
+  </section>
+
+  <style>
+    .media-page {
+      display: grid;
+      gap: 24px;
+    }
+
+    .media-page__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .media-toolbar {
+      min-width: 280px;
+    }
+
+    .media-search {
+      display: grid;
+      gap: 8px;
+    }
+
+    .media-search span {
+      font-size: 13px;
+      color: #5A3E2B;
+      font-weight: 600;
+    }
+
+    .media-search input {
+      width: 100%;
+      border: 1px solid rgba(90, 62, 43, .16);
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: #fff;
+    }
+
+    .media-upload-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .drop-zone {
+      border: 1.5px dashed rgba(90, 62, 43, .25);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(247,241,231,.9), rgba(255,255,255,.95));
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: .2s ease;
+      padding: 24px;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.is-dragover {
+      border-color: #D8B982;
+      background: linear-gradient(180deg, rgba(216,185,130,.18), rgba(255,255,255,.98));
+      box-shadow: 0 16px 40px rgba(37,37,37,.08);
+    }
+
+    .drop-zone__content {
+      text-align: center;
+      display: grid;
+      gap: 10px;
+      max-width: 420px;
+    }
+
+    .drop-zone__icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto;
+      font-size: 28px;
+      background: rgba(216,185,130,.22);
+      color: #5A3E2B;
+      font-weight: 700;
+    }
+
+    .drop-zone__content h3 {
+      margin: 0;
+      color: #5A3E2B;
+    }
+
+    .drop-zone__content p {
+      margin: 0;
+      color: rgba(37,37,37,.72);
+    }
+
+    .upload-status {
+      display: grid;
+      gap: 8px;
+    }
+
+    .upload-status__item {
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid rgba(90, 62, 43, .08);
+      font-size: 14px;
+    }
+
+    .media-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .media-gallery-wrap {
+      min-width: 0;
+    }
+
+    .media-gallery {
+      columns: 4 220px;
+      column-gap: 16px;
+    }
+
+    .media-card {
+      width: 100%;
+      break-inside: avoid;
+      margin-bottom: 16px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      display: block;
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .media-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 35px rgba(37,37,37,.14);
+    }
+
+    .media-card.is-active {
+      outline: 3px solid #D8B982;
+      outline-offset: 3px;
+    }
+
+    .media-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 18px;
+      background: #f2ece3;
+    }
+
+    .media-empty {
+      border: 1px dashed rgba(90, 62, 43, .2);
+      border-radius: 18px;
+      padding: 28px;
+      text-align: center;
+      background: rgba(247,241,231,.55);
+      color: rgba(37,37,37,.7);
+    }
+
+    .media-sidebar {
+      position: sticky;
+      top: 24px;
+      border: 1px solid rgba(90, 62, 43, .12);
+      background: #fff;
+      border-radius: 22px;
+      min-height: 480px;
+      overflow: hidden;
+    }
+
+    .media-sidebar__empty {
+      padding: 28px;
+      color: rgba(37,37,37,.7);
+    }
+
+    .media-sidebar__content {
+      display: grid;
+      gap: 18px;
+    }
+
+    .media-sidebar__preview img {
+      width: 100%;
+      display: block;
+      max-height: 260px;
+      object-fit: contain;
+      background: #f6f2eb;
+      border-bottom: 1px solid rgba(90, 62, 43, .08);
+    }
+
+    .media-sidebar__meta {
+      padding: 0 20px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .media-sidebar__meta h3 {
+      margin: 0;
+      color: #5A3E2B;
+    }
+
+    #mediaMetaForm {
+      padding: 0 20px 20px;
+    }
+
+    .media-url-box {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .media-url-box input {
+      min-width: 0;
+    }
+
+    .media-sidebar__actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1080px) {
+      .media-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .media-sidebar {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .media-gallery {
+        columns: 2 150px;
+      }
+    }
+  </style>
+
+  <script>
+    import { listMedia, uploadMedia, updateMediaMeta, deactivateMedia } from '@/lib/media-upload';
+    import { notify } from '@/lib/admin-client';
+
+    const fileInput = document.querySelector('#fileInput');
+    const uploadTrigger = document.querySelector('#uploadTrigger');
+    const dropZone = document.querySelector('#dropZone');
+    const uploadStatus = document.querySelector('#uploadStatus');
+    const mediaSearch = document.querySelector('#mediaSearch');
+    const mediaGallery = document.querySelector('#mediaGallery');
+    const mediaEmpty = document.querySelector('#mediaEmpty');
+
+    const mediaSidebarEmpty = document.querySelector('#mediaSidebarEmpty');
+    const mediaSidebarContent = document.querySelector('#mediaSidebarContent');
+    const selectedPreview = document.querySelector('#selectedPreview');
+    const selectedName = document.querySelector('#selectedName');
+    const selectedFileName = document.querySelector('#selectedFileName');
+
+    const metaForm = document.querySelector('#mediaMetaForm');
+    const metaTitle = document.querySelector('#metaTitle');
+    const metaAlt = document.querySelector('#metaAlt');
+    const metaCaption = document.querySelector('#metaCaption');
+    const metaUrl = document.querySelector('#metaUrl');
+    const copyUrlBtn = document.querySelector('#copyUrlBtn');
+    const deactivateBtn = document.querySelector('#deactivateBtn');
+    const replaceInput = document.querySelector('#replaceInput');
+
+    let mediaItems = [];
+    let selectedMediaId = null;
+
+    function getSelectedMedia() {
+      return mediaItems.find((item) => item.id === selectedMediaId) || null;
+    }
+
+    function showStatus(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = 'upload-status__item';
+      div.textContent = message;
+      div.dataset.type = type;
+      uploadStatus.prepend(div);
+
+      setTimeout(() => {
+        if (div.parentNode) div.parentNode.removeChild(div);
+      }, 5000);
+    }
+
+    async function loadGallery(search = '') {
+      try {
+        mediaItems = await listMedia(search);
+        renderGallery();
+
+        if (mediaItems.length === 0) {
+          mediaEmpty.hidden = false;
+        } else {
+          mediaEmpty.hidden = true;
+        }
+
+        if (selectedMediaId) {
+          const exists = mediaItems.some((item) => item.id === selectedMediaId);
+          if (!exists) {
+            selectedMediaId = null;
+          }
+        }
+
+        renderSidebar();
+      } catch (error) {
+        console.error(error);
+        notify(error.message || 'Error cargando la galería.', 'error');
+      }
+    }
+
+    function renderGallery() {
+      if (!mediaItems.length) {
+        mediaGallery.innerHTML = '';
+        return;
+      }
+
+      mediaGallery.innerHTML = mediaItems.map((item) => `
+        <button
+          type="button"
+          class="media-card ${item.id === selectedMediaId ? 'is-active' : ''}"
+          data-media-id="${item.id}"
+          title="${item.title || item.file_name || 'Imagen'}"
+        >
+          <img
+            src="${item.public_url}"
+            alt="${item.alt_text || item.title || item.file_name || 'Imagen'}"
+            loading="lazy"
+          />
+        </button>
+      `).join('');
+
+      mediaGallery.querySelectorAll('[data-media-id]').forEach((button) => {
+        button.addEventListener('click', () => {
+          selectedMediaId = button.dataset.mediaId;
+          renderGallery();
+          renderSidebar();
+        });
+      });
+    }
+
+    function renderSidebar() {
+      const selected = getSelectedMedia();
+
+      if (!selected) {
+        mediaSidebarEmpty.hidden = false;
+        mediaSidebarContent.hidden = true;
+        return;
+      }
+
+      mediaSidebarEmpty.hidden = true;
+      mediaSidebarContent.hidden = false;
+
+      selectedPreview.src = selected.public_url;
+      selectedPreview.alt = selected.alt_text || selected.title || selected.file_name || 'Imagen';
+      selectedName.textContent = selected.title || 'Imagen sin título';
+      selectedFileName.textContent = selected.file_name || '';
+      metaTitle.value = selected.title || '';
+      metaAlt.value = selected.alt_text || '';
+      metaCaption.value = selected.caption || '';
+      metaUrl.value = selected.public_url || '';
+      replaceInput.value = '';
+    }
+
+    async function handleFiles(files) {
+      const validFiles = [...files].filter((file) => file.type.startsWith('image/'));
+
+      if (!validFiles.length) {
+        notify('Selecciona imágenes válidas.', 'error');
+        return;
+      }
+
+      for (const file of validFiles) {
+        try {
+          showStatus(`Subiendo: ${file.name}`);
+          const created = await uploadMedia(file);
+          showStatus(`Subida completada: ${file.name}`, 'success');
+
+          if (!selectedMediaId) {
+            selectedMediaId = created.id;
+          }
+        } catch (error) {
+          console.error(error);
+          showStatus(`Error al subir ${file.name}: ${error.message}`, 'error');
+        }
+      }
+
+      await loadGallery(mediaSearch.value || '');
+    }
+
+    uploadTrigger?.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    dropZone?.addEventListener('click', (event) => {
+      if (event.target.closest('button')) return;
+      fileInput.click();
+    });
+
+    fileInput?.addEventListener('change', async (event) => {
+      const files = event.target.files;
+      if (files?.length) {
+        await handleFiles(files);
+        fileInput.value = '';
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      dropZone?.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.classList.add('is-dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+      dropZone?.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.classList.remove('is-dragover');
+      });
+    });
+
+    dropZone?.addEventListener('drop', async (event) => {
+      const files = event.dataTransfer?.files;
+      if (files?.length) {
+        await handleFiles(files);
+      }
+    });
+
+    let searchTimeout;
+
+    mediaSearch?.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        loadGallery(mediaSearch.value || '');
+      }, 300);
+    });
+
+    metaForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const selected = getSelectedMedia();
+      if (!selected) {
+        notify('Selecciona una imagen.', 'error');
+        return;
+      }
+
+      try {
+        await updateMediaMeta(selected.id, {
+          title: metaTitle.value || '',
+          alt_text: metaAlt.value || '',
+          caption: metaCaption.value || '',
+        });
+
+        notify('Datos de imagen actualizados.', 'success');
+        await loadGallery(mediaSearch.value || '');
+        selectedMediaId = selected.id;
+        renderSidebar();
+      } catch (error) {
+        console.error(error);
+        notify(error.message || 'No se pudo actualizar la imagen.', 'error');
+      }
+    });
+
+    copyUrlBtn?.addEventListener('click', async () => {
+      if (!metaUrl.value) return;
+
+      try {
+        await navigator.clipboard.writeText(metaUrl.value);
+        notify('URL copiada.', 'success');
+      } catch (error) {
+        notify('No se pudo copiar la URL.', 'error');
+      }
+    });
+
+    deactivateBtn?.addEventListener('click', async () => {
+      const selected = getSelectedMedia();
+      if (!selected) return;
+
+      const confirmDeactivate = window.confirm('¿Deseas desactivar esta imagen?');
+      if (!confirmDeactivate) return;
+
+      try {
+        await deactivateMedia(selected.id);
+        notify('Imagen desactivada.', 'success');
+        selectedMediaId = null;
+        await loadGallery(mediaSearch.value || '');
+      } catch (error) {
+        console.error(error);
+        notify(error.message || 'No se pudo desactivar la imagen.', 'error');
+      }
+    });
+
+    replaceInput?.addEventListener('change', async (event) => {
+      const selected = getSelectedMedia();
+      const file = event.target.files?.[0];
+
+      if (!selected || !file) return;
+
+      const confirmReplace = window.confirm(
+        'Se subirá una nueva imagen y la actual se desactivará. ¿Deseas continuar?'
+      );
+
+      if (!confirmReplace) {
+        replaceInput.value = '';
+        return;
+      }
+
+      try {
+        const newMedia = await uploadMedia(file);
+        await deactivateMedia(selected.id);
+
+        notify('Imagen reemplazada correctamente.', 'success');
+        selectedMediaId = newMedia.id;
+        await loadGallery(mediaSearch.value || '');
+      } catch (error) {
+        console.error(error);
+        notify(error.message || 'No se pudo reemplazar la imagen.', 'error');
+      } finally {
+        replaceInput.value = '';
+      }
+    });
+
+    loadGallery();
+  </script>
+</AdminLayout>

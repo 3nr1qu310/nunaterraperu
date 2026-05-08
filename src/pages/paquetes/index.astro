@@ -1,0 +1,13 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import { getPackages } from '@/lib/content';
+const packages = await getPackages();
+---
+<BaseLayout title="Paquetes turísticos por Perú | Nuna Terra Perú">
+  <Hero eyebrow="Paquetes turísticos por Perú" title="Paquetes turísticos por Perú" subtitle="Experiencias de varios días diseñadas para descubrir la costa, sierra y selva del Perú con organización, acompañamiento y sentido." image="/images/packages-hero.jpg" primaryText="Ver paquetes destacados" primaryHref="#catalogo" secondaryText="Diseñar mi viaje" secondaryHref="/contacto" />
+  <section class="section" id="catalogo"><div class="container"><SectionHeading title="Elige tu próxima experiencia" subtitle="Filtra por región, duración o estilo de viaje. Estos paquetes se cargan desde Supabase; si la base aún está vacía se muestran datos de ejemplo." /><div class="filters"><button>Todos</button><button>Costa</button><button>Sierra</button><button>Selva</button><button>Familiar</button><button>Premium</button></div><div class="grid grid--3">{packages.map((product) => <ProductCard product={product} />)}</div></div></section>
+</BaseLayout>
+<style lang="scss">.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}.filters button{border:1px solid rgba(90,62,43,.18);background:rgba(255,255,255,.45);border-radius:999px;padding:10px 16px;color:var(--color-earth);font-weight:700}.filters button:first-child{background:var(--color-green);color:var(--color-ivory)}</style>

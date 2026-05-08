@@ -1,0 +1,36 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import DestinationCard from '@/components/cards/DestinationCard.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import { getRegionBySlug, getDestinationBySlug, getDestinations, getProductsByRegion, getProductsByDestinationName } from '@/lib/content';
+
+const slug = Astro.params.slug || '';
+const region = await getRegionBySlug(slug);
+const destination = region ? null : await getDestinationBySlug(slug);
+if (!region && !destination) return Astro.redirect('/destinos');
+const isRegion = Boolean(region);
+const data = region || destination;
+const regionDestinations = isRegion ? (await getDestinations()).filter((d) => d.region === region!.slug) : [];
+const regionProducts = isRegion ? await getProductsByRegion(region!.slug) : [];
+const relatedProducts = !isRegion ? await getProductsByDestinationName(destination!.name) : [];
+---
+<BaseLayout title={`${data.name} | Nuna Terra Perú`}>
+  {isRegion ? (
+    <>
+      <Hero eyebrow="Destinos del Perú" title={`${data.name} del Perú`} subtitle={data.headline} image={data.heroImage} primaryText="Explorar destinos" primaryHref="#destinos" secondaryText="Diseñar mi viaje" secondaryHref="/contacto" />
+      <section class="section"><div class="container"><SectionHeading title={`Descubre la ${data.name.toLowerCase()} del Perú`} subtitle={data.description} /></div></section>
+      <section class="section" id="destinos"><div class="container"><SectionHeading title="Destinos de esta región" /><div class="grid grid--3">{regionDestinations.map((destination)=><DestinationCard destination={destination}/>)}</div></div></section>
+      <section class="section"><div class="container"><SectionHeading title="Experiencias relacionadas" subtitle="Paquetes y tours conectados con esta región." /><div class="grid grid--3">{regionProducts.map((product)=><ProductCard product={product}/>)}</div></div></section>
+    </>
+  ) : (
+    <>
+      <Hero eyebrow={`Destino en la ${data.region} del Perú`} title={data.name} subtitle={data.subtitle} image={data.heroImage} primaryText={`Ver experiencias en ${data.name}`} primaryHref="#experiencias" secondaryText="Diseñar mi viaje" secondaryHref="/contacto" />
+      <section class="section"><div class="container info-grid"><div><SectionHeading title={`Descubre ${data.name}`} subtitle={data.description} /><p class="lead">Cada destino tiene una historia. En Nuna Terra Perú lo convertimos en una experiencia organizada, clara y memorable.</p></div><div class="quick-card"><h3>Información útil</h3><p><b>Región:</b> {data.region}</p>{data.altitude && <p><b>Altitud:</b> {data.altitude}</p>}{data.bestTime && <p><b>Mejor época:</b> {data.bestTime}</p>}{data.recommendedDays && <p><b>Duración sugerida:</b> {data.recommendedDays}</p>}</div></div></section>
+      <section class="section" id="experiencias"><div class="container"><SectionHeading title={`Experiencias en ${data.name}`} /><div class="grid grid--3">{relatedProducts.map((product)=><ProductCard product={product}/>)}</div></div></section>
+      <section class="section"><div class="container"><SectionHeading title={`Preguntas frecuentes sobre ${data.name}`} /><details><summary>¿Cuántos días se recomienda?</summary><p>Depende de la ruta, pero podemos adaptar la experiencia a tus fechas e intereses.</p></details><details><summary>¿Puedo incluir este destino en una ruta personalizada?</summary><p>Sí. Diseñamos rutas a medida por costa, sierra y selva.</p></details></div></section>
+    </>
+  )}
+</BaseLayout>
+<style lang="scss">.info-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:32px}.quick-card{background:white;border-radius:var(--radius-md);padding:28px;border:1px solid rgba(90,62,43,.12);box-shadow:var(--shadow-soft)}.quick-card h3{font-family:var(--font-display);color:var(--color-earth);font-size:2rem;margin:0 0 12px}details{background:white;border:1px solid rgba(90,62,43,.12);padding:18px 20px;border-radius:16px;margin:12px 0}summary{font-weight:700;color:var(--color-earth);cursor:pointer}@media(max-width:800px){.info-grid{grid-template-columns:1fr}}</style>

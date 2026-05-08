@@ -1,0 +1,19 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import { getProductBySlug, getTours } from '@/lib/content';
+
+const slug = Astro.params.slug || '';
+const product = await getProductBySlug(slug, 'tour');
+if (!product) return Astro.redirect('/tours');
+const allTours = await getTours();
+const related = allTours.filter((p) => p.slug !== product.slug).slice(0, 3);
+---
+<BaseLayout title={`${product.title} | Nuna Terra Perú`}>
+  <Hero eyebrow="Tour y experiencia" title={product.title} subtitle={product.subtitle} image={product.heroImage} primaryText="Solicitar cotización" primaryHref="/contacto" secondaryText="Hablar por WhatsApp" secondaryHref="/contacto" />
+  <section class="section"><div class="container detail-layout"><div><div class="summary-grid"><div><b>Duración</b><span>{product.durationText}</span></div><div><b>Salida</b><span>{product.destinations[0]}</span></div><div><b>Servicio</b><span>{product.serviceType || 'Privado o compartido'}</span></div><div><b>Dificultad</b><span>{product.difficulty || 'Según ruta'}</span></div></div><SectionHeading title={`Una experiencia para vivir ${product.destinations[0]} en menos tiempo`} subtitle={product.description} /><section class="section--tight"><h2 class="h2 small">Recorrido del tour</h2><div class="timeline"><details open><summary>Inicio del tour</summary><p>Recojo o punto de encuentro según coordinación.</p></details><details open><summary>Recorrido principal</summary><p>Visitas y actividades indicadas en el programa.</p></details><details open><summary>Retorno</summary><p>Llegada aproximada al punto final del servicio.</p></details></div></section><section class="section--tight"><h2 class="h2 small">Qué incluye este tour</h2><div class="two-cols"><div class="list-card"><h3>Incluye</h3><p>✓ Transporte turístico</p><p>✓ Asistencia durante el recorrido</p><p>✓ Servicios indicados</p></div><div class="list-card"><h3>No incluye</h3><p>— Alimentación no mencionada</p><p>— Gastos personales</p><p>— Servicios no especificados</p></div></div></section></div><aside class="quote-card"><span>Desde</span><strong>{product.currency} {product.priceFrom}</strong><p>{product.durationText}</p><a class="btn btn--primary" href="/contacto">Solicitar cotización</a><a class="btn btn--outline-dark" href="/contacto">WhatsApp</a></aside></div></section>
+  {related.length > 0 && <section class="section"><div class="container"><SectionHeading title="También podrías vivir estas experiencias" /><div class="grid grid--3">{related.map((item)=><ProductCard product={item}/>)}</div></div></section>}
+</BaseLayout>
+<style lang="scss">.detail-layout{display:grid;grid-template-columns:1fr 330px;gap:34px;align-items:start}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:42px}.summary-grid div,.list-card,.quote-card{background:white;border:1px solid rgba(90,62,43,.12);border-radius:var(--radius-md);padding:20px;box-shadow:0 10px 32px rgba(37,37,37,.06)}.summary-grid b{display:block;color:var(--color-earth)}.small{font-size:2.4rem;margin-bottom:20px}.timeline{border-left:2px solid var(--color-sand);padding-left:22px}.timeline details{background:white;border-radius:18px;margin:14px 0;padding:18px;border:1px solid rgba(90,62,43,.12)}.timeline summary{cursor:pointer;font-weight:800;color:var(--color-earth)}.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}.quote-card{position:sticky;top:130px}.quote-card strong{display:block;font-family:var(--font-display);font-size:3rem;color:var(--color-earth);line-height:1}.quote-card .btn{width:100%;margin-top:12px}@media(max-width:900px){.detail-layout,.two-cols{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.quote-card{position:static}}</style>

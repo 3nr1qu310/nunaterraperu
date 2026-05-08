@@ -1,0 +1,537 @@
+---
+const {
+  fieldName = 'gallery_text',
+  label = 'Galería',
+  helperText = 'Selecciona varias imágenes desde la biblioteca.',
+  initialValue = '',
+} = Astro.props;
+
+const pickerId = `media-gallery-picker-${fieldName}`;
+---
+
+<div class="admin-field media-gallery-picker" data-media-gallery-picker={fieldName}>
+  <label>{label}</label>
+
+  <textarea
+    name={fieldName}
+    data-gallery-input={fieldName}
+    hidden
+  >{initialValue}</textarea>
+
+  <div class="gallery-selected" data-gallery-selected={fieldName}>
+    <p class="admin-muted">Sin imágenes seleccionadas.</p>
+  </div>
+
+  <div class="media-picker-actions">
+    <button type="button" class="admin-link" data-open-gallery={fieldName}>
+      Seleccionar imágenes
+    </button>
+
+    <button type="button" class="admin-link" data-clear-gallery={fieldName}>
+      Limpiar galería
+    </button>
+  </div>
+
+  {helperText && <small class="admin-muted">{helperText}</small>}
+</div>
+
+<dialog id={pickerId} class="gallery-selector-dialog" data-gallery-dialog={fieldName}>
+  <div class="gallery-selector">
+    <div class="gallery-selector__header">
+      <div>
+        <h3>Seleccionar imágenes</h3>
+        <p class="admin-muted">Haz clic en las imágenes para agregarlas o quitarlas de la galería.</p>
+      </div>
+
+      <button type="button" class="admin-link" data-close-gallery={fieldName}>
+        Cerrar
+      </button>
+    </div>
+
+    <div class="gallery-selector__toolbar">
+      <input
+        type="search"
+        placeholder="Buscar por nombre, título o alt text..."
+        data-gallery-search={fieldName}
+      />
+
+      <button type="button" class="btn btn--primary" data-apply-gallery={fieldName}>
+        Usar selección
+      </button>
+    </div>
+
+    <div class="gallery-selector__body">
+      <div class="gallery-selector__grid" data-gallery-grid={fieldName}>
+        <p class="admin-muted">Cargando imágenes...</p>
+      </div>
+
+      <aside class="gallery-selector__side" data-gallery-side={fieldName}>
+        <p class="admin-muted">Selecciona imágenes para la galería.</p>
+      </aside>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .gallery-selected {
+    min-height: 120px;
+    border: 1px dashed rgba(90, 62, 43, .25);
+    border-radius: 18px;
+    background: rgba(247, 241, 231, .65);
+    padding: 12px;
+  }
+
+  .gallery-selected-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 10px;
+  }
+
+  .gallery-selected-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f3eee5;
+  }
+
+  .gallery-selected-card img {
+    width: 100%;
+    height: 86px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .gallery-selected-card span {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(37,37,37,.68);
+    color: white;
+    font-size: 11px;
+    border-radius: 999px;
+    padding: 2px 7px;
+  }
+
+  .gallery-selector-dialog {
+    width: min(1180px, calc(100vw - 28px));
+    border: 0;
+    border-radius: 24px;
+    padding: 0;
+    background: #F7F1E7;
+    color: #252525;
+    box-shadow: 0 30px 90px rgba(0,0,0,.28);
+  }
+
+  .gallery-selector-dialog::backdrop {
+    background: rgba(37,37,37,.58);
+    backdrop-filter: blur(3px);
+  }
+
+  .gallery-selector {
+    display: grid;
+    max-height: min(780px, calc(100vh - 32px));
+  }
+
+  .gallery-selector__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px;
+    border-bottom: 1px solid rgba(90, 62, 43, .12);
+  }
+
+  .gallery-selector__header h3 {
+    margin: 0;
+    color: #5A3E2B;
+  }
+
+  .gallery-selector__toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 16px 22px;
+    border-bottom: 1px solid rgba(90, 62, 43, .08);
+  }
+
+  .gallery-selector__toolbar input {
+    width: 100%;
+    border: 1px solid rgba(90, 62, 43, .16);
+    border-radius: 999px;
+    padding: 12px 16px;
+    background: #fff;
+  }
+
+  .gallery-selector__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 18px;
+    padding: 0 22px 22px;
+    overflow: hidden;
+  }
+
+  .gallery-selector__grid {
+    columns: 4 150px;
+    column-gap: 12px;
+    overflow: auto;
+    max-height: 560px;
+    padding-top: 18px;
+  }
+
+  .gallery-card {
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 16px;
+    overflow: hidden;
+    display: block;
+    transition: .2s ease;
+    position: relative;
+  }
+
+  .gallery-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(37,37,37,.16);
+  }
+
+  .gallery-card.is-selected {
+    outline: 3px solid #D8B982;
+    outline-offset: 3px;
+  }
+
+  .gallery-card.is-selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: #2F5D50;
+    color: #F7F1E7;
+    font-weight: 800;
+  }
+
+  .gallery-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 16px;
+    background: #f2ece3;
+  }
+
+  .gallery-selector__side {
+    border-left: 1px solid rgba(90, 62, 43, .12);
+    padding: 18px 0 0 18px;
+    overflow: auto;
+    max-height: 560px;
+  }
+
+  .gallery-side-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .gallery-side-item {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .gallery-side-item img {
+    width: 58px;
+    height: 46px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .gallery-side-item p {
+    margin: 0;
+    font-size: 12px;
+    color: #5A3E2B;
+  }
+
+  @media (max-width: 860px) {
+    .gallery-selector__body {
+      grid-template-columns: 1fr;
+    }
+
+    .gallery-selector__side {
+      border-left: 0;
+      border-top: 1px solid rgba(90, 62, 43, .12);
+      padding: 18px 0 0;
+    }
+
+    .gallery-selector__toolbar {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  import { adminSupabase } from '@/lib/admin-client';
+
+  if (!window.__nunaMediaGalleryPickerInitialized) {
+    window.__nunaMediaGalleryPickerInitialized = true;
+
+    const galleryState = new Map();
+
+    function getParts(fieldName) {
+      return {
+        input: document.querySelector(`[data-gallery-input="${fieldName}"]`),
+        selected: document.querySelector(`[data-gallery-selected="${fieldName}"]`),
+        dialog: document.querySelector(`[data-gallery-dialog="${fieldName}"]`),
+        grid: document.querySelector(`[data-gallery-grid="${fieldName}"]`),
+        side: document.querySelector(`[data-gallery-side="${fieldName}"]`),
+        search: document.querySelector(`[data-gallery-search="${fieldName}"]`),
+      };
+    }
+
+    function parseGalleryText(value = '') {
+      return value
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const [url, alt = '', caption = ''] = line.split('|').map((item) => item.trim());
+          return { public_url: url, alt_text: alt, caption, title: alt || caption || 'Imagen' };
+        })
+        .filter((item) => item.public_url);
+    }
+
+    function toGalleryText(items = []) {
+      return items
+        .map((item) => `${item.public_url} | ${item.alt_text || item.title || ''} | ${item.caption || ''}`)
+        .join('\n');
+    }
+
+    function setSelected(fieldName, items = []) {
+      const { input, selected } = getParts(fieldName);
+
+      if (!input || !selected) return;
+
+      input.value = toGalleryText(items);
+      input.textContent = toGalleryText(items);
+
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+
+      selected.innerHTML = items.length
+        ? `
+          <div class="gallery-selected-grid">
+            ${items.map((item, index) => `
+              <div class="gallery-selected-card">
+                <img src="${item.public_url}" alt="${item.alt_text || item.title || 'Imagen'}" />
+                <span>${index + 1}</span>
+              </div>
+            `).join('')}
+          </div>
+        `
+        : '<p class="admin-muted">Sin imágenes seleccionadas.</p>';
+
+      galleryState.set(fieldName, {
+        ...(galleryState.get(fieldName) || {}),
+        selectedItems: items,
+      });
+    }
+
+    async function fetchMedia(search = '') {
+      let query = adminSupabase
+        .from('media')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      const cleanSearch = search.trim();
+
+      if (cleanSearch) {
+        query = query.or(
+          `title.ilike.%${cleanSearch}%,file_name.ilike.%${cleanSearch}%,alt_text.ilike.%${cleanSearch}%`
+        );
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return data || [];
+    }
+
+    function renderSide(fieldName) {
+      const { side } = getParts(fieldName);
+      const state = galleryState.get(fieldName) || {};
+      const selectedItems = state.selectedItems || [];
+
+      if (!side) return;
+
+      if (!selectedItems.length) {
+        side.innerHTML = '<p class="admin-muted">Selecciona imágenes para la galería.</p>';
+        return;
+      }
+
+      side.innerHTML = `
+        <div>
+          <h4 style="margin:0 0 12px;color:#5A3E2B">${selectedItems.length} imagen(es) seleccionada(s)</h4>
+          <div class="gallery-side-list">
+            ${selectedItems.map((item, index) => `
+              <div class="gallery-side-item">
+                <img src="${item.public_url}" alt="${item.alt_text || item.title || 'Imagen'}" />
+                <p>${index + 1}. ${item.title || item.file_name || item.alt_text || 'Imagen'}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGrid(fieldName, items) {
+      const { grid } = getParts(fieldName);
+      const state = galleryState.get(fieldName) || {};
+      const selectedItems = state.selectedItems || [];
+      const selectedUrls = new Set(selectedItems.map((item) => item.public_url));
+
+      if (!grid) return;
+
+      if (!items.length) {
+        grid.innerHTML = '<p class="admin-muted">No hay imágenes en la biblioteca.</p>';
+        renderSide(fieldName);
+        return;
+      }
+
+      grid.innerHTML = items.map((item) => `
+        <button
+          type="button"
+          class="gallery-card ${selectedUrls.has(item.public_url) ? 'is-selected' : ''}"
+          data-gallery-item="${item.id}"
+        >
+          <img
+            src="${item.public_url}"
+            alt="${item.alt_text || item.title || item.file_name || 'Imagen'}"
+            loading="lazy"
+          />
+        </button>
+      `).join('');
+
+      grid.querySelectorAll('[data-gallery-item]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const item = items.find((media) => media.id === button.dataset.galleryItem);
+          if (!item) return;
+
+          const currentState = galleryState.get(fieldName) || {};
+          const currentSelected = currentState.selectedItems || [];
+          const exists = currentSelected.some((selected) => selected.public_url === item.public_url);
+
+          const nextSelected = exists
+            ? currentSelected.filter((selected) => selected.public_url !== item.public_url)
+            : [...currentSelected, item];
+
+          galleryState.set(fieldName, {
+            ...currentState,
+            items,
+            selectedItems: nextSelected,
+          });
+
+          renderGrid(fieldName, items);
+          renderSide(fieldName);
+        });
+      });
+    }
+
+    async function loadGallery(fieldName, search = '') {
+      const { grid } = getParts(fieldName);
+
+      if (!grid) return;
+
+      grid.innerHTML = '<p class="admin-muted">Cargando imágenes...</p>';
+
+      try {
+        const items = await fetchMedia(search);
+        const currentState = galleryState.get(fieldName) || {};
+
+        galleryState.set(fieldName, {
+          ...currentState,
+          items,
+        });
+
+        renderGrid(fieldName, items);
+        renderSide(fieldName);
+      } catch (error) {
+        console.error(error);
+        grid.innerHTML = `<p class="admin-muted">${error.message || 'No se pudieron cargar las imágenes.'}</p>`;
+      }
+    }
+
+    document.addEventListener('click', async (event) => {
+      const openBtn = event.target.closest('[data-open-gallery]');
+      const closeBtn = event.target.closest('[data-close-gallery]');
+      const clearBtn = event.target.closest('[data-clear-gallery]');
+      const applyBtn = event.target.closest('[data-apply-gallery]');
+
+      if (openBtn) {
+        const fieldName = openBtn.dataset.openGallery;
+        const { dialog, input, search } = getParts(fieldName);
+
+        const selectedItems = parseGalleryText(input?.value || input?.textContent || '');
+
+        galleryState.set(fieldName, {
+          selectedItems,
+        });
+
+        if (search) search.value = '';
+        dialog?.showModal();
+
+        await loadGallery(fieldName);
+      }
+
+      if (closeBtn) {
+        getParts(closeBtn.dataset.closeGallery).dialog?.close();
+      }
+
+      if (clearBtn) {
+        const fieldName = clearBtn.dataset.clearGallery;
+        setSelected(fieldName, []);
+      }
+
+      if (applyBtn) {
+        const fieldName = applyBtn.dataset.applyGallery;
+        const selectedItems = galleryState.get(fieldName)?.selectedItems || [];
+
+        setSelected(fieldName, selectedItems);
+        getParts(fieldName).dialog?.close();
+      }
+    });
+
+    document.addEventListener('input', (event) => {
+      const search = event.target.closest('[data-gallery-search]');
+      if (!search) return;
+
+      const fieldName = search.dataset.gallerySearch;
+
+      clearTimeout(search.__timeout);
+      search.__timeout = setTimeout(() => {
+        loadGallery(fieldName, search.value || '');
+      }, 250);
+    });
+
+    document.addEventListener('gallery-picker:update', (event) => {
+      const fields = event.detail?.fields || {};
+
+      Object.entries(fields).forEach(([fieldName, value]) => {
+        setSelected(fieldName, parseGalleryText(value || ''));
+      });
+    });
+
+    document.querySelectorAll('[data-media-gallery-picker]').forEach((picker) => {
+      const fieldName = picker.dataset.mediaGalleryPicker;
+      const { input } = getParts(fieldName);
+
+      setSelected(fieldName, parseGalleryText(input?.value || input?.textContent || ''));
+    });
+  }
+</script>

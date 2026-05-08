@@ -1,0 +1,12 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+---
+<BaseLayout title="Nosotros | Nuna Terra Perú">
+  <Hero eyebrow="Sobre Nuna Terra Perú" title="Viajes con alma por todo el Perú" subtitle="En Nuna Terra Perú diseñamos experiencias que conectan cultura, naturaleza y territorio, acompañando a cada viajero antes, durante y después de su recorrido." image="/images/about-hero.jpg" primaryText="Diseñar mi viaje" primaryHref="/contacto" secondaryText="Explorar paquetes" secondaryHref="/paquetes" />
+  <section class="section"><div class="container two"><div><SectionHeading title="Nuestra esencia" subtitle="Nuna Terra Perú nace con la idea de mostrar el país desde una mirada más profunda, cercana y auténtica." /><p>Creemos que viajar por el Perú no es solo visitar destinos, sino conectar con su historia, sus paisajes, su cultura viva y las personas que dan sentido a cada experiencia.</p><p><b>Nuna</b> se asocia al alma o esencia, y <b>Terra</b> representa la tierra, el territorio y los caminos que recorren la costa, sierra y selva.</p></div><img src="/images/about-essence.jpg" alt="Cultura peruana" /></div></section>
+  <section class="section"><div class="container"><SectionHeading title="Diseñamos experiencias de viaje por Perú" centered /><div class="grid grid--4">{['Paquetes turísticos','Tours','Viajes a medida','Asesoría antes del viaje'].map((item)=><div class="card" style="padding:24px"><h3 class="h3" style="font-size:1.5rem">{item}</h3><p>Organización clara, atención personalizada y experiencias con sentido.</p></div>)}</div></div></section>
+  <section class="section dark"><div class="container"><SectionHeading title="Nuestro compromiso" subtitle="Brindar información clara, orientación personalizada y experiencias organizadas con responsabilidad." /><a class="btn btn--gold" href="/contacto">Diseñar mi viaje</a></div></section>
+</BaseLayout>
+<style lang="scss">.two{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}.two img{border-radius:var(--radius-lg);box-shadow:var(--shadow-soft)}.dark{background:var(--color-earth);color:var(--color-ivory)}.dark .h2,.dark .lead{color:var(--color-ivory)}@media(max-width:800px){.two{grid-template-columns:1fr}}</style>

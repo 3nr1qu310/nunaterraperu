@@ -1,0 +1,379 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+import MediaPicker from '@/components/admin/MediaPicker.astro';
+---
+
+<AdminLayout title="Destinos | Admin">
+  <p class="eyebrow">Destinos</p>
+  <h1 class="h2">Administrar destinos</h1>
+  <p class="lead">Crea y edita ciudades o zonas turísticas como Cusco, Lima, Ica, Puno o Amazonía.</p>
+
+  <section class="admin-panel" style="margin-top:26px">
+    <h2 class="h3" id="formTitle">Nuevo destino</h2>
+
+    <form id="destinationForm" class="admin-form">
+      <input type="hidden" name="id" />
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Nombre</label>
+          <input name="name" required />
+        </div>
+
+        <div class="admin-field">
+          <label>Slug</label>
+          <input name="slug" required />
+        </div>
+
+        <div class="admin-field">
+          <label>Región</label>
+          <select name="region_id" id="regionSelect">
+            <option value="">Seleccionar</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Subtítulo</label>
+          <input name="subtitle" />
+        </div>
+
+        <div class="admin-field">
+          <label>Descripción corta</label>
+          <input name="short_description" />
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>Descripción larga</label>
+        <textarea name="description"></textarea>
+      </div>
+
+      <div class="admin-form-grid">
+        <MediaPicker
+          fieldName="card_image_url"
+          label="Imagen card"
+          helperText="Imagen que se mostrará en las tarjetas de destinos."
+        />
+
+        <MediaPicker
+          fieldName="hero_image_url"
+          label="Imagen hero"
+          helperText="Imagen principal para la página individual del destino."
+        />
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Altitud</label>
+          <input name="altitude" placeholder="3,399 m s. n. m." />
+        </div>
+
+        <div class="admin-field">
+          <label>Mejor época</label>
+          <input name="best_time_to_visit" placeholder="Abril a octubre" />
+        </div>
+
+        <div class="admin-field">
+          <label>Días recomendados</label>
+          <input name="recommended_days" placeholder="4 a 6 días" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Ideal para (coma)</label>
+          <input name="ideal_for" placeholder="Cultura, historia, aventura" />
+        </div>
+
+        <div class="admin-field">
+          <label>Orden</label>
+          <input name="sort_order" type="number" value="0" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>SEO title</label>
+          <input name="seo_title" />
+        </div>
+
+        <div class="admin-field">
+          <label>SEO description</label>
+          <input name="seo_description" />
+        </div>
+      </div>
+
+      <label class="check-item">
+        <input name="is_active" type="checkbox" checked />
+        Activo
+      </label>
+
+      <div class="admin-actions" style="justify-content:flex-start">
+        <button class="btn btn--primary" type="submit">Guardar destino</button>
+        <button class="admin-link" type="button" id="resetForm">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="admin-panel admin-table-wrap" style="margin-top:26px">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Destino</th>
+          <th>Región</th>
+          <th>Estado</th>
+          <th>Orden</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody id="rows">
+        <tr>
+          <td colspan="5">Cargando...</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    import { adminSupabase, notify, slugify, csv, toNumber } from '@/lib/admin-client';
+
+    const form = document.querySelector('#destinationForm');
+    const rows = document.querySelector('#rows');
+
+    let destinations = [];
+    let regions = [];
+
+    function getImageValue(fieldName) {
+      return form.querySelector(`input[name="${fieldName}"]`)?.value || '';
+    }
+
+    function setImageValue(fieldName, value = '') {
+      const input = form.querySelector(`input[name="${fieldName}"]`);
+
+      if (input) {
+        input.value = value || '';
+        input.setAttribute('value', value || '');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+
+    function setForm(dest = {}) {
+      form.elements.id.value = dest.id || '';
+      form.elements.name.value = dest.name || '';
+      form.elements.slug.value = dest.slug || '';
+      form.elements.region_id.value = dest.region_id || '';
+      form.elements.subtitle.value = dest.subtitle || '';
+      form.elements.short_description.value = dest.short_description || '';
+      form.elements.description.value = dest.description || '';
+
+      setImageValue('card_image_url', dest.card_image_url || '');
+      setImageValue('hero_image_url', dest.hero_image_url || '');
+
+      document.dispatchEvent(new CustomEvent('media-picker:update', {
+        detail: {
+          fields: {
+            card_image_url: dest.card_image_url || '',
+            hero_image_url: dest.hero_image_url || '',
+          },
+        },
+      }));
+
+      form.elements.altitude.value = dest.altitude || '';
+      form.elements.best_time_to_visit.value = dest.best_time_to_visit || '';
+      form.elements.recommended_days.value = dest.recommended_days || '';
+      form.elements.ideal_for.value = (dest.ideal_for || []).join(', ');
+      form.elements.sort_order.value = dest.sort_order ?? 0;
+      form.elements.seo_title.value = dest.seo_title || '';
+      form.elements.seo_description.value = dest.seo_description || '';
+      form.elements.is_active.checked = dest.is_active ?? true;
+
+      document.querySelector('#formTitle').textContent = dest.id ? 'Editar destino' : 'Nuevo destino';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function render() {
+      rows.innerHTML = destinations.length
+        ? destinations.map((d) => `
+          <tr>
+            <td>
+              <strong>${d.name}</strong><br/>
+              <span class="admin-muted">/${d.slug}</span>
+              ${d.card_image_url ? `
+                <div style="margin-top:8px">
+                  <img
+                    src="${d.card_image_url}"
+                    alt="${d.name}"
+                    style="width:82px;height:54px;object-fit:cover;border-radius:10px"
+                  />
+                </div>
+              ` : ''}
+            </td>
+
+            <td>${d.regions?.name || '—'}</td>
+
+            <td>
+              ${d.is_active
+                ? '<span class="admin-pill">Activo</span>'
+                : '<span class="admin-pill admin-pill--draft">Inactivo</span>'}
+            </td>
+
+            <td>${d.sort_order || 0}</td>
+
+            <td>
+              <div class="admin-row-actions">
+                <button class="admin-link" data-edit="${d.id}">Editar</button>
+                <button class="admin-link" data-toggle="${d.id}">
+                  ${d.is_active ? 'Desactivar' : 'Activar'}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('')
+        : '<tr><td colspan="5">No hay destinos.</td></tr>';
+
+      document.querySelectorAll('[data-edit]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const destination = destinations.find((d) => d.id === btn.dataset.edit);
+          setForm(destination);
+        });
+      });
+
+      document.querySelectorAll('[data-toggle]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const d = destinations.find((item) => item.id === btn.dataset.toggle);
+
+          if (!d) return;
+
+          const { error } = await adminSupabase
+            .from('destinations')
+            .update({ is_active: !d.is_active })
+            .eq('id', d.id);
+
+          if (error) return notify(error.message, 'error');
+
+          notify('Destino actualizado.', 'success');
+          load();
+        });
+      });
+    }
+
+    async function load() {
+      const [regionRes, destRes] = await Promise.all([
+        adminSupabase
+          .from('regions')
+          .select('*')
+          .order('name'),
+
+        adminSupabase
+          .from('destinations')
+          .select('*, regions(name,slug)')
+          .order('sort_order')
+          .order('name'),
+      ]);
+
+      if (regionRes.error || destRes.error) {
+        return notify(regionRes.error?.message || destRes.error?.message, 'error');
+      }
+
+      regions = regionRes.data || [];
+      destinations = destRes.data || [];
+
+      document.querySelector('#regionSelect').innerHTML =
+        '<option value="">Seleccionar</option>' +
+        regions.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
+
+      render();
+    }
+
+    form.elements.name.addEventListener('input', () => {
+      if (!form.elements.slug.value) {
+        form.elements.slug.value = slugify(form.elements.name.value);
+      }
+    });
+
+    document.querySelector('#resetForm').addEventListener('click', () => {
+      setForm();
+    });
+
+    form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const data = new FormData(form);
+  const id = data.get('id');
+
+  const cardImageUrl = getImageValue('card_image_url');
+  const heroImageUrl = getImageValue('hero_image_url');
+
+  console.log('CARD A GUARDAR:', cardImageUrl);
+  console.log('HERO A GUARDAR:', heroImageUrl);
+  console.log('ID A EDITAR:', id);
+
+  const payload = {
+    name: data.get('name'),
+    slug: slugify(String(data.get('slug') || data.get('name'))),
+    region_id: data.get('region_id') || null,
+    subtitle: data.get('subtitle') || null,
+    short_description: data.get('short_description') || null,
+    description: data.get('description') || null,
+
+    card_image_url: cardImageUrl || null,
+    hero_image_url: heroImageUrl || null,
+
+    altitude: data.get('altitude') || null,
+    best_time_to_visit: data.get('best_time_to_visit') || null,
+    recommended_days: data.get('recommended_days') || null,
+    ideal_for: csv(String(data.get('ideal_for') || '')),
+    sort_order: toNumber(data.get('sort_order')) || 0,
+    seo_title: data.get('seo_title') || null,
+    seo_description: data.get('seo_description') || null,
+    is_active: data.get('is_active') === 'on',
+    updated_at: new Date().toISOString(),
+  };
+
+  let result;
+
+  if (id) {
+    result = await adminSupabase
+      .from('destinations')
+      .update(payload)
+      .eq('id', id)
+      .select('id, name, slug, card_image_url, hero_image_url')
+      .maybeSingle();
+  } else {
+    result = await adminSupabase
+      .from('destinations')
+      .insert(payload)
+      .select('id, name, slug, card_image_url, hero_image_url')
+      .maybeSingle();
+  }
+
+  if (result.error) {
+    console.error('ERROR SUPABASE:', result.error);
+    return notify(result.error.message, 'error');
+  }
+
+  if (!result.data) {
+    console.warn('No se actualizó ninguna fila. Revisa RLS, sesión de admin o el ID:', id);
+    return notify('No se actualizó el destino. Revisa permisos RLS o vuelve a iniciar sesión.', 'error');
+  }
+
+  console.log('DESTINO GUARDADO:', result.data);
+
+  notify('Destino guardado.', 'success');
+
+  await load();
+
+  const updatedDestination = destinations.find((d) => d.id === result.data.id);
+  if (updatedDestination) {
+    setForm(updatedDestination);
+  }
+});
+
+    window.setTimeout(load, 250);
+  </script>
+</AdminLayout>

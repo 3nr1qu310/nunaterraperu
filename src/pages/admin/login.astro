@@ -1,0 +1,42 @@
+---
+import '@/styles/global.scss';
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ingresar al admin | Nuna Terra Perú</title>
+</head>
+<body class="admin-login-page">
+  <section class="admin-login-card">
+    <div class="admin-brand-login">Nuna<br/>Terra</div>
+    <p class="eyebrow" style="margin-top:16px">Panel de administración</p>
+    <h1 class="h3">Ingresar</h1>
+    <p class="lead" style="font-size:.95rem">Accede con el usuario creado en Supabase Authentication.</p>
+    <div class="admin-message" data-admin-message></div>
+    <form id="loginForm">
+      <input id="email" type="email" placeholder="Correo" required />
+      <input id="password" type="password" placeholder="Contraseña" required />
+      <button class="btn btn--primary" type="submit">Ingresar al panel</button>
+    </form>
+    <p class="admin-muted" style="font-size:.82rem;margin-top:18px">Si aún no tienes usuario, créalo en Supabase → Authentication → Users.</p>
+  </section>
+  <script>
+    import { adminSupabase, notify } from '@/lib/admin-client';
+    const form = document.querySelector('#loginForm');
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = document.querySelector('#email')?.value;
+      const password = document.querySelector('#password')?.value;
+      const { error } = await adminSupabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        notify(error.message || 'No se pudo iniciar sesión.', 'error');
+        return;
+      }
+      const params = new URLSearchParams(window.location.search);
+      window.location.href = params.get('next') || '/admin';
+    });
+  </script>
+</body>
+</html>

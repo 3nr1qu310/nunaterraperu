@@ -1,0 +1,43 @@
+---
+import '@/styles/global.scss';
+interface Props { title?: string; }
+const { title = 'Panel Admin | Nuna Terra Perú' } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+</head>
+<body class="admin-body">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="/admin">Nuna Terra<br/><span>Admin</span></a>
+    <nav>
+      <a href="/admin">Dashboard</a>
+      <a href="/admin/paquetes">Paquetes</a>
+      <a href="/admin/tours">Tours</a>
+      <a href="/admin/destinos">Destinos</a>
+      <a href="/admin/regiones">Regiones</a>
+      <a href="/admin/leads">Consultas</a>
+      <a href="/admin/configuracion">Configuración web</a>
+      <a href="/admin/media">Media</a>
+      <a href="/">Ver web</a>
+    </nav>
+    <div class="admin-user">
+      <small>Sesión</small>
+      <strong data-admin-email>Validando...</strong>
+      <button type="button" id="adminLogout">Cerrar sesión</button>
+    </div>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-message" data-admin-message></div>
+    <slot />
+  </main>
+  <script>
+    import { requireAdmin, logoutAdmin } from '@/lib/admin-client';
+    requireAdmin();
+    document.querySelector('#adminLogout')?.addEventListener('click', logoutAdmin);
+  </script>
+</body>
+</html>

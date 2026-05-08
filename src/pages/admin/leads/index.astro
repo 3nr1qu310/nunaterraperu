@@ -1,0 +1,43 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+---
+<AdminLayout title="Consultas | Admin">
+  <p class="eyebrow">Leads</p>
+  <h1 class="h2">Consultas recibidas</h1>
+  <p class="lead">Revisa y actualiza el estado de las consultas enviadas desde la web.</p>
+
+  <section class="admin-panel admin-table-wrap" style="margin-top:26px">
+    <table class="admin-table">
+      <thead><tr><th>Fecha</th><th>Cliente</th><th>Contacto</th><th>Interés</th><th>Mensaje</th><th>Estado</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="6">Cargando...</td></tr></tbody>
+    </table>
+  </section>
+
+  <script>
+    import { adminSupabase, notify } from '@/lib/admin-client';
+    const rows = document.querySelector('#rows');
+    const statuses = ['new','contacted','quoted','closed','lost'];
+    let leads = [];
+    function render() {
+      rows.innerHTML = leads.length ? leads.map((l)=>`<tr>
+        <td>${new Date(l.created_at).toLocaleDateString()}</td>
+        <td><strong>${l.full_name}</strong><br/><span class="admin-muted">${l.country || ''}</span></td>
+        <td>${l.phone || '—'}<br/>${l.email || ''}</td>
+        <td>${l.interest_type || '—'}<br/><span class="admin-muted">${(l.destinations_interest || []).join(', ')}</span></td>
+        <td style="max-width:340px">${l.message || '—'}</td>
+        <td><select data-status="${l.id}">${statuses.map((s)=>`<option value="${s}" ${l.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
+      </tr>`).join('') : '<tr><td colspan="6">Aún no hay consultas.</td></tr>';
+      document.querySelectorAll('[data-status]').forEach((select)=>select.addEventListener('change', async ()=>{
+        const { error } = await adminSupabase.from('leads').update({ status: select.value, updated_at: new Date().toISOString() }).eq('id', select.dataset.status);
+        if (error) return notify(error.message, 'error');
+        notify('Estado actualizado.', 'success');
+      }));
+    }
+    async function load() {
+      const { data, error } = await adminSupabase.from('leads').select('*').order('created_at', { ascending: false });
+      if (error) return notify(error.message, 'error');
+      leads = data || []; render();
+    }
+    window.setTimeout(load, 250);
+  </script>
+</AdminLayout>

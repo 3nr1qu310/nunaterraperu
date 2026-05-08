@@ -1,0 +1,20 @@
+{
+  "name": "nuna-terra-astro",
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/node": "latest",
+    "@astrojs/sitemap": "latest",
+    "@astrojs/check": "latest",
+    "@supabase/supabase-js": "latest",
+    "astro": "latest",
+    "sass": "latest",
+    "typescript": "latest"
+  },
+  "devDependencies": {}
+}

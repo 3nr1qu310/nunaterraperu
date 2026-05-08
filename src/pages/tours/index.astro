@@ -1,0 +1,13 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import { getTours } from '@/lib/content';
+const tours = await getTours();
+---
+<BaseLayout title="Tours por Perú | Nuna Terra Perú">
+  <Hero eyebrow="Tours y experiencias" title="Tours por Perú" subtitle="Experiencias de uno o dos días para descubrir destinos únicos con organización, acompañamiento y atención personalizada." image="/images/tours-hero.jpg" primaryText="Ver tours destacados" primaryHref="#catalogo" secondaryText="Hablar por WhatsApp" secondaryHref="/contacto" />
+  <section class="section" id="catalogo"><div class="container"><SectionHeading title="Encuentra tu tour ideal" subtitle="Experiencias cortas, claras y bien organizadas para aprovechar mejor tu tiempo." /><div class="filters"><button>Todos</button><button>Full Day</button><button>Cusco</button><button>Lima</button><button>Ica</button><button>Aventura</button><button>Cultural</button></div><div class="grid grid--3">{tours.map((product) => <ProductCard product={product} />)}</div></div></section>
+</BaseLayout>
+<style lang="scss">.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}.filters button{border:1px solid rgba(90,62,43,.18);background:rgba(255,255,255,.45);border-radius:999px;padding:10px 16px;color:var(--color-earth);font-weight:700}.filters button:first-child{background:var(--color-green);color:var(--color-ivory)}</style>

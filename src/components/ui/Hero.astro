@@ -1,0 +1,16 @@
+---
+interface Props { eyebrow?: string; title: string; subtitle?: string; image?: string; primaryText?: string; primaryHref?: string; secondaryText?: string; secondaryHref?: string; }
+const { eyebrow, title, subtitle, image = '/images/hero-default.jpg', primaryText, primaryHref = '#', secondaryText, secondaryHref = '#' } = Astro.props;
+---
+<section class="hero">
+  <img class="hero__bg" src={image} alt="Paisaje de Perú" loading="eager" />
+  <div class="container hero__content fade-up">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1 class="h1">{title}</h1>
+    {subtitle && <p class="lead">{subtitle}</p>}
+    <div class="hero__actions">
+      {primaryText && <a class="btn btn--primary" href={primaryHref}>{primaryText}</a>}
+      {secondaryText && <a class="btn btn--outline" href={secondaryHref}>{secondaryText}</a>}
+    </div>
+  </div>
+</section>

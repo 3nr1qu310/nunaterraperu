@@ -1,0 +1,74 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+---
+<AdminLayout title="Paquetes | Admin">
+  <p class="eyebrow">Contenido turístico</p>
+  <h1 class="h2">Paquetes turísticos</h1>
+  <p class="lead">Crea, edita, publica o archiva paquetes de más de dos días.</p>
+
+  <div class="admin-actions">
+    <div>
+      <input id="search" placeholder="Buscar paquete..." style="border:1px solid rgba(90,62,43,.18);border-radius:999px;padding:11px 16px;min-width:260px" />
+    </div>
+    <a class="btn btn--primary" href="/admin/paquetes/nuevo?type=package">Crear paquete</a>
+  </div>
+
+  <div class="admin-panel admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th>Estado</th><th>Nombre</th><th>Duración</th><th>Precio</th><th>Destacado</th><th>Acciones</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="6">Cargando...</td></tr></tbody>
+    </table>
+  </div>
+
+  <script>
+    import { adminSupabase, notify } from '@/lib/admin-client';
+    let products = [];
+    const rows = document.querySelector('#rows');
+    const search = document.querySelector('#search');
+    function statusPill(status) {
+      return `<span class="admin-pill ${status !== 'published' ? 'admin-pill--draft' : ''}">${status}</span>`;
+    }
+    function render() {
+      const term = (search?.value || '').toLowerCase();
+      const filtered = products.filter((p) => p.title.toLowerCase().includes(term));
+      rows.innerHTML = filtered.length ? filtered.map((p) => `
+        <tr>
+          <td>${statusPill(p.status)}</td>
+          <td><strong>${p.title}</strong><br/><span class="admin-muted">/${p.slug}</span></td>
+          <td>${p.duration_text || '—'}</td>
+          <td>${p.currency || 'USD'} ${p.price_from ?? '—'}</td>
+          <td>${p.is_featured ? 'Sí' : 'No'}</td>
+          <td><div class="admin-row-actions">
+            <a class="admin-link" href="/admin/paquetes/${p.id}">Editar</a>
+            <button class="admin-link" data-toggle="${p.id}" data-status="${p.status}">${p.status === 'published' ? 'Pasar a borrador' : 'Publicar'}</button>
+            <button class="admin-link admin-danger" data-delete="${p.id}">Archivar</button>
+          </div></td>
+        </tr>`).join('') : '<tr><td colspan="6">No hay paquetes.</td></tr>';
+      document.querySelectorAll('[data-toggle]').forEach((btn) => btn.addEventListener('click', toggleStatus));
+      document.querySelectorAll('[data-delete]').forEach((btn) => btn.addEventListener('click', archiveProduct));
+    }
+    async function load() {
+      const { data, error } = await adminSupabase.from('products').select('*').eq('product_type','package').order('created_at', { ascending: false });
+      if (error) return notify(error.message, 'error');
+      products = data || [];
+      render();
+    }
+    async function toggleStatus(event) {
+      const id = event.currentTarget.dataset.toggle;
+      const status = event.currentTarget.dataset.status === 'published' ? 'draft' : 'published';
+      const { error } = await adminSupabase.from('products').update({ status }).eq('id', id);
+      if (error) return notify(error.message, 'error');
+      notify('Estado actualizado.', 'success');
+      load();
+    }
+    async function archiveProduct(event) {
+      if (!confirm('¿Archivar este paquete?')) return;
+      const { error } = await adminSupabase.from('products').update({ status: 'archived', is_active: false }).eq('id', event.currentTarget.dataset.delete);
+      if (error) return notify(error.message, 'error');
+      notify('Paquete archivado.', 'success');
+      load();
+    }
+    search?.addEventListener('input', render);
+    window.setTimeout(load, 250);
+  </script>
+</AdminLayout>

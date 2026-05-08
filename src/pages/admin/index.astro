@@ -1,0 +1,39 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+---
+<AdminLayout title="Dashboard | Nuna Terra Perú">
+  <p class="eyebrow">Panel de administración</p>
+  <h1 class="h2">Dashboard general</h1>
+  <p class="lead">Administra paquetes, tours, destinos, regiones, consultas y configuración general de la web.</p>
+
+  <section class="admin-grid" style="margin-top:30px">
+    <div class="admin-stat"><strong data-count-packages>—</strong><span>Paquetes publicados</span></div>
+    <div class="admin-stat"><strong data-count-tours>—</strong><span>Tours publicados</span></div>
+    <div class="admin-stat"><strong data-count-destinations>—</strong><span>Destinos activos</span></div>
+  </section>
+
+  <section class="admin-panel" style="margin-top:26px">
+    <h2 class="h3">Acciones rápidas</h2>
+    <div class="admin-actions" style="justify-content:flex-start">
+      <a class="btn btn--primary" href="/admin/paquetes/nuevo?type=package">Nuevo paquete</a>
+      <a class="btn btn--gold" href="/admin/paquetes/nuevo?type=tour">Nuevo tour</a>
+      <a class="btn btn--outline-dark" href="/admin/destinos">Administrar destinos</a>
+      <a class="btn btn--outline-dark" href="/admin/leads">Ver consultas</a>
+    </div>
+  </section>
+
+  <script>
+    import { adminSupabase } from '@/lib/admin-client';
+    async function loadCounts() {
+      const [packages, tours, destinations] = await Promise.all([
+        adminSupabase.from('products').select('id', { count: 'exact', head: true }).eq('product_type', 'package').eq('status', 'published'),
+        adminSupabase.from('products').select('id', { count: 'exact', head: true }).eq('product_type', 'tour').eq('status', 'published'),
+        adminSupabase.from('destinations').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      ]);
+      document.querySelector('[data-count-packages]').textContent = packages.count ?? 0;
+      document.querySelector('[data-count-tours]').textContent = tours.count ?? 0;
+      document.querySelector('[data-count-destinations]').textContent = destinations.count ?? 0;
+    }
+    window.setTimeout(loadCounts, 250);
+  </script>
+</AdminLayout>

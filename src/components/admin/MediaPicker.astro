@@ -1,0 +1,468 @@
+---
+const {
+  fieldName,
+  label = 'Imagen',
+  helperText = '',
+  initialValue = '',
+} = Astro.props;
+
+const pickerId = `media-picker-${fieldName}`;
+---
+
+<div class="admin-field media-picker" data-media-picker={fieldName}>
+  <label>{label}</label>
+
+  <input
+    type="hidden"
+    name={fieldName}
+    value={initialValue}
+    data-media-input={fieldName}
+  />
+
+  <div class="media-picker-preview" data-media-preview={fieldName}>
+    {initialValue ? (
+      <img src={initialValue} alt={label} />
+    ) : (
+      <span>Sin imagen seleccionada</span>
+    )}
+  </div>
+
+  <div class="media-picker-actions">
+    <button type="button" class="admin-link" data-open-media={fieldName}>
+      Seleccionar imagen
+    </button>
+
+    <button type="button" class="admin-link" data-clear-media={fieldName}>
+      Quitar
+    </button>
+  </div>
+
+  {helperText && <small class="admin-muted">{helperText}</small>}
+</div>
+
+<dialog id={pickerId} class="media-selector-dialog" data-media-dialog={fieldName}>
+  <div class="media-selector">
+    <div class="media-selector__header">
+      <div>
+        <h3>Seleccionar imagen</h3>
+        <p class="admin-muted">Elige una imagen de la biblioteca de medios.</p>
+      </div>
+
+      <button type="button" class="admin-link" data-close-media={fieldName}>
+        Cerrar
+      </button>
+    </div>
+
+    <div class="media-selector__toolbar">
+      <input
+        type="search"
+        placeholder="Buscar por nombre, título o alt text..."
+        data-media-search={fieldName}
+      />
+    </div>
+
+    <div class="media-selector__body">
+      <div class="media-selector__grid" data-media-grid={fieldName}>
+        <p class="admin-muted">Cargando imágenes...</p>
+      </div>
+
+      <aside class="media-selector__side" data-media-side={fieldName}>
+        <p class="admin-muted">Selecciona una imagen para ver sus datos.</p>
+      </aside>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .media-picker-preview {
+    min-height: 170px;
+    border: 1px dashed rgba(90, 62, 43, .25);
+    border-radius: 18px;
+    background: rgba(247, 241, 231, .65);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .media-picker-preview img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .media-picker-preview span {
+    color: rgba(37, 37, 37, .65);
+    font-size: 14px;
+  }
+
+  .media-picker-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .media-selector-dialog {
+    width: min(1120px, calc(100vw - 28px));
+    border: 0;
+    border-radius: 24px;
+    padding: 0;
+    background: #F7F1E7;
+    color: #252525;
+    box-shadow: 0 30px 90px rgba(0,0,0,.28);
+  }
+
+  .media-selector-dialog::backdrop {
+    background: rgba(37,37,37,.58);
+    backdrop-filter: blur(3px);
+  }
+
+  .media-selector {
+    display: grid;
+    max-height: min(760px, calc(100vh - 32px));
+  }
+
+  .media-selector__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px;
+    border-bottom: 1px solid rgba(90, 62, 43, .12);
+  }
+
+  .media-selector__header h3 {
+    margin: 0;
+    color: #5A3E2B;
+  }
+
+  .media-selector__toolbar {
+    padding: 16px 22px;
+    border-bottom: 1px solid rgba(90, 62, 43, .08);
+  }
+
+  .media-selector__toolbar input {
+    width: 100%;
+    border: 1px solid rgba(90, 62, 43, .16);
+    border-radius: 999px;
+    padding: 12px 16px;
+    background: #fff;
+  }
+
+  .media-selector__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 18px;
+    padding: 0 22px 22px;
+    overflow: hidden;
+  }
+
+  .media-selector__grid {
+    columns: 4 150px;
+    column-gap: 12px;
+    overflow: auto;
+    max-height: 560px;
+    padding-top: 18px;
+  }
+
+  .media-selector-card {
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 16px;
+    overflow: hidden;
+    display: block;
+    transition: .2s ease;
+  }
+
+  .media-selector-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(37,37,37,.16);
+  }
+
+  .media-selector-card.is-active {
+    outline: 3px solid #D8B982;
+    outline-offset: 3px;
+  }
+
+  .media-selector-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 16px;
+    background: #f2ece3;
+  }
+
+  .media-selector__side {
+    border-left: 1px solid rgba(90, 62, 43, .12);
+    padding: 18px 0 0 18px;
+    overflow: auto;
+    max-height: 560px;
+  }
+
+  .media-selector-detail {
+    display: grid;
+    gap: 14px;
+  }
+
+  .media-selector-detail img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: contain;
+    background: #f4efe7;
+    border-radius: 16px;
+  }
+
+  .media-selector-detail h4 {
+    margin: 0;
+    color: #5A3E2B;
+  }
+
+  .media-selector-detail p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(37,37,37,.72);
+    overflow-wrap: anywhere;
+  }
+
+  .media-selector-detail__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 860px) {
+    .media-selector__body {
+      grid-template-columns: 1fr;
+    }
+
+    .media-selector__side {
+      border-left: 0;
+      border-top: 1px solid rgba(90, 62, 43, .12);
+      padding: 18px 0 0;
+    }
+  }
+</style>
+
+<script>
+  import { adminSupabase, notify } from '@/lib/admin-client';
+
+  if (!window.__nunaMediaPickerInitialized) {
+    window.__nunaMediaPickerInitialized = true;
+
+    const state = new Map();
+
+    function getPickerParts(fieldName) {
+      return {
+        input: document.querySelector(`[data-media-input="${fieldName}"]`),
+        preview: document.querySelector(`[data-media-preview="${fieldName}"]`),
+        dialog: document.querySelector(`[data-media-dialog="${fieldName}"]`),
+        grid: document.querySelector(`[data-media-grid="${fieldName}"]`),
+        side: document.querySelector(`[data-media-side="${fieldName}"]`),
+        search: document.querySelector(`[data-media-search="${fieldName}"]`),
+      };
+    }
+
+    function setValue(fieldName, url) {
+      const { input, preview } = getPickerParts(fieldName);
+      const finalUrl = url || '';
+
+      if (!input || !preview) return;
+
+      input.value = finalUrl;
+      input.setAttribute('value', finalUrl);
+
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+
+      preview.innerHTML = finalUrl
+        ? `<img src="${finalUrl}" alt="Imagen seleccionada" />`
+        : '<span>Sin imagen seleccionada</span>';
+
+      console.log(`MediaPicker ${fieldName}:`, finalUrl);
+    }
+
+    async function fetchMedia(search = '') {
+      let query = adminSupabase
+        .from('media')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      const cleanSearch = search.trim();
+
+      if (cleanSearch) {
+        query = query.or(
+          `title.ilike.%${cleanSearch}%,file_name.ilike.%${cleanSearch}%,alt_text.ilike.%${cleanSearch}%`
+        );
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return data || [];
+    }
+
+    function renderSide(fieldName, item) {
+      const { side } = getPickerParts(fieldName);
+
+      if (!side) return;
+
+      if (!item) {
+        side.innerHTML = '<p class="admin-muted">Selecciona una imagen para ver sus datos.</p>';
+        return;
+      }
+
+      side.innerHTML = `
+        <div class="media-selector-detail">
+          <img src="${item.public_url}" alt="${item.alt_text || item.title || item.file_name || 'Imagen'}" />
+
+          <div>
+            <h4>${item.title || item.file_name || 'Imagen'}</h4>
+            <p>${item.file_name || ''}</p>
+          </div>
+
+          ${item.alt_text ? `<p><strong>Alt:</strong> ${item.alt_text}</p>` : ''}
+          ${item.caption ? `<p><strong>Caption:</strong> ${item.caption}</p>` : ''}
+
+          <p><strong>URL:</strong><br>${item.public_url}</p>
+
+          <div class="media-selector-detail__actions">
+            <button type="button" class="btn btn--primary" data-use-media="${fieldName}">
+              Usar imagen
+            </button>
+            <button type="button" class="admin-link" data-copy-media-url="${fieldName}">
+              Copiar URL
+            </button>
+          </div>
+        </div>
+      `;
+
+      side.querySelector(`[data-use-media="${fieldName}"]`)?.addEventListener('click', () => {
+        setValue(fieldName, item.public_url);
+        getPickerParts(fieldName).dialog?.close();
+      });
+
+      side.querySelector(`[data-copy-media-url="${fieldName}"]`)?.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(item.public_url);
+        notify('URL copiada.', 'success');
+      });
+    }
+
+    function renderGrid(fieldName, items) {
+      const { grid } = getPickerParts(fieldName);
+      const selectedId = state.get(fieldName)?.selectedId || '';
+
+      if (!grid) return;
+
+      if (!items.length) {
+        grid.innerHTML = '<p class="admin-muted">No hay imágenes en la biblioteca.</p>';
+        renderSide(fieldName, null);
+        return;
+      }
+
+      grid.innerHTML = items.map((item) => `
+        <button
+          type="button"
+          class="media-selector-card ${item.id === selectedId ? 'is-active' : ''}"
+          data-media-item="${item.id}"
+        >
+          <img
+            src="${item.public_url}"
+            alt="${item.alt_text || item.title || item.file_name || 'Imagen'}"
+            loading="lazy"
+          />
+        </button>
+      `).join('');
+
+      grid.querySelectorAll('[data-media-item]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const item = items.find((media) => media.id === button.dataset.mediaItem);
+
+          state.set(fieldName, {
+            items,
+            selectedId: item?.id || '',
+          });
+
+          renderGrid(fieldName, items);
+          renderSide(fieldName, item);
+        });
+      });
+    }
+
+    async function loadPicker(fieldName, search = '') {
+      const { grid } = getPickerParts(fieldName);
+
+      if (!grid) return;
+
+      grid.innerHTML = '<p class="admin-muted">Cargando imágenes...</p>';
+
+      try {
+        const items = await fetchMedia(search);
+
+        state.set(fieldName, {
+          items,
+          selectedId: '',
+        });
+
+        renderGrid(fieldName, items);
+        renderSide(fieldName, null);
+      } catch (error) {
+        console.error(error);
+        grid.innerHTML = `<p class="admin-muted">${error.message || 'No se pudieron cargar las imágenes.'}</p>`;
+      }
+    }
+
+    document.addEventListener('click', async (event) => {
+      const openBtn = event.target.closest('[data-open-media]');
+      const closeBtn = event.target.closest('[data-close-media]');
+      const clearBtn = event.target.closest('[data-clear-media]');
+
+      if (openBtn) {
+        const fieldName = openBtn.dataset.openMedia;
+        const { dialog, search } = getPickerParts(fieldName);
+
+        dialog?.showModal();
+
+        if (search) search.value = '';
+
+        await loadPicker(fieldName);
+      }
+
+      if (closeBtn) {
+        const fieldName = closeBtn.dataset.closeMedia;
+        getPickerParts(fieldName).dialog?.close();
+      }
+
+      if (clearBtn) {
+        const fieldName = clearBtn.dataset.clearMedia;
+        setValue(fieldName, '');
+      }
+    });
+
+    document.addEventListener('input', (event) => {
+      const search = event.target.closest('[data-media-search]');
+      if (!search) return;
+
+      const fieldName = search.dataset.mediaSearch;
+
+      clearTimeout(search.__timeout);
+      search.__timeout = setTimeout(() => {
+        loadPicker(fieldName, search.value || '');
+      }, 250);
+    });
+
+    document.addEventListener('media-picker:update', (event) => {
+      const fields = event.detail?.fields || {};
+
+      Object.entries(fields).forEach(([fieldName, value]) => {
+        setValue(fieldName, value || '');
+      });
+    });
+  }
+</script>

@@ -1,0 +1,173 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+import MediaPicker from '@/components/admin/MediaPicker.astro';
+---
+
+<AdminLayout title="Configuración web | Admin">
+  <p class="eyebrow">Configuración</p>
+  <h1 class="h2">Hero, contacto y redes</h1>
+  <p class="lead">
+    Edita textos globales, datos de contacto e imágenes principales. Se guardan en la tabla site_settings.
+  </p>
+
+  <section class="admin-panel" style="margin-top:26px">
+    <form id="settingsForm" class="admin-form">
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Título hero home</label>
+          <input name="home_hero_title" />
+        </div>
+
+        <div class="admin-field">
+          <label>Subtítulo hero home</label>
+          <input name="home_hero_subtitle" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <MediaPicker
+          fieldName="home_hero_image"
+          label="Imagen hero home"
+          helperText="Imagen principal de la portada del sitio web."
+        />
+
+        <div class="admin-field">
+          <label>Texto CTA principal</label>
+          <input name="home_cta_text" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>WhatsApp</label>
+          <input name="whatsapp_number" />
+        </div>
+
+        <div class="admin-field">
+          <label>Correo</label>
+          <input name="contact_email" />
+        </div>
+
+        <div class="admin-field">
+          <label>Ubicación</label>
+          <input name="contact_location" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Instagram</label>
+          <input name="instagram_url" />
+        </div>
+
+        <div class="admin-field">
+          <label>Facebook</label>
+          <input name="facebook_url" />
+        </div>
+
+        <div class="admin-field">
+          <label>TikTok</label>
+          <input name="tiktok_url" />
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>Texto barra superior header</label>
+        <input name="header_top_text" />
+      </div>
+
+      <div class="admin-field">
+        <label>Descripción footer</label>
+        <textarea name="footer_brand_description"></textarea>
+      </div>
+
+      <button class="btn btn--primary" type="submit">
+        Guardar configuración
+      </button>
+    </form>
+  </section>
+
+  <script>
+    import { adminSupabase, notify } from '@/lib/admin-client';
+
+    const form = document.querySelector('#settingsForm');
+
+    const keys = [...form.elements]
+      .filter((el) => el.name)
+      .map((el) => el.name);
+
+    function getFieldValue(name) {
+      const field = form.querySelector(`[name="${name}"]`);
+      return field?.value || field?.textContent || '';
+    }
+
+    function setFieldValue(name, value = '') {
+      const field = form.querySelector(`[name="${name}"]`);
+
+      if (!field) return;
+
+      field.value = value || '';
+      field.setAttribute('value', value || '');
+
+      if (field.tagName === 'TEXTAREA') {
+        field.textContent = value || '';
+      }
+
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function updateMediaPickers(fields) {
+      document.dispatchEvent(new CustomEvent('media-picker:update', {
+        detail: { fields },
+      }));
+    }
+
+    async function load() {
+      const { data, error } = await adminSupabase
+        .from('site_settings')
+        .select('*')
+        .in('setting_key', keys);
+
+      if (error) {
+        return notify(error.message, 'error');
+      }
+
+      const mediaFields = {};
+
+      for (const row of data || []) {
+        setFieldValue(row.setting_key, row.setting_value || '');
+
+        if (row.setting_key === 'home_hero_image') {
+          mediaFields.home_hero_image = row.setting_value || '';
+        }
+      }
+
+      updateMediaPickers(mediaFields);
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const rows = keys.map((key) => ({
+        setting_key: key,
+        setting_value: getFieldValue(key) || '',
+        setting_type: key.includes('image') ? 'image' : 'text',
+        updated_at: new Date().toISOString(),
+      }));
+
+      const { error } = await adminSupabase
+        .from('site_settings')
+        .upsert(rows, { onConflict: 'setting_key' });
+
+      if (error) {
+        return notify(error.message, 'error');
+      }
+
+      notify('Configuración guardada.', 'success');
+      await load();
+    });
+
+    window.setTimeout(load, 250);
+  </script>
+</AdminLayout>

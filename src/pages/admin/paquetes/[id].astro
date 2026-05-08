@@ -1,0 +1,676 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+import MediaPicker from '@/components/admin/MediaPicker.astro';
+import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
+
+const { id } = Astro.params;
+---
+
+<AdminLayout title="Editar producto | Admin">
+  <div data-product-id={id}></div>
+
+  <p class="eyebrow">Editar producto</p>
+  <h1 class="h2">Editar paquete o tour</h1>
+
+  <section class="admin-panel">
+    <form id="productForm" class="admin-form">
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Tipo</label>
+          <select name="product_type">
+            <option value="package">Paquete</option>
+            <option value="tour">Tour</option>
+          </select>
+        </div>
+
+        <div class="admin-field">
+          <label>Estado</label>
+          <select name="status">
+            <option value="draft">Borrador</option>
+            <option value="published">Publicado</option>
+            <option value="archived">Archivado</option>
+          </select>
+        </div>
+
+        <div class="admin-field">
+          <label>Orden</label>
+          <input name="sort_order" type="number" value="0" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Título</label>
+          <input name="title" required />
+        </div>
+
+        <div class="admin-field">
+          <label>Slug</label>
+          <input name="slug" required />
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>Subtítulo</label>
+        <input name="subtitle" />
+      </div>
+
+      <div class="admin-field">
+        <label>Descripción corta</label>
+        <textarea name="short_description"></textarea>
+      </div>
+
+      <div class="admin-field">
+        <label>Descripción larga</label>
+        <textarea name="description" style="min-height:160px"></textarea>
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Días</label>
+          <input name="duration_days" type="number" />
+        </div>
+
+        <div class="admin-field">
+          <label>Noches</label>
+          <input name="duration_nights" type="number" />
+        </div>
+
+        <div class="admin-field">
+          <label>Texto duración</label>
+          <input name="duration_text" placeholder="5 días / 4 noches" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Región principal</label>
+          <select name="region_id" id="regionSelect">
+            <option value="">Seleccionar</option>
+          </select>
+        </div>
+
+        <div class="admin-field">
+          <label>Destino principal</label>
+          <select name="main_destination_id" id="mainDestinationSelect">
+            <option value="">Seleccionar</option>
+          </select>
+        </div>
+
+        <div class="admin-field">
+          <label>Precio desde</label>
+          <input name="price_from" type="number" step="0.01" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Moneda</label>
+          <input name="currency" value="USD" />
+        </div>
+
+        <div class="admin-field">
+          <label>Tipo de servicio</label>
+          <input name="service_type" placeholder="Privado / compartido" />
+        </div>
+
+        <div class="admin-field">
+          <label>Dificultad</label>
+          <input name="difficulty_level" placeholder="Fácil a moderada" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Idiomas, separados por coma</label>
+          <input name="language_options" placeholder="Español, Inglés" />
+        </div>
+
+        <div class="admin-field">
+          <label>Video URL</label>
+          <input name="video_url" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <MediaPicker
+          fieldName="card_image_url"
+          label="Imagen card"
+          helperText="Imagen que se mostrará en listados de paquetes o tours."
+        />
+
+        <MediaPicker
+          fieldName="hero_image_url"
+          label="Imagen hero"
+          helperText="Imagen principal de la página individual del producto."
+        />
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Personas mínimas</label>
+          <input name="min_people" type="number" />
+        </div>
+
+        <div class="admin-field">
+          <label>Personas máximas</label>
+          <input name="max_people" type="number" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <label class="check-item">
+          <input name="is_featured" type="checkbox" />
+          Destacado
+        </label>
+
+        <label class="check-item">
+          <input name="is_active" type="checkbox" checked />
+          Activo
+        </label>
+      </div>
+
+      <hr />
+
+      <div class="admin-field">
+        <label>Destinos relacionados</label>
+        <div id="destinationsChecks" class="check-grid"></div>
+      </div>
+
+      <div class="admin-field">
+        <label>Categorías</label>
+        <div id="categoriesChecks" class="check-grid"></div>
+      </div>
+
+      <hr />
+
+      <div class="admin-field">
+        <label>Itinerario por día</label>
+        <textarea
+          name="itinerary_text"
+          placeholder="1 | Llegada a Cusco | Recepción y traslado | No incluye | Hotel en Cusco | Traslado, aclimatación"
+        ></textarea>
+        <small class="admin-muted">
+          Formato: día | título | descripción | comidas | alojamiento | actividades. Una línea por día.
+        </small>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Incluye, una línea por ítem</label>
+          <textarea name="included_text"></textarea>
+        </div>
+
+        <div class="admin-field">
+          <label>No incluye, una línea por ítem</label>
+          <textarea name="not_included_text"></textarea>
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Recomendaciones, una línea por ítem</label>
+          <textarea name="recommendations_text"></textarea>
+        </div>
+
+        <div class="admin-field">
+          <label>Notas importantes, una línea por ítem</label>
+          <textarea name="important_notes_text"></textarea>
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>FAQs</label>
+        <textarea name="faqs_text" placeholder="¿Pregunta? | Respuesta"></textarea>
+        <small class="admin-muted">
+          Formato: pregunta | respuesta. Una línea por pregunta.
+        </small>
+      </div>
+
+      <MediaGalleryPicker
+        fieldName="gallery_text"
+        label="Galería del producto"
+        helperText="Selecciona varias imágenes desde la biblioteca de medios."
+      />
+
+      <hr />
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>SEO title</label>
+          <input name="seo_title" />
+        </div>
+
+        <MediaPicker
+          fieldName="og_image_url"
+          label="OG image"
+          helperText="Imagen para compartir en redes sociales."
+        />
+      </div>
+
+      <div class="admin-field">
+        <label>SEO description</label>
+        <textarea name="seo_description"></textarea>
+      </div>
+
+      <div class="admin-field">
+        <label>SEO keywords</label>
+        <input name="seo_keywords" />
+      </div>
+
+      <div class="admin-actions" style="justify-content:flex-start">
+        <button class="btn btn--primary" type="submit">Guardar</button>
+        <a class="btn btn--outline-dark" href="/admin/paquetes">Volver</a>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    import { adminSupabase, notify, slugify, lines, csv, toNumber } from '@/lib/admin-client';
+
+    const form = document.querySelector('#productForm');
+    const productId = document.querySelector('[data-product-id]')?.dataset.productId || '';
+    const defaultType = new URLSearchParams(window.location.search).get('type') || 'package';
+
+    let destinations = [];
+    let categories = [];
+    let current = null;
+
+    function setValue(name, value) {
+      const field = form.elements[name];
+
+      if (!field) return;
+
+      if (field.type === 'checkbox') {
+        field.checked = Boolean(value);
+      } else if (Array.isArray(value)) {
+        field.value = value.join(', ');
+      } else {
+        field.value = value ?? '';
+      }
+
+      if (field.tagName === 'TEXTAREA') {
+        field.textContent = value ?? '';
+      }
+    }
+
+    function getFieldValue(name) {
+      const field = form.querySelector(`[name="${name}"]`);
+      return field?.value || field?.textContent || '';
+    }
+
+    function updateMediaPickers(fields) {
+      document.dispatchEvent(new CustomEvent('media-picker:update', {
+        detail: { fields },
+      }));
+    }
+
+    function updateGalleryPickers(fields) {
+      document.dispatchEvent(new CustomEvent('gallery-picker:update', {
+        detail: { fields },
+      }));
+    }
+
+    function getChecked(name) {
+      return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((item) => item.value);
+    }
+
+    function renderChecks() {
+      document.querySelector('#destinationsChecks').innerHTML = destinations
+        .map((d) => `
+          <label class="check-item">
+            <input type="checkbox" name="destinations" value="${d.id}" />
+            ${d.name}
+          </label>
+        `)
+        .join('');
+
+      document.querySelector('#categoriesChecks').innerHTML = categories
+        .map((c) => `
+          <label class="check-item">
+            <input type="checkbox" name="categories" value="${c.id}" />
+            ${c.name}
+          </label>
+        `)
+        .join('');
+    }
+
+    function renderSelects(regions) {
+      document.querySelector('#regionSelect').innerHTML =
+        '<option value="">Seleccionar</option>' +
+        regions.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
+
+      document.querySelector('#mainDestinationSelect').innerHTML =
+        '<option value="">Seleccionar</option>' +
+        destinations.map((d) => `<option value="${d.id}">${d.name}</option>`).join('');
+    }
+
+    function productToForm(product) {
+      current = product;
+
+      for (const [key, value] of Object.entries(product)) {
+        setValue(key, value);
+      }
+
+      setValue('language_options', product.language_options || []);
+
+      updateMediaPickers({
+        card_image_url: product.card_image_url || '',
+        hero_image_url: product.hero_image_url || '',
+        og_image_url: product.og_image_url || '',
+      });
+
+      const destIds = (product.product_destinations || []).map((item) => item.destination_id);
+      const catIds = (product.product_categories || []).map((item) => item.category_id);
+
+      document.querySelectorAll('input[name="destinations"]').forEach((item) => {
+        item.checked = destIds.includes(item.value);
+      });
+
+      document.querySelectorAll('input[name="categories"]').forEach((item) => {
+        item.checked = catIds.includes(item.value);
+      });
+
+      const itineraryText = (product.product_itinerary_days || [])
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+        .map((d) => `${d.day_number || ''} | ${d.title || ''} | ${d.description || ''} | ${d.meals || ''} | ${d.accommodation || ''} | ${d.activities || ''}`)
+        .join('\n');
+
+      setValue('itinerary_text', itineraryText);
+
+      const inclusions = product.product_inclusions || [];
+
+      setValue(
+        'included_text',
+        inclusions.filter((i) => i.item_type === 'included').map((i) => i.content).join('\n')
+      );
+
+      setValue(
+        'not_included_text',
+        inclusions.filter((i) => i.item_type === 'not_included').map((i) => i.content).join('\n')
+      );
+
+      setValue(
+        'recommendations_text',
+        inclusions.filter((i) => i.item_type === 'recommendation').map((i) => i.content).join('\n')
+      );
+
+      setValue(
+        'important_notes_text',
+        inclusions.filter((i) => i.item_type === 'important_note').map((i) => i.content).join('\n')
+      );
+
+      setValue(
+        'faqs_text',
+        (product.product_faqs || []).map((f) => `${f.question} | ${f.answer}`).join('\n')
+      );
+
+      const galleryText = (product.product_images || [])
+        .filter((img) => img.image_type === 'gallery')
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+        .map((img) => `${img.image_url} | ${img.alt_text || ''} | ${img.caption || ''}`)
+        .join('\n');
+
+      setValue('gallery_text', galleryText);
+
+      updateGalleryPickers({
+        gallery_text: galleryText,
+      });
+    }
+
+    async function load() {
+      const [regionsRes, destRes, catRes] = await Promise.all([
+        adminSupabase.from('regions').select('*').order('name'),
+        adminSupabase.from('destinations').select('*').order('name'),
+        adminSupabase.from('travel_categories').select('*').order('name'),
+      ]);
+
+      if (regionsRes.error || destRes.error || catRes.error) {
+        notify(
+          regionsRes.error?.message || destRes.error?.message || catRes.error?.message,
+          'error'
+        );
+        return;
+      }
+
+      destinations = destRes.data || [];
+      categories = catRes.data || [];
+
+      renderSelects(regionsRes.data || []);
+      renderChecks();
+
+      setValue('product_type', defaultType);
+
+      if (productId) {
+        const { data, error } = await adminSupabase
+          .from('products')
+          .select(`
+            *,
+            product_destinations(*),
+            product_categories(*),
+            product_itinerary_days(*),
+            product_inclusions(*),
+            product_faqs(*),
+            product_images(*)
+          `)
+          .eq('id', productId)
+          .single();
+
+        if (error) return notify(error.message, 'error');
+
+        productToForm(data);
+      }
+    }
+
+    form.elements.title?.addEventListener('input', () => {
+      if (!productId && !form.elements.slug.value) {
+        form.elements.slug.value = slugify(form.elements.title.value);
+      }
+    });
+
+    async function replaceChildren(table, product_id, rows) {
+      await adminSupabase.from(table).delete().eq('product_id', product_id);
+
+      if (!rows.length) return { error: null };
+
+      return adminSupabase.from(table).insert(rows);
+    }
+
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const data = new FormData(form);
+
+      const cardImageUrl = getFieldValue('card_image_url');
+      const heroImageUrl = getFieldValue('hero_image_url');
+      const ogImageUrl = getFieldValue('og_image_url');
+      const galleryValue = getFieldValue('gallery_text');
+
+      console.log('CARD A GUARDAR:', cardImageUrl);
+      console.log('HERO A GUARDAR:', heroImageUrl);
+      console.log('OG A GUARDAR:', ogImageUrl);
+      console.log('GALERÍA A GUARDAR:', galleryValue);
+
+      const payload = {
+        product_type: data.get('product_type'),
+        title: data.get('title'),
+        slug: slugify(String(data.get('slug') || data.get('title'))),
+        subtitle: data.get('subtitle') || null,
+        short_description: data.get('short_description') || null,
+        description: data.get('description') || null,
+        duration_days: toNumber(data.get('duration_days')),
+        duration_nights: toNumber(data.get('duration_nights')),
+        duration_text: data.get('duration_text') || null,
+        region_id: data.get('region_id') || null,
+        main_destination_id: data.get('main_destination_id') || null,
+        price_from: toNumber(data.get('price_from')),
+        currency: data.get('currency') || 'USD',
+        service_type: data.get('service_type') || null,
+        difficulty_level: data.get('difficulty_level') || null,
+        language_options: csv(String(data.get('language_options') || '')),
+        min_people: toNumber(data.get('min_people')),
+        max_people: toNumber(data.get('max_people')),
+
+        card_image_url: cardImageUrl || null,
+        hero_image_url: heroImageUrl || null,
+
+        video_url: data.get('video_url') || null,
+        is_featured: data.get('is_featured') === 'on',
+        is_active: data.get('is_active') === 'on',
+        status: data.get('status') || 'draft',
+        sort_order: toNumber(data.get('sort_order')) || 0,
+        seo_title: data.get('seo_title') || null,
+        seo_description: data.get('seo_description') || null,
+        seo_keywords: data.get('seo_keywords') || null,
+        og_image_url: ogImageUrl || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      let saved;
+
+      if (productId) {
+        const { data: updated, error } = await adminSupabase
+          .from('products')
+          .update(payload)
+          .eq('id', productId)
+          .select('id')
+          .maybeSingle();
+
+        if (error) return notify(error.message, 'error');
+
+        if (!updated) {
+          return notify('No se actualizó el producto. Revisa permisos RLS o vuelve a iniciar sesión.', 'error');
+        }
+
+        saved = updated;
+      } else {
+        const { data: inserted, error } = await adminSupabase
+          .from('products')
+          .insert(payload)
+          .select('id')
+          .maybeSingle();
+
+        if (error) return notify(error.message, 'error');
+
+        if (!inserted) {
+          return notify('No se pudo crear el producto. Revisa permisos RLS.', 'error');
+        }
+
+        saved = inserted;
+      }
+
+      const pid = saved.id;
+
+      const destRows = getChecked('destinations').map((destination_id, index) => ({
+        product_id: pid,
+        destination_id,
+        sort_order: index,
+        is_primary: destination_id === payload.main_destination_id,
+      }));
+
+      const catRows = getChecked('categories').map((category_id) => ({
+        product_id: pid,
+        category_id,
+      }));
+
+      const itineraryRows = lines(String(data.get('itinerary_text') || '')).map((line, index) => {
+        const [day, title, description, meals, accommodation, activities] = line
+          .split('|')
+          .map((v) => v?.trim() || '');
+
+        return {
+          product_id: pid,
+          day_number: Number(day) || index + 1,
+          title: title || `Día ${index + 1}`,
+          description,
+          meals,
+          accommodation,
+          activities,
+          sort_order: index,
+        };
+      });
+
+      const inclusionRows = [
+        ...lines(String(data.get('included_text') || '')).map((content, i) => ({
+          product_id: pid,
+          item_type: 'included',
+          content,
+          sort_order: i,
+        })),
+        ...lines(String(data.get('not_included_text') || '')).map((content, i) => ({
+          product_id: pid,
+          item_type: 'not_included',
+          content,
+          sort_order: i,
+        })),
+        ...lines(String(data.get('recommendations_text') || '')).map((content, i) => ({
+          product_id: pid,
+          item_type: 'recommendation',
+          content,
+          sort_order: i,
+        })),
+        ...lines(String(data.get('important_notes_text') || '')).map((content, i) => ({
+          product_id: pid,
+          item_type: 'important_note',
+          content,
+          sort_order: i,
+        })),
+      ];
+
+      const faqRows = lines(String(data.get('faqs_text') || '')).map((line, index) => {
+        const [question, answer] = line.split('|').map((v) => v?.trim() || '');
+
+        return {
+          product_id: pid,
+          question: question || `Pregunta ${index + 1}`,
+          answer,
+          sort_order: index,
+          is_active: true,
+        };
+      });
+
+      const imageRows = lines(String(galleryValue || ''))
+        .map((line, index) => {
+          const [image_url, alt_text, caption] = line.split('|').map((v) => v?.trim() || '');
+
+          return {
+            product_id: pid,
+            image_url,
+            alt_text,
+            caption,
+            image_type: 'gallery',
+            sort_order: index,
+            is_active: true,
+          };
+        })
+        .filter((img) => img.image_url);
+
+      const ops = [
+        replaceChildren('product_destinations', pid, destRows),
+        replaceChildren('product_categories', pid, catRows),
+        replaceChildren('product_itinerary_days', pid, itineraryRows),
+        replaceChildren('product_inclusions', pid, inclusionRows),
+        replaceChildren('product_faqs', pid, faqRows),
+        replaceChildren('product_images', pid, imageRows),
+      ];
+
+      const results = await Promise.all(ops);
+      const childError = results.find((r) => r?.error)?.error;
+
+      if (childError) return notify(childError.message, 'error');
+
+      notify('Producto guardado correctamente.', 'success');
+
+      if (!productId) {
+        window.location.href = `/admin/paquetes/${pid}`;
+        return;
+      }
+
+      await load();
+    });
+
+    window.setTimeout(load, 250);
+  </script>
+</AdminLayout>

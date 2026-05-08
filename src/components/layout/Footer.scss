@@ -1,0 +1,311 @@
+.footer {
+  position: relative;
+  color: var(--color-ivory);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* ===============================
+   TOP ART
+================================ */
+.footer-art {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  line-height: 0;
+  overflow: hidden;
+}
+
+.footer-art img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* este degradado ayuda a fusionar la imagen con el main */
+.footer-art::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  background: linear-gradient(
+    to bottom,
+    rgba(47, 93, 80, 0) 0%,
+    rgba(47, 93, 80, 0.18) 35%,
+    rgba(47, 93, 80, 0.55) 70%,
+    rgba(47, 93, 80, 0.92) 100%
+  );
+  pointer-events: none;
+}
+
+/* ===============================
+   MAIN AREA
+================================ */
+.footer-main {
+  position: relative;
+  z-index: 2;
+  margin-top: -36px;
+  background:
+    radial-gradient(circle at top right, rgba(216, 185, 130, 0.14), transparent 34%),
+    linear-gradient(180deg, #356b5d 0%, #2F5D50 42%, #315e52 72%, #5A3E2B 100%);
+  padding: 88px 0 42px;
+}
+
+/* capa extra de fusión arriba del bloque principal */
+.footer-main::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -70px;
+  height: 70px;
+  background: linear-gradient(
+    to bottom,
+    rgba(47, 93, 80, 0) 0%,
+    rgba(47, 93, 80, 0.35) 35%,
+    rgba(47, 93, 80, 0.75) 72%,
+    #356b5d 100%
+  );
+  pointer-events: none;
+}
+
+.footer-content {
+  position: relative;
+  z-index: 2;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr 1fr 1.05fr;
+  gap: 70px;
+  align-items: start;
+}
+
+.footer-col {
+  min-width: 0;
+
+  h4 {
+    margin: 0 0 20px;
+    color: var(--color-sand);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-family: var(--font-body);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 12px;
+  }
+
+  li {
+    margin: 0;
+  }
+
+  a,
+  span {
+    color: rgba(247, 241, 231, 0.88);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    text-decoration: none;
+    transition:
+      color 0.25s ease,
+      opacity 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  a:hover {
+    color: var(--color-sand);
+    transform: translateX(3px);
+  }
+}
+
+/* ===============================
+   BRAND
+================================ */
+.footer-brand {
+  max-width: 390px;
+}
+
+.footer-logo {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--color-ivory);
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 2.2vw, 2.05rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  transition: color 0.25s ease;
+
+  &:hover {
+    color: var(--color-sand);
+  }
+}
+
+.footer-slogan {
+  margin: 0 0 10px;
+  color: var(--color-sand);
+  font-weight: 700;
+}
+
+.footer-brand p {
+  margin: 0;
+  color: rgba(247, 241, 231, 0.9);
+  font-size: 0.96rem;
+  line-height: 1.75;
+  max-width: 360px;
+}
+
+/* ===============================
+   SOCIALS
+================================ */
+.socials {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+
+  a {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(247, 241, 231, 0.45);
+    color: var(--color-ivory);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition:
+      background 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s ease;
+
+    &:hover {
+      background: var(--color-sand);
+      color: var(--color-earth);
+      border-color: var(--color-sand);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.footer-contact a,
+.footer-contact span {
+  display: inline-block;
+}
+
+/* ===============================
+   BOTTOM BAR
+================================ */
+.footer-bottom {
+  background: #ffffff;
+  border-top: 1px solid rgba(90, 62, 43, 0.08);
+  padding: 12px 20px;
+  text-align: center;
+
+  p {
+    margin: 0;
+    color: var(--color-earth);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 1100px) {
+  .footer-grid {
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 42px;
+  }
+
+  .footer-contact {
+    grid-column: span 3;
+  }
+}
+
+@media (max-width: 800px) {
+  .footer-art::after {
+    height: 90px;
+  }
+
+  .footer-main {
+    margin-top: -24px;
+    padding: 72px 0 38px;
+  }
+
+  .footer-main::before {
+    top: -50px;
+    height: 50px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 38px 28px;
+  }
+
+  .footer-brand {
+    grid-column: span 2;
+    max-width: 100%;
+  }
+
+  .footer-contact {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 560px) {
+  .footer-art::after {
+    height: 70px;
+  }
+
+  .footer-main {
+    margin-top: -18px;
+    padding: 58px 0 34px;
+  }
+
+  .footer-main::before {
+    top: -36px;
+    height: 36px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .footer-brand,
+  .footer-contact {
+    grid-column: span 1;
+  }
+
+  .footer-logo {
+    font-size: 1.8rem;
+  }
+
+  .footer-col a,
+  .footer-col span,
+  .footer-brand p {
+    font-size: 0.9rem;
+  }
+
+  .footer-bottom p {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    line-height: 1.6;
+  }
+}

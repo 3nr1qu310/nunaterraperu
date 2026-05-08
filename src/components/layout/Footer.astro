@@ -1,0 +1,68 @@
+---
+import { site } from '@/lib/site';
+import './Footer.scss';
+---
+
+<footer class="footer">
+  <div class="footer-art" aria-hidden="true">
+    <img src="/images/footer.svg" alt="" loading="lazy" />
+  </div>
+
+  <div class="footer-main">
+    <div class="footer-content container">
+      <div class="footer-grid">
+        <div class="footer-col footer-brand">
+          <img src="/icons/isotopo.svg" alt="Nuna Terra Perú" width="300" height="200" loading="eager" />
+
+          <p class="footer-slogan">{site.slogan}</p>
+
+          <p>
+            Diseñamos experiencias de viaje por todo el Perú, conectando cultura,
+            naturaleza, territorio y atención personalizada.
+          </p>
+
+          <div class="socials">
+            <a href="#" aria-label="Instagram">IG</a>
+            <a href="#" aria-label="Facebook">FB</a>
+            <a href={site.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">WA</a>
+            <a href="#" aria-label="TikTok">TK</a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Explorar</h4>
+          <ul>
+            <li><a href="/paquetes">Paquetes</a></li>
+            <li><a href="/tours">Tours</a></li>
+            <li><a href="/destinos">Destinos</a></li>
+            <li><a href="/nosotros">Nosotros</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Destinos</h4>
+          <ul>
+            <li><a href="/destinos/costa">Costa</a></li>
+            <li><a href="/destinos/sierra">Sierra</a></li>
+            <li><a href="/destinos/selva">Selva</a></li>
+            <li><a href="/destinos/cusco">Cusco</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col footer-contact">
+          <h4>Contacto</h4>
+          <ul>
+            <li><a href={site.whatsappUrl}>{site.whatsapp}</a></li>
+            <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+            <li><span>{site.location}</span></li>
+            <li><span>Lun. a Sáb. 9:00 a.m. - 6:00 p.m.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2026 Nuna Terra Perú. Todos los derechos reservados.</p>
+  </div>
+</footer>

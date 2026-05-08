@@ -1,0 +1,66 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import { site } from '@/lib/site';
+---
+<BaseLayout title="Contacto | Nuna Terra Perú">
+  <Hero eyebrow="Contacto" title="Diseñemos tu viaje por Perú" subtitle="Cuéntanos qué destinos quieres conocer, cuántos días tienes y qué tipo de experiencia buscas. Te ayudaremos a crear una ruta clara, organizada y adaptada a ti." image="/images/contact-hero.jpg" primaryText="Escribir por WhatsApp" primaryHref={site.whatsappUrl} secondaryText="Enviar consulta" secondaryHref="#formulario" />
+  <section class="section section--tight"><div class="container grid grid--4">{['WhatsApp','Correo','Ubicación','Redes sociales'].map((item)=><div class="card contact-card"><h3>{item}</h3><p>Canal directo para consultas, cotizaciones y orientación de viaje.</p></div>)}</div></section>
+  <section class="section" id="formulario"><div class="container contact-layout"><div><SectionHeading title="Cuéntanos sobre tu próximo viaje" subtitle="Mientras más detalles nos compartas, mejor podremos orientarte." /><form class="form" id="lead-form">
+  <input name="full_name" placeholder="Nombre completo" required />
+  <input name="email" type="email" placeholder="Correo electrónico" />
+  <input name="phone" placeholder="WhatsApp" required />
+  <input name="country" placeholder="País de residencia" />
+  <select name="interest_type">
+    <option value="general_question">Tipo de interés</option>
+    <option value="package">Paquete turístico</option>
+    <option value="tour">Tour</option>
+    <option value="custom_trip">Viaje a medida</option>
+  </select>
+  <select name="destinations_interest">
+    <option value="">Destino de interés</option>
+    <option>Cusco</option><option>Machu Picchu</option><option>Lima</option><option>Ica</option><option>Arequipa</option><option>Puno</option><option>Amazonía</option><option>Aún no lo sé</option>
+  </select>
+  <input name="travel_date" type="date" placeholder="Fecha estimada de viaje" />
+  <input name="number_of_people" type="number" min="1" placeholder="Número de viajeros" />
+  <select name="duration_range">
+    <option value="">Duración aproximada</option>
+    <option>1 día</option><option>2 días</option><option>3 a 5 días</option><option>6 a 8 días</option><option>Más de 9 días</option>
+  </select>
+  <select name="travel_style">
+    <option value="">Estilo de viaje</option>
+    <option>Familiar</option><option>Pareja</option><option>Amigos</option><option>Premium</option><option>Aventura</option><option>Cultural</option><option>Relajado</option>
+  </select>
+  <textarea name="message" rows="5" placeholder="Cuéntanos qué te gustaría vivir en Perú"></textarea>
+  <label><input name="consent" type="checkbox" required /> Acepto ser contactado por Nuna Terra Perú.</label>
+  <input type="hidden" name="source" value="contact_page" />
+  <button class="btn btn--primary" type="submit">Solicitar propuesta de viaje</button>
+  <p class="form-message" id="form-message" aria-live="polite"></p>
+</form></div><aside class="side"><h3>Atención personalizada</h3><p>Nuestro equipo revisará tu consulta y te orientará con una propuesta según tus fechas, destinos e intereses.</p><p>{site.whatsapp}</p><p>{site.email}</p><p>{site.location}</p></aside></div></section>
+</BaseLayout>
+<style lang="scss">.contact-card{padding:24px}.contact-card h3{font-family:var(--font-display);font-size:1.8rem;color:var(--color-earth);margin:0}.contact-layout{display:grid;grid-template-columns:1fr 350px;gap:34px;align-items:start}.form{display:grid;gap:14px}.form-message{font-weight:700;color:var(--color-green);margin:4px 0 0}.form input,.form select,.form textarea{width:100%;border:1px solid rgba(90,62,43,.18);border-radius:16px;background:white;padding:14px 16px}.form input:focus,.form textarea:focus,.form select:focus{outline:2px solid rgba(47,93,80,.25);border-color:var(--color-green)}.side{position:sticky;top:130px;background:var(--color-earth);color:var(--color-ivory);padding:28px;border-radius:var(--radius-md)}.side h3{font-family:var(--font-display);font-size:2rem;margin:0 0 10px;color:var(--color-ivory)}@media(max-width:900px){.contact-layout{grid-template-columns:1fr}.side{position:static}}</style>
+
+<script>
+  const form = document.querySelector('#lead-form');
+  const message = document.querySelector('#form-message');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+    message.textContent = 'Enviando consulta...';
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.message || 'Error al enviar');
+      message.textContent = 'Tu consulta fue enviada correctamente. Te contactaremos pronto.';
+      form.reset();
+    } catch (error) {
+      message.textContent = 'No se pudo enviar la consulta. Escríbenos por WhatsApp o intenta nuevamente.';
+    }
+  });
+</script>

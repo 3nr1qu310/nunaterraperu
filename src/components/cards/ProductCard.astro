@@ -1,0 +1,31 @@
+---
+import type { Product } from '@/types/content';
+interface Props { product: Product; }
+const { product } = Astro.props;
+const href = product.type === 'package' ? `/paquetes/${product.slug}` : `/tours/${product.slug}`;
+---
+<article class="card product-card">
+  <a href={href}>
+    <img class="card__image" src={product.cardImage} alt={product.title} loading="lazy" />
+    <div class="product-card__body">
+      <span class="product-card__tag">{product.type === 'package' ? 'Paquete' : 'Tour'}</span>
+      <h3>{product.title}</h3>
+      <p>{product.subtitle}</p>
+      <div class="product-card__meta">
+        <span>{product.durationText}</span>
+        <span>{product.destinations.join(' · ')}</span>
+      </div>
+      {product.priceFrom && <strong>Desde {product.currency} {product.priceFrom}</strong>}
+      <span class="product-card__link">Ver experiencia →</span>
+    </div>
+  </a>
+</article>
+<style lang="scss">
+.product-card__body { padding: 22px; }
+.product-card__tag { display: inline-flex; border-radius: 999px; background: rgba(216,185,130,.28); color: var(--color-earth); padding: 6px 10px; font-size: .75rem; font-weight: 700; margin-bottom: 12px; }
+.product-card h3 { font-family: var(--font-display); color: var(--color-earth); font-size: 1.7rem; margin: 0 0 8px; line-height: 1.05; }
+.product-card p { color: rgba(37,37,37,.74); margin: 0 0 14px; }
+.product-card__meta { display: grid; gap: 4px; font-size: .85rem; color: rgba(37,37,37,.68); margin-bottom: 14px; }
+.product-card strong { color: var(--color-green); display: block; margin-bottom: 16px; }
+.product-card__link { color: var(--color-earth); font-weight: 700; }
+</style>

@@ -1,0 +1,69 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import DestinationCard from '@/components/cards/DestinationCard.astro';
+import { getRegions, getDestinations, getPackages, getTours } from '@/lib/content';
+const regions = await getRegions();
+const destinations = await getDestinations();
+const packages = await getPackages();
+const tours = await getTours();
+---
+<BaseLayout title="Nuna Terra Perú | El alma del Perú en cada destino">
+  <Hero eyebrow="Viajes personalizados por todo el Perú" title="El alma del Perú en cada destino" subtitle="Diseñamos experiencias de viaje por la costa, sierra y selva del Perú, conectando cultura, naturaleza y atención personalizada." image="/images/home-hero.jpg" primaryText="Explorar paquetes" primaryHref="/paquetes" secondaryText="Diseñar mi viaje" secondaryHref="/contacto" />
+
+  <section class="section section--tight">
+    <div class="container grid grid--4">
+      {['Viajes personalizados','Atención cercana','Perú completo','Organización confiable'].map((item) => <div class="card" style="padding:24px"><h3 class="h3" style="font-size:1.6rem">{item}</h3><p>Experiencias diseñadas con claridad, acompañamiento y sentido.</p></div>)}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionHeading eyebrow="Costa, Sierra y Selva" title="Descubre Perú por regiones" subtitle="Elige entre territorios, paisajes y experiencias que muestran la diversidad del país." centered />
+      <div class="grid grid--3">
+        {regions.map((region) => <article class="region-card"><img src={region.cardImage} alt={region.name} /><div><h3>{region.name}</h3><p>{region.headline}</p><a href={`/destinos/${region.slug}`}>Explorar región →</a></div></article>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionHeading eyebrow="Paquetes" title="Experiencias diseñadas para descubrir Perú" subtitle="Rutas completas para vivir el país con calma, organización y sentido." />
+      <div class="grid grid--3">{packages.map((product) => <ProductCard product={product} />)}</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionHeading eyebrow="Tours" title="Tours para vivir Perú en menos tiempo" subtitle="Experiencias de uno o dos días para descubrir destinos únicos con organización y acompañamiento." />
+      <div class="grid grid--3">{tours.map((product) => <ProductCard product={product} />)}</div>
+    </div>
+  </section>
+
+  <section class="section custom-trip">
+    <div class="container custom-trip__inner">
+      <div><p class="eyebrow">Viajes a medida</p><h2 class="h2">¿No encuentras la ruta ideal? La diseñamos contigo.</h2><p class="lead">Cuéntanos cuántos días tienes, qué destinos quieres conocer y qué estilo de viaje buscas.</p><a class="btn btn--gold" href="/contacto">Diseñar mi viaje</a></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionHeading eyebrow="Destinos" title="Destinos que conectan con la esencia del Perú" subtitle="Explora ciudades, paisajes y territorios que hacen del Perú un país inolvidable." />
+      <div class="grid grid--3">{destinations.slice(0,6).map((destination) => <DestinationCard destination={destination} />)}</div>
+    </div>
+  </section>
+</BaseLayout>
+<style lang="scss">
+.region-card { min-height: 420px; position: relative; overflow: hidden; border-radius: var(--radius-lg); color: var(--color-ivory); display: grid; align-items: end; padding: 28px; }
+.region-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 600ms ease; }
+.region-card::after { content:''; position:absolute; inset:0; background: linear-gradient(to top, rgba(37,37,37,.78), rgba(37,37,37,.12)); }
+.region-card:hover img { transform: scale(1.08); }
+.region-card div { position: relative; z-index: 1; }
+.region-card h3 { font-family: var(--font-display); font-size: 3rem; margin: 0; }
+.region-card a { color: var(--color-sand); font-weight: 700; }
+.custom-trip { background: var(--color-earth); color: var(--color-ivory); }
+.custom-trip .h2, .custom-trip .lead { color: var(--color-ivory); }
+.custom-trip__inner { min-height: 360px; display: grid; align-items: center; }
+</style>
