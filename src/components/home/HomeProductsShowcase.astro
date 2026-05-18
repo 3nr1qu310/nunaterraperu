@@ -1,0 +1,296 @@
+---
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import { getLocaleFromUrl } from '@/lib/i18n';
+import './HomeProductsShowcase.scss';
+
+const {
+  variant = 'light',
+  animationType = 'ball',   // 'ball' | 'flip'
+  eyebrow,
+  title,
+  subtitle,
+  products = [],
+  buttonText,
+  buttonHref,
+  emptyText = 'Aún no hay experiencias publicadas en esta sección.',
+} = Astro.props;
+
+const currentLocale = getLocaleFromUrl(Astro.url.pathname);
+
+const SLOTS = 3;
+const visibleProducts = products.slice(0, SLOTS);
+const numGroups = products.length > SLOTS ? Math.ceil(products.length / SLOTS) : 0;
+
+const productsData = products.map(p => {
+  const href =
+    p.type === 'package'
+      ? currentLocale === 'es' ? `/paquetes/${p.slug}` : `/${currentLocale}/packages/${p.slug}`
+      : currentLocale === 'es' ? `/tours/${p.slug}` : `/${currentLocale}/tours/${p.slug}`;
+
+  const destinationText = p.destinations?.length
+    ? p.destinations.join(' · ')
+    : currentLocale === 'es' ? 'Ruta personalizada'
+    : currentLocale === 'pt' ? 'Rota personalizada'
+    : currentLocale === 'fr' ? 'Itinéraire personnalisé'
+    : 'Tailor-made route';
+
+  const typeLabel =
+    p.type === 'package'
+      ? currentLocale === 'es' ? 'Paquete'
+        : currentLocale === 'pt' ? 'Pacote'
+        : currentLocale === 'fr' ? 'Forfait'
+        : 'Package'
+      : 'Tour';
+
+  const fromLabel =
+    currentLocale === 'es' ? 'Desde' :
+    currentLocale === 'pt' ? 'A partir de' :
+    currentLocale === 'fr' ? 'À partir de' : 'From';
+
+  return {
+    href,
+    title: p.title,
+    subtitle: p.subtitle || p.shortDescription || '',
+    durationText: p.durationText || 'Flexible',
+    priceFrom: p.priceFrom || null,
+    currency: p.currency || 'USD',
+    cardImage: p.cardImage || null,
+    heroImage: p.heroImage || null,
+    destinationText,
+    typeLabel,
+    fromLabel,
+  };
+});
+---
+
+<section class={`home-products home-products--${variant}`}>
+  <div class="container">
+    <div class="home-products__heading reveal">
+      <div>
+        <SectionHeading
+          eyebrow={eyebrow}
+          title={title}
+          subtitle={subtitle}
+          align="left"
+          theme={variant === 'dark' ? 'dark' : 'light'}
+        />
+      </div>
+
+      {buttonText && buttonHref && (
+        <a href={buttonHref} class="home-products__view-all">
+          {buttonText}
+          <span>→</span>
+        </a>
+      )}
+    </div>
+
+    {visibleProducts.length > 0 ? (
+      <div class="home-products__grid" id={`home-products-grid-${animationType}`}>
+        {visibleProducts.map((product, index) => (
+          <div
+            class="home-products__item reveal"
+            style={`transition-delay:${index * 0.14 + 0.08}s`}
+          >
+            <div class="home-products__card-wrap">
+              <ProductCard product={product} />
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="home-products__empty reveal">
+        <p>{emptyText}</p>
+      </div>
+    )}
+
+    {numGroups > 1 && (
+      <div class="home-products__nav">
+        <div class="home-products__dots">
+          {Array.from({ length: numGroups }).map((_, i) => (
+            <button
+              class={`products-dot products-dot--${animationType}${i === 0 ? ' is-active' : ''}`}
+              data-index={String(i)}
+              aria-label={`Grupo ${i + 1} de ${numGroups}`}
+            />
+          ))}
+        </div>
+        <button
+          class={`home-products__next home-products__next--${animationType}`}
+          aria-label="Siguiente grupo"
+        >
+          Siguiente
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    )}
+  </div>
+</section>
+
+<script define:vars={{ productsData, numGroups, animationType }} is:inline>
+  (() => {
+    const gridId = `home-products-grid-${animationType}`;
+    const grid   = document.getElementById(gridId);
+    if (!grid || numGroups <= 1) return;
+    if (window.innerWidth < 720) return;
+
+    const SLOTS       = 3;
+    const n           = productsData.length;
+    const items       = Array.from(grid.querySelectorAll('.home-products__item'));
+    const wraps       = items.map(el => el.querySelector('.home-products__card-wrap'));
+    const dotEls      = Array.from(document.querySelectorAll(`.products-dot--${animationType}`));
+    const nextBtn     = document.querySelector(`.home-products__next--${animationType}`);
+    const placeholder = '/images/placeholders/package-placeholder.jpg';
+
+    const INTERVAL      = 8000;
+    const EXIT_MS       = 520;  // ball exit duration
+    const FLIP_HALF_MS  = 300;  // flip to 90deg
+    const STAGGER_MS    = 130;  // between each card entry
+    const ENTER_DUR_MS  = 700;
+
+    let currentGroup = 0;
+    let isAnimating  = false;
+    let timer;
+
+    function imgSrc(p) { return p.cardImage || p.heroImage || placeholder; }
+
+    function groupProducts(g) {
+      return [0, 1, 2].map(i => productsData[(g * SLOTS + i) % n]);
+    }
+
+    function updateCard(item, p) {
+      const w     = item.querySelector('.home-products__card-wrap');
+      const link  = w.querySelector('.product-card__link');
+      const img   = w.querySelector('.product-card__image');
+      const tag   = w.querySelector('.product-card__tag');
+      const dur   = w.querySelector('.product-card__topline span');
+      const ttl   = w.querySelector('.product-card__title');
+      const sub   = w.querySelector('.product-card__subtitle');
+      const metas = w.querySelectorAll('.product-card__meta span');
+      const price = w.querySelector('.product-card__price');
+
+      if (link)  link.href = p.href;
+      if (img)   { img.src = imgSrc(p); img.alt = p.title; }
+      if (tag)   tag.textContent = p.typeLabel;
+      if (dur)   dur.textContent = p.durationText;
+      if (ttl)   ttl.textContent = p.title;
+      if (sub)   sub.textContent = p.subtitle;
+      if (metas.length >= 2) metas[1].textContent = p.destinationText;
+      if (price) {
+        const small = price.querySelector('small');
+        const from  = small ? small.textContent : p.fromLabel;
+        price.innerHTML = `<small>${from}</small>${p.priceFrom ? `${p.currency} ${p.priceFrom}` : 'Consultar'}`;
+      }
+    }
+
+    function updateDots(g) {
+      dotEls.forEach((d, i) => d.classList.toggle('is-active', i === g));
+    }
+
+    // --- ANIMACIÓN BOLITA (paquetes) ---
+    function goToBall(next) {
+      groupProducts(next).forEach(p => { const img = new Image(); img.src = imgSrc(p); });
+
+      wraps.forEach(w => w.classList.add('is-exit'));
+
+      setTimeout(() => {
+        groupProducts(next).forEach((p, i) => updateCard(items[i], p));
+
+        wraps.forEach(w => {
+          w.classList.remove('is-exit');
+          w.classList.add('is-hidden');
+        });
+
+        grid.getBoundingClientRect();
+
+        wraps.forEach((w, i) => {
+          w.style.transitionDelay = `${i * STAGGER_MS}ms`;
+          w.classList.remove('is-hidden');
+        });
+
+        currentGroup = next;
+        updateDots(currentGroup);
+
+        setTimeout(() => {
+          wraps.forEach(w => { w.style.transitionDelay = ''; });
+          isAnimating = false;
+        }, 2 * STAGGER_MS + ENTER_DUR_MS + 100);
+      }, EXIT_MS);
+    }
+
+    // --- ANIMACIÓN FLIP (tours) ---
+    function goToFlip(next) {
+      groupProducts(next).forEach(p => { const img = new Image(); img.src = imgSrc(p); });
+
+      // Fase 1: todas las cards giran a 90° simultáneamente
+      wraps.forEach(w => {
+        w.style.transition = 'transform 0.3s ease';
+        w.classList.add('is-flip-out');
+      });
+
+      setTimeout(() => {
+        // Fase 2: cambiar contenido + snap a -90° (sin transición)
+        groupProducts(next).forEach((p, i) => updateCard(items[i], p));
+
+        wraps.forEach(w => {
+          w.style.transition = 'none';
+          w.classList.remove('is-flip-out');
+          w.classList.add('is-flip-in');
+        });
+
+        grid.getBoundingClientRect();
+
+        // Fase 3: volver de -90° a 0° con stagger
+        wraps.forEach((w, i) => {
+          setTimeout(() => {
+            w.style.transition = 'transform 0.32s ease';
+            w.classList.remove('is-flip-in');
+          }, i * STAGGER_MS);
+        });
+
+        currentGroup = next;
+        updateDots(currentGroup);
+
+        const cleanupMs = 2 * STAGGER_MS + 340;
+        setTimeout(() => {
+          wraps.forEach(w => { w.style.transition = ''; });
+          isAnimating = false;
+        }, cleanupMs);
+      }, FLIP_HALF_MS);
+    }
+
+    function goTo(next) {
+      if (isAnimating) return;
+      isAnimating = true;
+      if (animationType === 'flip') goToFlip(next);
+      else goToBall(next);
+    }
+
+    function advance() { goTo((currentGroup + 1) % numGroups); }
+
+    function resetTimer() {
+      clearInterval(timer);
+      timer = setInterval(advance, INTERVAL);
+    }
+
+    if (nextBtn) nextBtn.addEventListener('click', () => { advance(); resetTimer(); });
+
+    dotEls.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        if (i === currentGroup || isAnimating) return;
+        goTo(i);
+        resetTimer();
+      });
+    });
+
+    const entranceSettleMs = (items.length - 1) * 140 + 80 + 700 + 900;
+
+    const io = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return;
+      io.disconnect();
+      setTimeout(() => { timer = setInterval(advance, INTERVAL); }, entranceSettleMs);
+    }, { threshold: 0.2 });
+
+    io.observe(grid);
+  })();
+</script>

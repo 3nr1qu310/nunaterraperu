@@ -1,0 +1,239 @@
+/* ================================================================
+   HOME DESTINATIONS v2
+   Layout:   editorial 1+N (featured grande + compactos)
+   Animate:  reveal orquestado con timing diferencial por jerarquía
+   Bolder:   heading left-anchored, featured con tratamiento visual propio
+================================================================ */
+
+.home-destinations {
+  background: var(--color-ivory);
+  padding: 40px 0;
+  overflow: hidden; /* Contiene el reveal de las cards */
+}
+
+/* ── HEADER ──────────────────────────────────────────────────────
+   BOLDER: heading izquierda + CTA derecha en la misma fila.
+   Rompe el centered-stack. En mobile colapsa a columna.
+   El heading ancla la lectura; el CTA en el mismo nivel comunica
+   que hay más sin interrumpir el flujo.
+──────────────────────────────────────────────────────────────── */
+.home-destinations__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.home-destinations__header-cta {
+  flex-shrink: 0;
+  padding-bottom: 40px; /* Alineación óptica con la última línea del heading */
+}
+
+/* ── EDITORIAL GRID ──────────────────────────────────────────────
+   LAYOUT: CSS Grid con named areas.
+   Desktop: featured ocupa 2/3 del ancho, secondary 1/3.
+   El featured es el punto focal — jerarquía territorial explícita.
+──────────────────────────────────────────────────────────────── */
+.home-destinations__editorial {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-areas: "featured secondary";
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── FEATURED ────────────────────────────────────────────────────
+   El destino destacado: imagen alta, tratamiento editorial.
+   DestinationCard con size="large" debe proporcionar un aspect-ratio
+   más alto (3/4 o 4/5) y texto más grande.
+──────────────────────────────────────────────────────────────── */
+.home-destinations__featured {
+  grid-area: featured;
+}
+
+/* ── SECONDARY GRID ──────────────────────────────────────────────
+   Cards compactas apiladas verticalmente — no en grid horizontal.
+   El contraste de tamaño entre featured y secondary crea la jerarquía.
+──────────────────────────────────────────────────────────────── */
+.home-destinations__secondary {
+  grid-area: secondary;
+  display: grid;
+  gap: 20px;
+}
+
+/* ── ANIMATE: REVEAL DIFERENCIAL ─────────────────────────────────
+   Los data-reveal-delay en el HTML escalonan la entrada:
+   - heading: 0ms (âncora la sección)
+   - featured: 100ms (el elemento de mayor peso entra segundo)
+   - secondary[0]: 200ms
+   - secondary[1]: 300ms
+   - secondary[2]: 400ms
+
+   El featured entra desde abajo con más distancia para que
+   su entrada sea más dramática que las cards secundarias.
+──────────────────────────────────────────────────────────────── */
+.home-destinations__featured [data-reveal],
+.home-destinations__featured {
+  --reveal-distance: 32px; /* Featured se mueve más al entrar */
+}
+
+/* ── CICLO DE DESTINOS ───────────────────────────────────────────
+   Los wrappers de animación son elementos internos independientes
+   del sistema data-reveal. Las transiciones se gestionan por JS.
+──────────────────────────────────────────────────────────────── */
+
+/* Featured: sale por la izquierda */
+.home-destinations__feat-anim.is-exit-left {
+  transform: translateX(-115%);
+  opacity: 0;
+}
+
+/* Featured: posición inicial al entrar (desde la derecha, ligeramente pequeña) */
+.home-destinations__feat-anim.is-enter-start {
+  transform: translateX(38px) scale(0.97);
+  opacity: 0;
+}
+
+/* Featured mobile: sale hacia arriba (layout vertical en mobile) */
+.home-destinations__feat-anim.is-exit-up {
+  transform: translateY(-24px);
+  opacity: 0;
+}
+
+/* Featured mobile: entra desde abajo */
+.home-destinations__feat-anim.is-enter-start-up {
+  transform: translateY(32px);
+  opacity: 0;
+}
+
+/* Compact: salen hacia arriba */
+.home-destinations__item-anim.is-exit-up {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+/* Compact: posición inicial al entrar (desde abajo) */
+.home-destinations__item-anim.is-enter-start {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────────────── */
+.home-destinations__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 48px;
+  padding: 40px 32px;
+  border-radius: var(--radius-md);
+  background: rgba(247, 241, 231, 0.6);
+  border: 1px dashed rgba(90, 62, 43, 0.16);
+  text-align: center;
+}
+
+.home-destinations__empty-text {
+  margin: 0;
+  color: rgba(90, 62, 43, 0.62);
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+
+.home-destinations__empty-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(47, 93, 80, 0.28);
+  color: var(--color-green);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.home-destinations__empty-cta:hover {
+  background: rgba(47, 93, 80, 0.06);
+  border-color: var(--color-green);
+}
+
+.home-destinations__empty-cta:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-ivory),
+    0 0 0 4px var(--color-green);
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+
+/* Tablet: featured arriba, secondary en fila horizontal */
+@media (max-width: 1020px) {
+  .home-destinations__editorial {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "featured"
+      "secondary";
+  }
+
+  .home-destinations__secondary {
+    grid-template-columns: repeat(2, 1fr);
+    /* En tablet los secundarios van en fila, no en columna */
+    gap: 16px;
+  }
+
+  .home-destinations__header {
+    /* En tablet el CTA sube al header de igual forma */
+    margin-bottom: 40px;
+  }
+}
+
+/* Mobile: stack completo */
+@media (max-width: 640px) {
+  .home-destinations {
+    padding: 68px 0;
+  }
+
+  .home-destinations__header {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .home-destinations__header-cta {
+    padding-bottom: 0;
+  }
+
+  .home-destinations__editorial {
+    gap: 14px;
+  }
+
+  .home-destinations__secondary {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .home-destinations__empty {
+    padding: 28px 20px;
+  }
+}
+
+/* ── REDUCED MOTION ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .home-destinations__feat-anim.is-exit-left,
+  .home-destinations__feat-anim.is-enter-start,
+  .home-destinations__item-anim.is-exit-up,
+  .home-destinations__item-anim.is-enter-start {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "nav_home": "Home",
+  "nav_packages": "Packages",
+  "nav_tours": "Tours",
+  "nav_destinations": "Destinations",
+  "nav_about": "About us",
+  "nav_contact": "Contact",
+  "cta_design_trip": "Design my trip",
+  "footer_explore": "Explore",
+  "footer_contact": "Contact",
+  "from_price": "From",
+  "duration": "Duration",
+  "includes": "Includes",
+  "not_includes": "Does not include"
+}

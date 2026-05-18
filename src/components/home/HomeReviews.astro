@@ -1,0 +1,37 @@
+---
+import './HomeReviews.scss';
+
+const { eyebrow, title, reviews = [] } = Astro.props;
+---
+
+<section class="home-reviews" aria-label="Testimonios">
+  <div class="container">
+    <div class="home-reviews__heading reveal">
+      <p>{eyebrow}</p>
+      <h2>{title}</h2>
+    </div>
+
+    <div class="home-reviews__grid">
+      {reviews.map((review, index) => (
+        <article class="review-card reveal" style={`transition-delay:${index * 0.12}s`}>
+          <div class="review-card__stars" aria-label="5 estrellas">★★★★★</div>
+          <p class="review-card__text">“{review.text}”</p>
+
+          <div class="review-card__author">
+            <div class="review-card__avatar" aria-hidden="true">{review.avatar}</div>
+            <div>
+              <strong>{review.author}</strong>
+              <span>{review.location}</span>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <div class="home-reviews__platforms">
+      <div><strong>5.0</strong><span>Tripadvisor</span></div>
+      <div><strong>4.9</strong><span>Google</span></div>
+      <div><strong>+500</strong><span>Viajeros</span></div>
+    </div>
+  </div>
+</section>

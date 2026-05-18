@@ -1,0 +1,160 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import DestinationCard from '@/components/cards/DestinationCard.astro';
+import HomeReveal from '@/components/home/HomeReveal.astro';
+
+import {
+  getTravelCategories,
+  getPackagesByCategorySlug,
+  getToursByCategorySlug,
+  getDestinations,
+} from '@/lib/content';
+
+import './Categoria.scss';
+
+const { slug = '' } = Astro.params;
+
+const categories = await getTravelCategories();
+const category = categories.find((c) => c.slug === slug);
+
+if (!category) {
+  return Astro.redirect('/');
+}
+
+const [packages, tours, allDestinations] = await Promise.all([
+  getPackagesByCategorySlug(slug),
+  getToursByCategorySlug(slug),
+  getDestinations(),
+]);
+
+// Destinations that appear in at least one product of this category
+const relevantSlugs = new Set([
+  ...packages.flatMap((p) => p.destinationSlugs ?? []),
+  ...tours.flatMap((p) => p.destinationSlugs ?? []),
+]);
+
+const relatedDestinations = allDestinations.filter((d) =>
+  relevantSlugs.has(d.slug)
+);
+---
+
+<BaseLayout
+  title={`${category.name} | Estilos de viaje | Nuna Terra Perú`}
+  description={category.description || `Paquetes, tours y destinos de viaje ${category.name.toLowerCase()} en el Perú.`}
+>
+  <!-- HERO -->
+  <section class="cat-hero">
+    <div class="container cat-hero__inner">
+      {category.icon && (
+        <span class="cat-hero__icon" aria-hidden="true">{category.icon}</span>
+      )}
+      <p class="cat-hero__eyebrow">Estilo de viaje</p>
+      <h1 class="cat-hero__title">{category.name}</h1>
+      {category.description && (
+        <p class="cat-hero__desc">{category.description}</p>
+      )}
+    </div>
+  </section>
+
+  <!-- PACKAGES -->
+  {packages.length > 0 && (
+    <section class="cat-section cat-section--alt">
+      <div class="container">
+        <div class="reveal">
+          <SectionHeading
+            eyebrow="Paquetes"
+            title={`Paquetes ${category.name}`}
+            subtitle={`Rutas completas pensadas para vivir el Perú en clave ${category.name.toLowerCase()}.`}
+            align="left"
+          />
+        </div>
+        <div class="cat-scroll reveal" style="transition-delay:0.1s">
+          {packages.map((product) => (
+            <div class="cat-scroll__item">
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- TOURS -->
+  {tours.length > 0 && (
+    <section class="cat-section">
+      <div class="container">
+        <div class="reveal">
+          <SectionHeading
+            eyebrow="Tours"
+            title={`Tours ${category.name}`}
+            subtitle={`Experiencias de uno o dos días para descubrir el Perú en su versión más ${category.name.toLowerCase()}.`}
+            align="left"
+          />
+        </div>
+        <div class="cat-scroll reveal" style="transition-delay:0.1s">
+          {tours.map((product) => (
+            <div class="cat-scroll__item">
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- DESTINATIONS -->
+  {relatedDestinations.length > 0 && (
+    <section class="cat-section cat-section--dark">
+      <div class="container">
+        <div class="reveal">
+          <SectionHeading
+            eyebrow="Destinos"
+            title={`Destinos para viajes ${category.name}`}
+            subtitle="Los lugares del Perú donde viven las experiencias de este estilo de viaje."
+            align="left"
+            theme="dark"
+          />
+        </div>
+        <div class="cat-scroll reveal" style="transition-delay:0.1s">
+          {relatedDestinations.map((destination) => (
+            <div class="cat-scroll__item cat-scroll__item--dest">
+              <DestinationCard destination={destination} size="compact" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- EMPTY STATE -->
+  {packages.length === 0 && tours.length === 0 && (
+    <section class="cat-section">
+      <div class="container cat-empty reveal">
+        <p class="cat-empty__text">
+          Aún no hay experiencias publicadas para este estilo de viaje.
+          <br />
+          Pronto agregaremos más opciones.
+        </p>
+        <a href="/paquetes" class="cat-btn">Ver todos los paquetes →</a>
+      </div>
+    </section>
+  )}
+
+  <!-- CTA -->
+  <section class="cat-cta">
+    <div class="container cat-cta__inner reveal">
+      <h2 class="cat-cta__title">¿Buscas algo diferente o a medida?</h2>
+      <p class="cat-cta__text">
+        Cuéntanos qué tipo de experiencia buscas y diseñamos una ruta personalizada para ti.
+      </p>
+      <div class="cat-cta__actions">
+        <a href="/contacto" class="cat-btn cat-btn--primary">Diseñar mi viaje</a>
+        <a href="/paquetes" class="cat-btn cat-btn--ghost">Ver todos los paquetes</a>
+      </div>
+    </div>
+  </section>
+
+  <HomeReveal />
+</BaseLayout>

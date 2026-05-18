@@ -1,0 +1,317 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import HomeHero from '@/components/home/HomeHero.astro';
+import HomeValueProps from '@/components/home/HomeValueProps.astro';
+import HomeRegions from '@/components/home/HomeRegions.astro';
+import HomeProductsShowcase from '@/components/home/HomeProductsShowcase.astro';
+import HomePremiumCta from '@/components/home/HomePremiumCta.astro';
+import HomeDestinations from '@/components/home/HomeDestinations.astro';
+import HomeReviews from '@/components/home/HomeReviews.astro';
+import HomeReveal from '@/components/home/HomeReveal.astro';
+import { getRegions, getDestinations, getPackages, getTours } from '@/lib/content';
+import { isLocale, type Locale } from '@/lib/i18n';
+import { site } from '@/lib/site';
+
+const localeParam = Astro.params.locale;
+
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/');
+}
+
+const locale = localeParam as Locale;
+
+if (locale === 'es') {
+  return Astro.redirect('/');
+}
+
+const copyByLocale = {
+  en: {
+    pageTitle: 'Nuna Terra Perú | The soul of Peru in every destination',
+    pageDescription:
+      'Tailor-made travel experiences across Peru’s coast, Andes and Amazon with personalized attention.',
+
+    heroEyebrow: 'Coast · Andes · Amazon',
+    heroTitle: 'The soul of Peru in every destination',
+    heroSubtitle:
+      'We design authentic travel experiences across Peru, combining culture, nature and personalized attention.',
+    heroPrimary: 'Explore packages',
+    heroSecondary: 'Design my trip',
+
+    trust: [
+      { value: '+500', label: 'Travelers' },
+      { value: '3', label: 'Regions' },
+      { value: '5★', label: 'Experiences' },
+      { value: '24/7', label: 'Support' },
+    ],
+
+    props: [
+      { icon: '🗺️', title: 'Curated routes', desc: 'Carefully selected itineraries with rhythm and meaning.' },
+      { icon: '🤝', title: 'Real support', desc: 'Close assistance before, during and after your trip.' },
+      { icon: '🌿', title: 'Complete Peru', desc: 'Coast, Andes and Amazon in authentic travel proposals.' },
+      { icon: '✨', title: 'Premium experience', desc: 'Design, organization and attention from the first contact.' },
+    ],
+
+    regionsEyebrow: 'Coast, Andes and Amazon',
+    regionsTitle: 'Discover Peru by regions',
+    regionsSubtitle:
+      'Three unique territories, each with its own essence, landscape and experience.',
+    exploreRegion: 'Explore region',
+
+    packagesEyebrow: 'Packages',
+    packagesTitle: 'Experiences designed to discover Peru',
+    packagesSubtitle:
+      'Complete routes to experience the country with calm, organization and meaning.',
+    packagesButton: 'View all packages',
+
+    toursEyebrow: 'Tours',
+    toursTitle: 'Tours to experience Peru in less time',
+    toursSubtitle:
+      'One-day or two-day experiences to discover unique destinations with organization and guidance.',
+    toursButton: 'View all tours',
+
+    premiumEyebrow: 'Tailor-made trips',
+    premiumTitle: 'Can’t find the ideal route? We design it with you.',
+    premiumText:
+      'Tell us how many days you have, which destinations you want to visit and what travel style you are looking for.',
+    premiumPrimary: 'Design my trip',
+    premiumSecondary: 'Chat on WhatsApp',
+
+    destinationsEyebrow: 'Destinations',
+    destinationsTitle: 'Destinations connected to the essence of Peru',
+    destinationsSubtitle:
+      'Explore cities, landscapes and territories that make Peru unforgettable.',
+    destinationsButton: 'View all destinations',
+
+    reviewsEyebrow: 'Testimonials',
+    reviewsTitle: 'What our travelers say',
+    reviews: [
+      { text: 'Everything was carefully organized. Every detail felt meaningful.', author: 'María F.', location: 'Lima, Peru', avatar: 'M' },
+      { text: 'Personalized attention from the first message. A very smooth experience.', author: 'Carlos R.', location: 'Buenos Aires, Argentina', avatar: 'C' },
+      { text: 'The route was clear, comfortable and authentic. We would travel with them again.', author: 'Sophie L.', location: 'Paris, France', avatar: 'S' },
+    ],
+
+    routes: {
+      packages: '/en/packages',
+      tours: '/en/tours',
+      destinations: '/en/destinations',
+      contact: '/en/contact',
+    },
+  },
+
+  pt: {
+    pageTitle: 'Nuna Terra Perú | A alma do Peru em cada destino',
+    pageDescription:
+      'Experiências de viagem pelo Peru com atenção personalizada, cultura e natureza.',
+
+    heroEyebrow: 'Costa · Serra · Selva',
+    heroTitle: 'A alma do Peru em cada destino',
+    heroSubtitle:
+      'Desenhamos experiências autênticas por todo o Peru, combinando cultura, natureza e atenção personalizada.',
+    heroPrimary: 'Explorar pacotes',
+    heroSecondary: 'Desenhar minha viagem',
+
+    trust: [
+      { value: '+500', label: 'Viajantes' },
+      { value: '3', label: 'Regiões' },
+      { value: '5★', label: 'Experiências' },
+      { value: '24/7', label: 'Suporte' },
+    ],
+
+    props: [
+      { icon: '🗺️', title: 'Rotas curadas', desc: 'Roteiros selecionados com ritmo e sentido.' },
+      { icon: '🤝', title: 'Acompanhamento real', desc: 'Apoio próximo antes, durante e depois da viagem.' },
+      { icon: '🌿', title: 'Peru completo', desc: 'Costa, serra e selva em propostas autênticas.' },
+      { icon: '✨', title: 'Experiência premium', desc: 'Design, organização e atenção desde o primeiro contato.' },
+    ],
+
+    regionsEyebrow: 'Costa, Serra e Selva',
+    regionsTitle: 'Descubra o Peru por regiões',
+    regionsSubtitle:
+      'Três territórios únicos, cada um com sua própria essência, paisagem e experiência.',
+    exploreRegion: 'Explorar região',
+
+    packagesEyebrow: 'Pacotes',
+    packagesTitle: 'Experiências criadas para descobrir o Peru',
+    packagesSubtitle:
+      'Rotas completas para viver o país com calma, organização e sentido.',
+    packagesButton: 'Ver todos os pacotes',
+
+    toursEyebrow: 'Tours',
+    toursTitle: 'Tours para viver o Peru em menos tempo',
+    toursSubtitle:
+      'Experiências de um ou dois dias para descobrir destinos únicos com organização e acompanhamento.',
+    toursButton: 'Ver todos os tours',
+
+    premiumEyebrow: 'Viagens sob medida',
+    premiumTitle: 'Não encontra a rota ideal? Nós a desenhamos com você.',
+    premiumText:
+      'Conte-nos quantos dias você tem, quais destinos quer conhecer e que estilo de viagem procura.',
+    premiumPrimary: 'Desenhar minha viagem',
+    premiumSecondary: 'Falar pelo WhatsApp',
+
+    destinationsEyebrow: 'Destinos',
+    destinationsTitle: 'Destinos que conectam com a essência do Peru',
+    destinationsSubtitle:
+      'Explore cidades, paisagens e territórios que fazem do Peru um país inesquecível.',
+    destinationsButton: 'Ver todos os destinos',
+
+    reviewsEyebrow: 'Depoimentos',
+    reviewsTitle: 'O que dizem nossos viajantes',
+    reviews: [
+      { text: 'Tudo foi organizado com muito cuidado e clareza.', author: 'María F.', location: 'Lima, Peru', avatar: 'M' },
+      { text: 'A atenção foi personalizada desde a primeira mensagem.', author: 'Carlos R.', location: 'Buenos Aires, Argentina', avatar: 'C' },
+      { text: 'A rota foi confortável, clara e autêntica.', author: 'Sophie L.', location: 'Paris, France', avatar: 'S' },
+    ],
+
+    routes: {
+      packages: '/pt/packages',
+      tours: '/pt/tours',
+      destinations: '/pt/destinations',
+      contact: '/pt/contact',
+    },
+  },
+
+  fr: {
+    pageTitle: 'Nuna Terra Perú | L’âme du Pérou dans chaque destination',
+    pageDescription:
+      'Expériences de voyage au Pérou entre culture, nature et attention personnalisée.',
+
+    heroEyebrow: 'Côte · Andes · Amazonie',
+    heroTitle: 'L’âme du Pérou dans chaque destination',
+    heroSubtitle:
+      'Nous concevons des expériences authentiques à travers le Pérou, entre culture, nature et attention personnalisée.',
+    heroPrimary: 'Explorer les forfaits',
+    heroSecondary: 'Créer mon voyage',
+
+    trust: [
+      { value: '+500', label: 'Voyageurs' },
+      { value: '3', label: 'Régions' },
+      { value: '5★', label: 'Expériences' },
+      { value: '24/7', label: 'Support' },
+    ],
+
+    props: [
+      { icon: '🗺️', title: 'Itinéraires curés', desc: 'Des routes sélectionnées avec rythme et sens.' },
+      { icon: '🤝', title: 'Accompagnement réel', desc: 'Un soutien proche avant, pendant et après le voyage.' },
+      { icon: '🌿', title: 'Pérou complet', desc: 'Côte, Andes et Amazonie dans des propositions authentiques.' },
+      { icon: '✨', title: 'Expérience premium', desc: 'Design, organisation et attention dès le premier contact.' },
+    ],
+
+    regionsEyebrow: 'Côte, Andes et Amazonie',
+    regionsTitle: 'Découvrez le Pérou par régions',
+    regionsSubtitle:
+      'Trois territoires uniques, chacun avec sa propre essence, son paysage et son expérience.',
+    exploreRegion: 'Explorer la région',
+
+    packagesEyebrow: 'Forfaits',
+    packagesTitle: 'Des expériences conçues pour découvrir le Pérou',
+    packagesSubtitle:
+      'Des itinéraires complets pour vivre le pays avec calme, organisation et sens.',
+    packagesButton: 'Voir tous les forfaits',
+
+    toursEyebrow: 'Tours',
+    toursTitle: 'Des tours pour vivre le Pérou en moins de temps',
+    toursSubtitle:
+      'Des expériences d’un ou deux jours pour découvrir des destinations uniques.',
+    toursButton: 'Voir tous les tours',
+
+    premiumEyebrow: 'Voyages sur mesure',
+    premiumTitle: 'Vous ne trouvez pas l’itinéraire idéal ? Nous le créons avec vous.',
+    premiumText:
+      'Dites-nous combien de jours vous avez, quelles destinations vous souhaitez découvrir et quel style de voyage vous recherchez.',
+    premiumPrimary: 'Créer mon voyage',
+    premiumSecondary: 'Écrire sur WhatsApp',
+
+    destinationsEyebrow: 'Destinations',
+    destinationsTitle: 'Des destinations connectées à l’essence du Pérou',
+    destinationsSubtitle:
+      'Explorez les villes, paysages et territoires qui rendent le Pérou inoubliable.',
+    destinationsButton: 'Voir toutes les destinations',
+
+    reviewsEyebrow: 'Témoignages',
+    reviewsTitle: 'Ce que disent nos voyageurs',
+    reviews: [
+      { text: 'Tout était organisé avec soin, clarté et beaucoup de sens.', author: 'María F.', location: 'Lima, Pérou', avatar: 'M' },
+      { text: 'Une attention personnalisée dès le premier message.', author: 'Carlos R.', location: 'Buenos Aires, Argentine', avatar: 'C' },
+      { text: 'Un itinéraire confortable, clair et authentique.', author: 'Sophie L.', location: 'Paris, France', avatar: 'S' },
+    ],
+
+    routes: {
+      packages: '/fr/packages',
+      tours: '/fr/tours',
+      destinations: '/fr/destinations',
+      contact: '/fr/contact',
+    },
+  },
+};
+
+const copy = copyByLocale[locale];
+
+const regions = await getRegions(locale);
+const destinations = await getDestinations(locale);
+const packages = await getPackages(locale);
+const tours = await getTours(locale);
+---
+
+<BaseLayout title={copy.pageTitle} description={copy.pageDescription}>
+  <HomeHero copy={copy} heroImage="/images/home-hero.jpg" />
+
+  <HomeValueProps props={copy.props} />
+
+  <HomeRegions
+    regions={regions}
+    eyebrow={copy.regionsEyebrow}
+    title={copy.regionsTitle}
+    subtitle={copy.regionsSubtitle}
+    exploreText={copy.exploreRegion}
+    baseHref={copy.routes.destinations}
+  />
+
+  <HomeProductsShowcase
+    variant="dark"
+    eyebrow={copy.packagesEyebrow}
+    title={copy.packagesTitle}
+    subtitle={copy.packagesSubtitle}
+    buttonText={copy.packagesButton}
+    buttonHref={copy.routes.packages}
+    products={packages.slice(0, 6)}
+  />
+
+  <HomeProductsShowcase
+    variant="light"
+    animationType="flip"
+    eyebrow={copy.toursEyebrow}
+    title={copy.toursTitle}
+    subtitle={copy.toursSubtitle}
+    buttonText={copy.toursButton}
+    buttonHref={copy.routes.tours}
+    products={tours.slice(0, 6)}
+  />
+
+  <HomePremiumCta
+    eyebrow={copy.premiumEyebrow}
+    title={copy.premiumTitle}
+    text={copy.premiumText}
+    primaryText={copy.premiumPrimary}
+    primaryHref={copy.routes.contact}
+    secondaryText={copy.premiumSecondary}
+    secondaryHref={site.whatsappUrl}
+  />
+
+  <HomeDestinations
+    destinations={destinations.slice(0, 6)}
+    eyebrow={copy.destinationsEyebrow}
+    title={copy.destinationsTitle}
+    subtitle={copy.destinationsSubtitle}
+    buttonText={copy.destinationsButton}
+    buttonHref={copy.routes.destinations}
+  />
+
+  <HomeReviews
+    eyebrow={copy.reviewsEyebrow}
+    title={copy.reviewsTitle}
+    reviews={copy.reviews}
+  />
+
+  <HomeReveal />
+</BaseLayout>

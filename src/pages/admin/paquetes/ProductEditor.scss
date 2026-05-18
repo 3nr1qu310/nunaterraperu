@@ -1,0 +1,76 @@
+.admin-translations {
+  margin-top: 10px;
+}
+
+.translation-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+
+.translation-tab {
+  border: 1px solid rgba(90, 62, 43, 0.18);
+  background: #fff;
+  color: var(--color-earth);
+  padding: 9px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.18s ease;
+}
+
+.translation-tab:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-green);
+}
+
+.translation-tab.is-active {
+  background: var(--color-green);
+  color: #fff;
+  border-color: var(--color-green);
+}
+
+.translation-panel {
+  display: none;
+  padding-top: 8px;
+}
+
+.translation-panel.is-active {
+  display: block;
+}
+
+.translation-section {
+  margin-top: 20px;
+  padding: 22px;
+  border: 1px solid rgba(90, 62, 43, 0.12);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.5)),
+    rgba(247, 241, 231, 0.32);
+}
+
+.translation-section h3 {
+  margin: 0 0 16px;
+  color: var(--color-earth);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.translation-section textarea {
+  min-height: 120px;
+}
+
+@media (max-width: 720px) {
+  .translation-section {
+    padding: 16px;
+  }
+
+  .translation-tab {
+    width: 100%;
+  }
+}

@@ -1,0 +1,276 @@
+---
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import DestinationCard from '@/components/cards/DestinationCard.astro';
+import { getLocaleFromUrl } from '@/lib/i18n';
+import './HomeDestinations.scss';
+
+const {
+  destinations = [],
+  eyebrow,
+  title,
+  subtitle,
+  buttonText,
+  buttonHref,
+  whatsappUrl = '',
+  emptyText = 'Aún no hay destinos publicados.',
+  emptyCtaText = 'Consultar disponibilidad',
+} = Astro.props;
+
+const currentLocale = getLocaleFromUrl(Astro.url.pathname);
+
+// La primera card es el destino destacado (featured).
+// Las siguientes van al grid compacto (máximo 3).
+const [featured, ...allRest] = destinations;
+const rest = allRest.slice(0, 3);
+
+// Serializar datos de todos los destinos para el ciclo JS
+const destinationsData = destinations.map(d => {
+  const href = currentLocale === 'es'
+    ? `/destinos/${d.slug}`
+    : `/${currentLocale}/destinations/${d.slug}`;
+
+  const image = d.cardImage || d.heroImage || '/images/placeholders/destination-placeholder.jpg';
+
+  const regionLabel =
+    d.region === 'costa'  ? 'Costa'  :
+    d.region === 'sierra' ? 'Sierra' :
+    d.region === 'selva'  ? 'Selva'  :
+    d.region || '';
+
+  const compactMeta = [
+    regionLabel,
+    d.bestTime || d.recommendedDays || d.altitude || '',
+  ].filter(Boolean).join(' · ');
+
+  return {
+    href,
+    name: d.name,
+    image,
+    regionLabel,
+    compactMeta,
+    description: d.shortDescription || d.subtitle || d.description || '',
+  };
+});
+---
+
+<section class="home-destinations section">
+  <div class="container">
+
+    <div class="home-destinations__header" data-reveal>
+      <SectionHeading
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        align="left"
+      />
+
+      {buttonText && buttonHref && (
+        <div class="home-destinations__header-cta">
+          <a href={buttonHref} class="btn btn--outline-dark">
+            {buttonText}
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      )}
+    </div>
+
+    {destinations.length > 0 ? (
+      <div class="home-destinations__editorial" id="destinations-editorial">
+
+        {featured && (
+          <div
+            class="home-destinations__featured"
+            data-reveal
+            data-reveal-delay="100"
+          >
+            <div class="home-destinations__feat-anim">
+              <DestinationCard destination={featured} size="large" />
+            </div>
+          </div>
+        )}
+
+        {rest.length > 0 && (
+          <div class="home-destinations__secondary">
+            {rest.map((destination, index) => (
+              <div
+                data-reveal
+                data-reveal-delay={String((index + 2) * 100)}
+              >
+                <div class="home-destinations__item-anim">
+                  <DestinationCard destination={destination} size="compact" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+    ) : (
+      <div class="home-destinations__empty" data-reveal data-reveal-delay="100">
+        <p class="home-destinations__empty-text">{emptyText}</p>
+        {whatsappUrl && (
+          <a
+            href={whatsappUrl}
+            class="home-destinations__empty-cta"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {emptyCtaText}
+            <span aria-hidden="true">→</span>
+          </a>
+        )}
+      </div>
+    )}
+
+  </div>
+</section>
+
+<script define:vars={{ destinationsData }} is:inline>
+  (() => {
+    const editorial = document.getElementById('destinations-editorial');
+    if (!editorial) return;
+
+    const isMobile  = window.innerWidth < 720;
+    const n         = destinationsData.length;
+    const featAnim  = editorial.querySelector('.home-destinations__feat-anim');
+    const itemAnims = Array.from(editorial.querySelectorAll('.home-destinations__item-anim'));
+
+    if (!featAnim || itemAnims.length < 1) return;
+
+    const INTERVAL      = 7000;
+    const FEAT_EXIT_MS  = 460;
+    const ITEM_EXIT_MS  = 360;
+    const EXIT_STAGGER  = 70;   // ms entre cada compact al salir
+    const FEAT_ENTER_MS = 540;
+    const ITEM_ENTER_MS = 440;
+    const ENTER_STAGGER = 85;   // ms entre cada compact al entrar
+
+    let offset      = 0;
+    let isAnimating = false;
+    let timer;
+
+    function updateFeatured(d) {
+      const link = featAnim.querySelector('.destination-card__link');
+      const img  = featAnim.querySelector('.destination-card__image');
+      const reg  = featAnim.querySelector('.destination-card__region');
+      const ttl  = featAnim.querySelector('.destination-card__title');
+      const desc = featAnim.querySelector('.destination-card__description');
+
+      if (link) { link.href = d.href; link.setAttribute('aria-label', `Explorar destino: ${d.name}`); }
+      if (img)  { img.src = d.image; img.alt = d.name; }
+      if (reg)  reg.textContent = `${d.regionLabel} · Destino destacado`;
+      if (ttl)  ttl.textContent = d.name;
+      if (desc) desc.textContent = d.description;
+    }
+
+    function updateCompact(wrap, d) {
+      const link = wrap.querySelector('.destination-card__link');
+      const img  = wrap.querySelector('.destination-card__thumb img');
+      const ttl  = wrap.querySelector('.destination-card__compact-body h3');
+      const meta = wrap.querySelector('.destination-card__compact-body span');
+
+      if (link) { link.href = d.href; link.setAttribute('aria-label', `Explorar destino: ${d.name}`); }
+      if (img)  { img.src = d.image; img.alt = d.name; }
+      if (ttl)  ttl.textContent = d.name;
+      if (meta) meta.textContent = d.compactMeta;
+    }
+
+    function goTo(next) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      // Precargar imágenes del siguiente grupo
+      for (let i = 0; i < 4; i++) {
+        const preload = new Image();
+        preload.src = destinationsData[(next + i) % n].image;
+      }
+
+      // ── FASE 1: SALIDA ────────────────────────────────────────
+      // Desktop: featured sale por la izquierda
+      // Mobile:  featured sale hacia arriba (layout vertical)
+      const featExitClass  = isMobile ? 'is-exit-up'       : 'is-exit-left';
+      const featEnterClass = isMobile ? 'is-enter-start-up' : 'is-enter-start';
+
+      featAnim.style.transition =
+        `transform ${FEAT_EXIT_MS}ms ease-in, opacity ${Math.round(FEAT_EXIT_MS * 0.8)}ms ease`;
+      featAnim.classList.add(featExitClass);
+
+      // Compact salen hacia arriba, escalonados
+      itemAnims.forEach((w, i) => {
+        setTimeout(() => {
+          w.style.transition =
+            `transform ${ITEM_EXIT_MS}ms ease-in, opacity ${Math.round(ITEM_EXIT_MS * 0.8)}ms ease`;
+          w.classList.add('is-exit-up');
+        }, i * EXIT_STAGGER);
+      });
+
+      // ── FASE 2: ACTUALIZAR CONTENIDO ─────────────────────────
+      const exitDone =
+        FEAT_EXIT_MS + (itemAnims.length - 1) * EXIT_STAGGER + ITEM_EXIT_MS + 40;
+
+      setTimeout(() => {
+        updateFeatured(destinationsData[next % n]);
+        itemAnims.forEach((w, i) => updateCompact(w, destinationsData[(next + 1 + i) % n]));
+
+        // Posicionar en el punto de inicio de la entrada (sin transición)
+        featAnim.style.transition = 'none';
+        featAnim.classList.remove(featExitClass);
+        featAnim.classList.add(featEnterClass);
+
+        itemAnims.forEach(w => {
+          w.style.transition = 'none';
+          w.classList.remove('is-exit-up');
+          w.classList.add('is-enter-start');
+        });
+
+        // Forzar reflow para que el navegador registre el estado inicial
+        editorial.getBoundingClientRect();
+
+        // ── FASE 3: ENTRADA ───────────────────────────────────
+        // Desktop: featured entra desde la derecha
+        // Mobile:  featured sube desde abajo
+        featAnim.style.transition =
+          `transform ${FEAT_ENTER_MS}ms cubic-bezier(0.22,1,0.36,1), opacity ${FEAT_ENTER_MS}ms ease`;
+        featAnim.classList.remove(featEnterClass);
+
+        // Compact suben desde abajo, escalonados
+        itemAnims.forEach((w, i) => {
+          setTimeout(() => {
+            w.style.transition =
+              `transform ${ITEM_ENTER_MS}ms cubic-bezier(0.22,1,0.36,1), opacity ${ITEM_ENTER_MS}ms ease`;
+            w.classList.remove('is-enter-start');
+          }, 60 + i * ENTER_STAGGER);
+        });
+
+        offset = next;
+
+        // Limpieza tras la entrada
+        const enterDone = FEAT_ENTER_MS + itemAnims.length * ENTER_STAGGER + 100;
+        setTimeout(() => {
+          featAnim.style.transition = '';
+          itemAnims.forEach(w => { w.style.transition = ''; });
+          isAnimating = false;
+        }, enterDone);
+      }, exitDone);
+    }
+
+    function advance() { goTo((offset + 1) % n); }
+
+    function resetTimer() {
+      clearInterval(timer);
+      timer = setInterval(advance, INTERVAL);
+    }
+
+    // Esperar a que la animación de entrada (data-reveal) termine
+    // usa itemAnims.length (disponible en cliente) en lugar de rest.length (solo servidor)
+    const entranceSettleMs = (itemAnims.length + 1) * 100 + 700 + 800;
+
+    const io = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return;
+      io.disconnect();
+      setTimeout(() => { timer = setInterval(advance, INTERVAL); }, entranceSettleMs);
+    }, { threshold: 0.15 });
+
+    io.observe(editorial);
+  })();
+</script>

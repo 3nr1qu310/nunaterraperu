@@ -1,292 +1,752 @@
 ---
 import { site } from '@/lib/site';
+import { getPackages, getTours, getDestinations, getRegions } from '@/lib/content';
+
+import {
+  getLocaleFromUrl,
+  getLanguageSwitchUrl,
+  localeFlags,
+  locales,
+} from '@/lib/i18n';
+
+import './Header.scss';
+
+const currentLocale = getLocaleFromUrl(Astro.url.pathname);
+
+const routes = {
+  home: currentLocale === 'es' ? '/' : `/${currentLocale}`,
+  packages: currentLocale === 'es' ? '/paquetes' : `/${currentLocale}/packages`,
+  tours: currentLocale === 'es' ? '/tours' : `/${currentLocale}/tours`,
+  destinations: currentLocale === 'es' ? '/destinos' : `/${currentLocale}/destinations`,
+  about: currentLocale === 'es' ? '/nosotros' : `/${currentLocale}/about`,
+  contact: currentLocale === 'es' ? '/contacto' : `/${currentLocale}/contact`,
+};
+
+const labels = {
+  es: {
+    claim: 'Viajes con alma por todo el Perú',
+    home: 'Inicio',
+    packages: 'Paquetes',
+    tours: 'Tours',
+    destinations: 'Destinos',
+    about: 'Nosotros',
+    contact: 'Contacto',
+    cta: 'Diseñar mi viaje',
+    featured: 'Destacado',
+    customRoute: 'Ruta personalizada',
+    from: 'Desde',
+    seePackages: 'Ver paquetes',
+    seeTours: 'Ver todos los tours',
+    region: 'Región',
+    mainDestinations: 'Destinos principales',
+    relatedProducts: 'Paquetes y tours relacionados',
+    noDestinations: 'No hay destinos cargados para esta región.',
+    noProducts: 'Aún no hay paquetes o tours relacionados.',
+    destinationFeatured: 'Destino destacado',
+    personalizedExperience: 'Experiencia personalizada',
+    package: 'Paquete',
+    tour: 'Tour',
+    explore: 'Explorar',
+    allDestinations: 'Todos los destinos',
+    quote: '“Descubre el Perú desde su alma”',
+    phrase: '“Cada viaje, diseñado desde el alma del Perú”',
+    whatsapp: 'WhatsApp',
+  },
+
+  en: {
+    claim: 'Soulful journeys throughout Peru',
+    home: 'Home',
+    packages: 'Packages',
+    tours: 'Tours',
+    destinations: 'Destinations',
+    about: 'About us',
+    contact: 'Contact',
+    cta: 'Design my trip',
+    featured: 'Featured',
+    customRoute: 'Tailor-made route',
+    from: 'From',
+    seePackages: 'View packages',
+    seeTours: 'View all tours',
+    region: 'Region',
+    mainDestinations: 'Main destinations',
+    relatedProducts: 'Related packages and tours',
+    noDestinations: 'No destinations have been added for this region yet.',
+    noProducts: 'No related packages or tours yet.',
+    destinationFeatured: 'Featured destination',
+    personalizedExperience: 'Personalized experience',
+    package: 'Package',
+    tour: 'Tour',
+    explore: 'Explore',
+    allDestinations: 'All destinations',
+    quote: '“Discover Peru from its soul”',
+    phrase: '“Every journey, designed from the soul of Peru”',
+    whatsapp: 'WhatsApp',
+  },
+
+  pt: {
+    claim: 'Viagens com alma por todo o Peru',
+    home: 'Início',
+    packages: 'Pacotes',
+    tours: 'Tours',
+    destinations: 'Destinos',
+    about: 'Sobre nós',
+    contact: 'Contato',
+    cta: 'Desenhar minha viagem',
+    featured: 'Destaque',
+    customRoute: 'Rota personalizada',
+    from: 'A partir de',
+    seePackages: 'Ver pacotes',
+    seeTours: 'Ver todos os tours',
+    region: 'Região',
+    mainDestinations: 'Destinos principais',
+    relatedProducts: 'Pacotes e tours relacionados',
+    noDestinations: 'Ainda não há destinos carregados para esta região.',
+    noProducts: 'Ainda não há pacotes ou tours relacionados.',
+    destinationFeatured: 'Destino destacado',
+    personalizedExperience: 'Experiência personalizada',
+    package: 'Pacote',
+    tour: 'Tour',
+    explore: 'Explorar',
+    allDestinations: 'Todos os destinos',
+    quote: '“Descubra o Peru a partir da sua alma”',
+    phrase: '“Cada viagem, desenhada desde a alma do Peru”',
+    whatsapp: 'WhatsApp',
+  },
+
+  fr: {
+    claim: 'Des voyages avec âme à travers tout le Pérou',
+    home: 'Accueil',
+    packages: 'Forfaits',
+    tours: 'Tours',
+    destinations: 'Destinations',
+    about: 'À propos',
+    contact: 'Contact',
+    cta: 'Créer mon voyage',
+    featured: 'En vedette',
+    customRoute: 'Itinéraire personnalisé',
+    from: 'À partir de',
+    seePackages: 'Voir les forfaits',
+    seeTours: 'Voir tous les tours',
+    region: 'Région',
+    mainDestinations: 'Destinations principales',
+    relatedProducts: 'Forfaits et tours associés',
+    noDestinations: 'Aucune destination n’a encore été ajoutée pour cette région.',
+    noProducts: 'Aucun forfait ou tour associé pour le moment.',
+    destinationFeatured: 'Destination en vedette',
+    personalizedExperience: 'Expérience personnalisée',
+    package: 'Forfait',
+    tour: 'Tour',
+    explore: 'Explorer',
+    allDestinations: 'Toutes les destinations',
+    quote: '“Découvrez le Pérou depuis son âme”',
+    phrase: '“Chaque voyage, conçu depuis l’âme du Pérou”',
+    whatsapp: 'WhatsApp',
+  },
+}[currentLocale];
+
+const productHref = (item, type) => {
+  if (type === 'tour') {
+    return currentLocale === 'es'
+      ? `/tours/${item.slug}`
+      : `/${currentLocale}/tours/${item.slug}`;
+  }
+
+  return currentLocale === 'es'
+    ? `/paquetes/${item.slug}`
+    : `/${currentLocale}/packages/${item.slug}`;
+};
+
+const destinationHref = (item) => {
+  return currentLocale === 'es'
+    ? `/destinos/${item.slug}`
+    : `/${currentLocale}/destinations/${item.slug}`;
+};
+
+const regionHref = (item) => {
+  return currentLocale === 'es'
+    ? `/regiones/${item.slug}`
+    : `/${currentLocale}/regions/${item.slug}`;
+};
+
+const packages = (await getPackages(currentLocale)).slice(0, 4);
+const tours = (await getTours(currentLocale)).slice(0, 6);
+const destinations = await getDestinations(currentLocale);
+const regions = await getRegions(currentLocale);
+
+const allProducts = [...packages, ...tours];
+
+const regionOrder = ['costa', 'sierra', 'selva'];
+
+const regionMeta = {
+  costa: {
+    emoji: '🌊',
+    tag: currentLocale === 'es'
+      ? 'Mar, desierto y sabor'
+      : currentLocale === 'en'
+        ? 'Sea, desert and flavor'
+        : currentLocale === 'pt'
+          ? 'Mar, deserto e sabor'
+          : 'Mer, désert et saveurs',
+  },
+  sierra: {
+    emoji: '⛰️',
+    tag: currentLocale === 'es'
+      ? 'Historia viva en los Andes'
+      : currentLocale === 'en'
+        ? 'Living history in the Andes'
+        : currentLocale === 'pt'
+          ? 'História viva nos Andes'
+          : 'Histoire vivante dans les Andes',
+  },
+  selva: {
+    emoji: '🌿',
+    tag: currentLocale === 'es'
+      ? 'Amazonía profunda y naturaleza'
+      : currentLocale === 'en'
+        ? 'Deep Amazon and nature'
+        : currentLocale === 'pt'
+          ? 'Amazônia profunda e natureza'
+          : 'Amazonie profonde et nature',
+  },
+};
+
+const groupedRegions = regionOrder
+  .map((slug) => {
+    const region = regions.find((item) => item.slug === slug);
+
+    const places = destinations
+      .filter((item) => item.region === slug || item.regionSlug === slug)
+      .slice(0, 5);
+
+    const productsByRegion = allProducts
+      .filter((product) => {
+        return (
+          product.region === slug ||
+          product.destinationRegions?.includes(slug) ||
+          places.some((place) => product.destinationSlugs?.includes(place.slug)) ||
+          places.some((place) => product.destinations?.includes(place.name))
+        );
+      })
+      .slice(0, 3);
+
+    return {
+      slug,
+      region,
+      places,
+      products: productsByRegion,
+      meta: regionMeta[slug],
+    };
+  })
+  .filter((item) => item.region);
 ---
 
-<header class="header">
-  <div class="topbar">
+<header class="nt-header" id="nt-header">
+  <div class="topbar" id="nt-topbar">
     <div class="container topbar__inner">
-      <span>Viajes con alma por todo el Perú</span>
-      <span>{site.location}</span>
-      <a href={site.whatsappUrl}>{site.whatsapp}</a>
-      <span>ES / EN</span>
+      <p class="topbar__claim">
+        <span class="topbar__gem" aria-hidden="true">◆</span>
+        {labels.claim}
+        <span class="topbar__gem" aria-hidden="true">◆</span>
+      </p>
+
+      <div class="topbar__center">
+        <a href={site.whatsappUrl} class="topbar__link" target="_blank" rel="noopener">
+          <span class="topbar__icon">☎</span>
+          {site.whatsapp}
+        </a>
+
+        <span class="topbar__sep"></span>
+
+        <a href={`mailto:${site.email}`} class="topbar__link">
+          <span class="topbar__icon">✉</span>
+          {site.email}
+        </a>
+
+        <span class="topbar__sep"></span>
+
+        <span class="topbar__link topbar__link--muted">
+          <span class="topbar__icon">⌖</span>
+          {site.location}
+        </span>
+      </div>
+
+      <div class="lang" aria-label="Cambiar idioma">
+        {locales.map((locale, index) => (
+          <>
+            <a
+              href={getLanguageSwitchUrl(Astro.url.pathname, locale)}
+              class={`lang__btn ${currentLocale === locale ? 'is-active' : ''}`}
+              hreflang={locale}
+            >
+              <span class="lang__flag">{localeFlags[locale]}</span>
+              {locale.toUpperCase()}
+            </a>
+
+            {index < locales.length - 1 && (
+              <span class="lang__pipe">|</span>
+            )}
+          </>
+        ))}
+      </div>
     </div>
   </div>
 
-  <nav class="nav">
+  <div class="nav" id="nt-nav">
     <div class="container nav__inner">
-      <a href="/" class="brand" aria-label="Nuna Terra Perú">
+      <a href={routes.home} class="brand" aria-label="Nuna Terra Perú">
         <img
           src="/icons/logo.svg"
           alt="Nuna Terra Perú"
-          width="200"
-          height="80"
+          width="220"
+          height="90"
           loading="eager"
         />
       </a>
 
-      <button class="nav__toggle" aria-label="Abrir menú" type="button">
-        ☰
-      </button>
+      <nav class="nav__links" aria-label="Navegación principal">
+        <a
+          href={routes.home}
+          class={`nav__lnk ${Astro.url.pathname === routes.home ? 'is-active' : ''}`}
+        >
+          {labels.home}
+        </a>
 
-      <div class="nav__links">
-        <a href="/">Inicio</a>
-        <a href="/paquetes">Paquetes</a>
-        <a href="/tours">Tours</a>
+        <div class="nav__item--drop">
+          <button class="nav__drop-btn" type="button" aria-haspopup="true" aria-expanded="false">
+            {labels.packages}
+            <span class="nav__chev">⌄</span>
+          </button>
 
-        <div class="nav__dropdown">
-          <a href="/destinos" class="nav__dropdown-link">
-            Destinos
-            <span class="nav__chevron">⌄</span>
-          </a>
-
-          <div class="mega" aria-label="Destinos principales">
-            <a href="/destinos/costa" class="mega__card">
-              <span class="mega__eyebrow">Región</span>
-              <strong>Costa</strong>
-              <p>Lima, Ica, Paracas y experiencias entre mar, desierto y gastronomía.</p>
-            </a>
-
-            <a href="/destinos/sierra" class="mega__card">
-              <span class="mega__eyebrow">Región</span>
-              <strong>Sierra</strong>
-              <p>Cusco, Machu Picchu, Puno y paisajes andinos llenos de historia.</p>
-            </a>
-
-            <a href="/destinos/selva" class="mega__card">
-              <span class="mega__eyebrow">Región</span>
-              <strong>Selva</strong>
-              <p>Puerto Maldonado, Iquitos y rutas de naturaleza profunda.</p>
-            </a>
-
-            <div class="mega__footer">
-              <span>Explora todos los destinos de Nuna Terra Perú</span>
-              <a href="/destinos">Ver destinos</a>
+          <div class="mega mega--packages">
+            <div class="packages-grid">
+              {packages.length > 0 && (
+                <!-- Card destacada: ocupa la columna izquierda completa -->
+                <a href={productHref(packages[0], 'package')} class="package-card package-card--featured">
+                  <div class="package-card__media">
+                    <img
+                      src={packages[0].cardImage || packages[0].heroImage || '/images/placeholders/package-placeholder.jpg'}
+                      alt={packages[0].title}
+                      loading="lazy"
+                    />
+                    <span class="package-card__badge">{labels.featured}</span>
+                  </div>
+          
+                  <div class="package-card__body">
+                    <strong>{packages[0].title}</strong>
+                    <span>{packages[0].durationText || labels.customRoute}</span>
+                    {packages[0].priceFrom && (
+                      <p>{labels.from} {packages[0].currency || 'USD'} {packages[0].priceFrom}</p>
+                    )}
+                  </div>
+                </a>
+              )}
+          
+              {/* Tres cards secundarias en layout horizontal compacto */}
+              <div class="packages-secondary">
+                {packages.slice(1, 4).map((item) => (
+                  <a href={productHref(item, 'package')} class="package-card package-card--secondary">
+                    <div class="package-card__media">
+                      <img
+                        src={item.cardImage || item.heroImage || '/images/placeholders/package-placeholder.jpg'}
+                        alt={item.title}
+                        loading="lazy"
+                      />
+                    </div>
+          
+                    <div class="package-card__body">
+                      <strong>{item.title}</strong>
+                      <span>{item.durationText || labels.customRoute}</span>
+                      {item.priceFrom && (
+                        <p>{labels.from} {item.currency || 'USD'} {item.priceFrom}</p>
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          
+            <!-- FIX: footer simplificado sin barra charcoal ni frase inspiracional -->
+            <div class="mega__foot">
+              <a href={routes.packages} class="mega__see-all">{labels.seePackages} →</a>
             </div>
           </div>
         </div>
 
-        <a href="/nosotros">Nosotros</a>
-        <a href="/contacto">Contacto</a>
+        <div class="nav__item--drop">
+          <button class="nav__drop-btn" type="button" aria-haspopup="true" aria-expanded="false">
+            {labels.tours}
+            <span class="nav__chev">⌄</span>
+          </button>
+
+          <div class="mega mega--tours">
+            <div class="tours-list">
+              {tours.map((item, index) => (
+                <a href={productHref(item, 'tour')} class={`tour-row ${index === 0 ? 'tour-row--highlight' : ''}`}>
+                  <div class="tour-row__media">
+                    <img
+                      src={item.cardImage || item.heroImage || '/images/placeholders/package-placeholder.jpg'}
+                      alt={item.title}
+                      loading="lazy"
+                    />
+                  </div>
+
+                  <div class="tour-row__info">
+                    <strong>{item.title}</strong>
+                    <span>{item.durationText || item.difficulty || labels.personalizedExperience}</span>
+                  </div>
+
+                  <span class="tour-row__arrow">→</span>
+                </a>
+              ))}
+            </div>
+
+            <div class="mega__foot mega__foot--right">
+              <a href={routes.tours} class="mega__see-all">{labels.seeTours} →</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav__item--drop">
+          <button class="nav__drop-btn" type="button" aria-haspopup="true" aria-expanded="false">
+            {labels.destinations}
+            <span class="nav__chev">⌄</span>
+          </button>
+
+          <div class="mega mega--destinations">
+            <div class="destination-panel">
+              {groupedRegions.map((group, index) => (
+                <div
+                  class={`destination-region ${index === 0 ? 'is-active' : ''}`}
+                  data-region={group.slug}
+                >
+                  <div class="destination-region__hero">
+                    <img
+                      src={group.region.cardImage || group.region.heroImage || '/images/placeholders/destination-placeholder.jpg'}
+                      alt={group.region.name}
+                      loading="lazy"
+                    />
+
+                    <div class="destination-region__overlay">
+                      <span>{group.meta.emoji}</span>
+                      <div>
+                        <small>{labels.region}</small>
+                        <strong>{group.region.name}</strong>
+                        <p>{group.region.headline || group.meta.tag}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="destination-places">
+                    <p class="destination-block-title">{labels.mainDestinations}</p>
+
+                    {group.places.length > 0 ? (
+                      group.places.map((place) => (
+                        <a href={destinationHref(place)} class="destination-place">
+                          <div class="destination-place__thumb">
+                            <img
+                              src={place.cardImage || place.heroImage || '/images/placeholders/destination-placeholder.jpg'}
+                              alt={place.name}
+                              loading="lazy"
+                            />
+                          </div>
+
+                          <div>
+                            <strong>{place.name}</strong>
+                            <span>{place.subtitle || place.description || labels.destinationFeatured}</span>
+                          </div>
+
+                          <em>→</em>
+                        </a>
+                      ))
+                    ) : (
+                      <div class="destination-empty">
+                        <p>{labels.noDestinations}</p>
+                        <a href={site.whatsappUrl} target="_blank" rel="noopener">
+                          Consultar disponibilidad →
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div class="destination-products">
+                    <p class="destination-block-title">{labels.relatedProducts}</p>
+
+                    {group.products.length > 0 ? (
+                      group.products.map((product) => (
+                        <a
+                          href={productHref(product, product.type === 'tour' ? 'tour' : 'package')}
+                          class="destination-product"
+                        >
+                          <div class="destination-product__thumb">
+                            <img
+                              src={product.cardImage || product.heroImage || '/images/placeholders/package-placeholder.jpg'}
+                              alt={product.title}
+                              loading="lazy"
+                            />
+                          </div>
+
+                          <div>
+                            <small>{product.type === 'tour' ? labels.tour : labels.package}</small>
+                            <strong>{product.title}</strong>
+                            <span>{product.durationText || labels.personalizedExperience}</span>
+                          </div>
+                        </a>
+                      ))
+                    ) : (
+                      <div class="destination-empty">
+                        <p>{labels.noProducts}</p>
+                        <a href={site.whatsappUrl} target="_blank" rel="noopener">
+                          Pedir paquete personalizado →
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <a href={regionHref(group)} class="destination-region__all">
+                    {labels.explore} {group.region.name} →
+                  </a>
+                </div>
+              ))}
+            </div>
+
+            <div class="destination-tabs">
+              {groupedRegions.map((group, index) => (
+                <button
+                  class={`destination-tab ${index === 0 ? 'is-active' : ''}`}
+                  type="button"
+                  data-tab={group.slug}
+                  aria-pressed={index === 0 ? 'true' : 'false'}
+                >
+                  <span>{group.meta.emoji}</span>
+                  {group.region.name}
+                </button>
+              ))}
+
+              <div class="destination-tabs__foot">
+                <p>{labels.quote}</p>
+                <a href={routes.destinations} class="mega__see-all">{labels.allDestinations} →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href={routes.about}
+          class={`nav__lnk ${Astro.url.pathname.startsWith(routes.about) ? 'is-active' : ''}`}
+        >
+          {labels.about}
+        </a>
+        <a
+          href={routes.contact}
+          class={`nav__lnk ${Astro.url.pathname === routes.contact ? 'is-active' : ''}`}
+        >
+          {labels.contact}
+        </a>
+      </nav>
+
+      <div class="nav__tools">
+        <a href={site.whatsappUrl} class="nav__wa" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+          <!-- Ícono oficial de WhatsApp — libre de copyright (Meta Platforms) -->
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.532 5.845L.057 23.455a.5.5 0 0 0 .612.612l5.605-1.476A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.9a9.877 9.877 0 0 1-5.03-1.373l-.36-.214-3.73.982.997-3.64-.235-.374A9.861 9.861 0 0 1 2.1 12C2.1 6.534 6.534 2.1 12 2.1S21.9 6.534 21.9 12 17.466 21.9 12 21.9z"/>
+          </svg>
+          WhatsApp
+        </a>
+      
+        <a href={routes.contact} class="btn-cta">
+          {labels.cta}
+          <span>→</span>
+        </a>
       </div>
 
-      <a class="btn btn--primary nav__cta" href="/contacto">
-        Diseñar mi viaje
+      <button class="nav__toggle" id="nt-toggle" aria-label="Abrir menú" aria-expanded="false" type="button">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mob-overlay" id="nt-overlay"></div>
+
+  <aside class="mob" id="nt-mob" hidden>
+    <div class="mob__head">
+      <a href={routes.home} class="brand brand--mobile" aria-label="Nuna Terra Perú">
+        <img
+          src="/icons/logo.svg"
+          alt="Nuna Terra Perú"
+          width="180"
+          height="72"
+          loading="eager"
+        />
+      </a>
+
+      <button class="mob__close" id="nt-close" aria-label="Cerrar menú" type="button">
+        ×
+      </button>
+    </div>
+
+    <nav class="mob__body">
+      <a href={routes.home} class="mob__lnk">{labels.home}</a>
+      <a href={routes.packages} class="mob__lnk">{labels.packages}</a>
+      <a href={routes.tours} class="mob__lnk">{labels.tours}</a>
+
+      <p class="mob__sect">{labels.destinations}</p>
+
+      {groupedRegions.map((group) => (
+        <a href={regionHref(group)} class="mob__region">
+          <span>{group.meta.emoji}</span>
+          <div>
+            <strong>{group.region.name}</strong>
+            <small>{group.region.headline || group.meta.tag}</small>
+          </div>
+        </a>
+      ))}
+
+      <a href={routes.about} class="mob__lnk">{labels.about}</a>
+      <a href={routes.contact} class="mob__lnk">{labels.contact}</a>
+    </nav>
+
+    <div class="mob__foot">
+      <!-- WhatsApp primero (order: -1 en CSS) y con fondo verde sólido -->
+      <a href={site.whatsappUrl} class="mob__wa" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.532 5.845L.057 23.455a.5.5 0 0 0 .612.612l5.605-1.476A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.9a9.877 9.877 0 0 1-5.03-1.373l-.36-.214-3.73.982.997-3.64-.235-.374A9.861 9.861 0 0 1 2.1 12C2.1 6.534 6.534 2.1 12 2.1S21.9 6.534 21.9 12 17.466 21.9 12 21.9z"/>
+        </svg>
+        {labels.whatsapp}
+      </a>
+    
+      <!-- CTA secundario: formulario de contacto -->
+      <a href={routes.contact} class="btn-cta btn-cta--full">
+        {labels.cta}
+        <span>→</span>
       </a>
     </div>
-  </nav>
+  </aside>
+
+  <script>
+    const allDrops = document.querySelectorAll('.nav__item--drop');
+
+    function openDrop(el) {
+      allDrops.forEach((drop) => {
+        if (drop !== el) closeDrop(drop);
+      });
+
+      el.classList.add('is-open');
+      el.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDrop(el) {
+      el?.classList.remove('is-open');
+      el?.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', 'false');
+    }
+
+    function closeAllDrops() {
+      allDrops.forEach(closeDrop);
+    }
+
+    allDrops.forEach((drop) => {
+      const btn = drop.querySelector('.nav__drop-btn');
+
+      drop.addEventListener('mouseenter', () => {
+        if (window.innerWidth > 960) openDrop(drop);
+      });
+
+      drop.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 960) closeDrop(drop);
+      });
+
+      btn?.addEventListener('click', (event) => {
+        event.stopPropagation();
+
+        if (drop.classList.contains('is-open')) {
+          closeDrop(drop);
+        } else {
+          openDrop(drop);
+        }
+      });
+    });
+
+    document.addEventListener('click', closeAllDrops);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeAllDrops();
+    });
+
+    document.querySelectorAll('.mega').forEach((mega) => {
+      mega.addEventListener('click', (event) => event.stopPropagation());
+    });
+
+    const destinationTabs = document.querySelectorAll('.destination-tab');
+    const destinationRegions = document.querySelectorAll('.destination-region');
+
+    function activateDestinationTab(key) {
+      destinationTabs.forEach((tab) => {
+        const isActive = tab.dataset.tab === key;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-pressed', String(isActive));
+      });
+
+      destinationRegions.forEach((region) => {
+        region.classList.toggle('is-active', region.dataset.region === key);
+      });
+    }
+
+    destinationTabs.forEach((tab) => {
+      tab.addEventListener('mouseenter', () => activateDestinationTab(tab.dataset.tab));
+
+      tab.addEventListener('click', (event) => {
+        event.stopPropagation();
+        activateDestinationTab(tab.dataset.tab);
+      });
+    });
+
+    const toggle = document.getElementById('nt-toggle');
+    const mobileMenu = document.getElementById('nt-mob');
+    const overlay = document.getElementById('nt-overlay');
+    const closeButton = document.getElementById('nt-close');
+
+    function openMobileMenu() {
+      mobileMenu?.removeAttribute('hidden');
+      requestAnimationFrame(() => overlay?.classList.add('is-open'));
+      toggle?.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      overlay?.classList.remove('is-open');
+      mobileMenu?.setAttribute('hidden', '');
+      toggle?.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    toggle?.addEventListener('click', () => {
+      if (mobileMenu?.hasAttribute('hidden')) {
+        openMobileMenu();
+      } else {
+        closeMobileMenu();
+      }
+    });
+
+    closeButton?.addEventListener('click', closeMobileMenu);
+    overlay?.addEventListener('click', closeMobileMenu);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !mobileMenu?.hasAttribute('hidden')) {
+        closeMobileMenu();
+      }
+    });
+
+    const header = document.getElementById('nt-header');
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        header?.classList.toggle('is-compact', window.scrollY > 36);
+      },
+      { passive: true }
+    );
+  </script>
 </header>
-
-<style lang="scss">
-  .header {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-  }
-
-  .topbar {
-    background: var(--color-earth);
-    color: var(--color-ivory);
-    font-size: .82rem;
-  }
-
-  .topbar__inner {
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-  }
-
-  .topbar a {
-    color: var(--color-ivory);
-    font-weight: 700;
-  }
-
-  .nav {
-    background: rgba(247, 241, 231, .94);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(90, 62, 43, .10);
-  }
-
-  .nav__inner {
-    height: 78px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    color: var(--color-earth);
-    flex-shrink: 0;
-  }
-
-  .brand img {
-    width: 160px;
-    height: auto;
-    display: block;
-  }
-
-  .nav__links {
-    display: flex;
-    align-items: center;
-    gap: 26px;
-    font-weight: 600;
-    font-size: .92rem;
-  }
-
-  .nav__links > a,
-  .nav__dropdown-link {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    min-height: 78px;
-    transition: color var(--transition);
-  }
-
-  .nav__links a:hover,
-  .nav__dropdown:hover .nav__dropdown-link,
-  .nav__dropdown:focus-within .nav__dropdown-link {
-    color: var(--color-green);
-  }
-
-  .nav__chevron {
-    font-size: .9rem;
-    transform: translateY(-1px);
-  }
-
-  .nav__dropdown {
-    position: relative;
-  }
-
-  /*
-    Este ::after funciona como puente invisible entre "Destinos" y el mega menú.
-    Así no se cierra cuando mueves el mouse hacia abajo.
-  */
-  .nav__dropdown::after {
-    content: "";
-    position: absolute;
-    left: -28px;
-    right: -28px;
-    top: 58px;
-    height: 34px;
-    display: block;
-  }
-
-  .mega {
-    position: absolute;
-    top: 74px;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    width: min(720px, calc(100vw - 36px));
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    padding: 18px;
-    border-radius: 24px;
-    background: var(--color-ivory);
-    box-shadow: var(--shadow-soft);
-    border: 1px solid rgba(90, 62, 43, .10);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity .22s ease, transform .22s ease, visibility .22s ease;
-  }
-
-  .nav__dropdown:hover .mega,
-  .nav__dropdown:focus-within .mega {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
-    pointer-events: auto;
-  }
-
-  .mega__card {
-    display: grid;
-    gap: 7px;
-    min-height: 150px;
-    padding: 18px;
-    border-radius: 18px;
-    background: rgba(247, 241, 231, .72);
-    border: 1px solid rgba(90, 62, 43, .08);
-    transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
-  }
-
-  .mega__card:hover {
-    transform: translateY(-3px);
-    border-color: var(--color-sand);
-    box-shadow: 0 16px 34px rgba(37, 37, 37, .10);
-  }
-
-  .mega__eyebrow {
-    color: var(--color-green);
-    text-transform: uppercase;
-    letter-spacing: .12em;
-    font-size: .68rem;
-    font-weight: 800;
-  }
-
-  .mega__card strong {
-    color: var(--color-earth);
-    font-family: var(--font-display);
-    font-size: 1.32rem;
-  }
-
-  .mega__card p {
-    margin: 0;
-    color: rgba(37, 37, 37, .72);
-    font-size: .84rem;
-    line-height: 1.5;
-  }
-
-  .mega__footer {
-    grid-column: 1 / -1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 16px 2px;
-    border-top: 1px solid rgba(90, 62, 43, .10);
-    color: rgba(37, 37, 37, .68);
-    font-size: .86rem;
-  }
-
-  .mega__footer a {
-    color: var(--color-green);
-    font-weight: 800;
-  }
-
-  .nav__toggle {
-    display: none;
-    background: transparent;
-    border: 0;
-    font-size: 1.5rem;
-    color: var(--color-earth);
-  }
-
-  @media (max-width: 900px) {
-    .topbar {
-      display: none;
-    }
-
-    .nav__inner {
-      height: 72px;
-    }
-
-    .brand img {
-      width: 138px;
-    }
-
-    .nav__links,
-    .nav__cta {
-      display: none;
-    }
-
-    .nav__toggle {
-      display: block;
-    }
-  }
-</style>

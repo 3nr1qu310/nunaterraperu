@@ -1,0 +1,205 @@
+---
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import { getLocaleFromUrl } from '@/lib/i18n';
+import './HomeRegions.scss';
+
+const {
+  regions = [],
+  eyebrow,
+  title,
+  subtitle,
+  exploreText = 'Explorar región',
+  baseHref,
+} = Astro.props;
+
+const currentLocale = getLocaleFromUrl(Astro.url.pathname);
+
+const regionBaseHref =
+  baseHref ||
+  (currentLocale === 'es'
+    ? '/regiones'
+    : `/${currentLocale}/regions`);
+
+const regionLabel =
+  currentLocale === 'es'
+    ? 'Región'
+    : currentLocale === 'pt'
+      ? 'Região'
+      : currentLocale === 'fr'
+        ? 'Région'
+        : 'Region';
+
+const visibleRegions = regions.slice(0, 3);
+
+const regionsData = regions.map(r => ({
+  slug: r.slug,
+  name: r.name,
+  headline: r.headline || null,
+  description: r.description || null,
+  cardImage: r.cardImage || null,
+  heroImage: r.heroImage || null,
+}));
+---
+
+<section class="home-regions" aria-labelledby="home-regions-title">
+  <div class="container">
+    <div class="home-regions__heading reveal">
+      <SectionHeading
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        centered
+      />
+    </div>
+
+    <div
+      class="home-regions__grid"
+      id="home-regions-grid"
+      data-base-href={regionBaseHref}
+      data-explore-text={exploreText}
+    >
+      {visibleRegions.map((region, index) => {
+        const href = `${regionBaseHref}/${region.slug}`;
+        const imgSrc = region.cardImage || region.heroImage || '/images/placeholders/destination-placeholder.jpg';
+
+        return (
+          <a
+            href={href}
+            class={`home-region-card reveal ${
+              index === 0 ? 'home-region-card--hero' : 'home-region-card--sm'
+            }`}
+            style={`transition-delay:${index * 0.12 + 0.15}s`}
+            aria-label={`${exploreText}: ${region.name}`}
+          >
+            <img
+              src={imgSrc}
+              alt={region.name}
+              class="home-region-card__img"
+              loading={index === 0 ? 'eager' : 'lazy'}
+            />
+
+            <div class="home-region-card__overlay" aria-hidden="true"></div>
+            <div class="home-region-card__shine" aria-hidden="true"></div>
+
+            <div class="home-region-card__body">
+              <div class="home-region-card__text">
+                <span class="home-region-card__region-tag">
+                  {regionLabel}
+                </span>
+
+                <div class="home-region-card__content">
+                  <h3 class="home-region-card__name">{region.name}</h3>
+
+                  <p class="home-region-card__desc">
+                    {region.headline || region.description}
+                  </p>
+                </div>
+              </div>
+
+              <span class="home-region-card__cta">
+                {exploreText}
+                <span class="home-region-card__arrow">→</span>
+              </span>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+
+    {regions.length >= 3 && (
+      <div class="home-regions__dots" id="home-regions-dots" aria-hidden="true">
+        {regions.map((_, i) => (
+          <button
+            class={`home-regions__dot${i === 0 ? ' is-active' : ''}`}
+            data-index={String(i)}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+
+<script define:vars={{ regionsData }} is:inline>
+  (() => {
+    const grid = document.getElementById('home-regions-grid');
+    if (!grid || regionsData.length < 3) return;
+
+    const dotsEl = document.getElementById('home-regions-dots');
+    const cards = Array.from(grid.querySelectorAll('.home-region-card'));
+    const baseHref = grid.dataset.baseHref;
+    const exploreText = grid.dataset.exploreText;
+    const placeholder = '/images/placeholders/destination-placeholder.jpg';
+
+    let offset = 0;
+    let isPaused = false;
+    let timer;
+
+    const INTERVAL = 5500;
+    const FADE_MS = 420;
+
+    function imgSrc(r) {
+      return r.cardImage || r.heroImage || placeholder;
+    }
+
+    function updateDots(active) {
+      if (!dotsEl) return;
+      dotsEl.querySelectorAll('.home-regions__dot').forEach((d, i) => {
+        d.classList.toggle('is-active', i === active);
+      });
+    }
+
+    function goTo(target) {
+      // Preload next images before transition
+      for (let i = 0; i < 3; i++) {
+        const preload = new Image();
+        preload.src = imgSrc(regionsData[(target + i) % regionsData.length]);
+      }
+
+      cards.forEach(c => c.classList.add('is-transitioning'));
+
+      setTimeout(() => {
+        cards.forEach((card, i) => {
+          const r = regionsData[(target + i) % regionsData.length];
+          const img = card.querySelector('.home-region-card__img');
+          img.src = imgSrc(r);
+          img.alt = r.name;
+          card.querySelector('.home-region-card__name').textContent = r.name;
+          card.querySelector('.home-region-card__desc').textContent =
+            r.headline || r.description || '';
+          card.href = `${baseHref}/${r.slug}`;
+          card.setAttribute('aria-label', `${exploreText}: ${r.name}`);
+        });
+
+        offset = target;
+        updateDots(offset);
+
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() =>
+            cards.forEach(c => c.classList.remove('is-transitioning'))
+          )
+        );
+      }, FADE_MS);
+    }
+
+    if (dotsEl) {
+      dotsEl.addEventListener('click', e => {
+        const dot = e.target.closest('.home-regions__dot');
+        if (!dot) return;
+        const idx = parseInt(dot.dataset.index, 10);
+        if (idx === offset) return;
+        clearInterval(timer);
+        goTo(idx);
+        timer = setInterval(tick, INTERVAL);
+      });
+    }
+
+    grid.addEventListener('mouseenter', () => { isPaused = true; });
+    grid.addEventListener('mouseleave', () => { isPaused = false; });
+
+    function tick() {
+      if (!isPaused) goTo((offset + 1) % regionsData.length);
+    }
+
+    timer = setInterval(tick, INTERVAL);
+  })();
+</script>

@@ -1,0 +1,227 @@
+---
+import type { TravelCategory, ProductExtended, Destination } from '@/types/content';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import DestinationCard from '@/components/cards/DestinationCard.astro';
+import TravelStyleCard from '@/components/cards/TravelStyleCard.astro';
+import './HomeTravelStyles.scss';
+
+interface Props {
+  categories: TravelCategory[];
+  products?: ProductExtended[];
+  destinations?: Destination[];
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  baseCategoryHref?: string;
+  productsTitle?: string;
+  destinationsTitle?: string;
+  variant?: 'light' | 'dark';
+  ctaText?: string;
+  quickText?: string;
+  pauseText?: string;
+}
+
+const {
+  categories = [],
+  products = [],
+  destinations = [],
+  eyebrow,
+  title,
+  subtitle,
+  baseCategoryHref = '/categorias',
+  productsTitle = 'Experiencias destacadas',
+  destinationsTitle = 'Destinos para explorar',
+  variant = 'light',
+  ctaText = 'Explorar',
+  quickText = 'Ver más rápido',
+  pauseText = 'Pausar',
+} = Astro.props;
+
+if (categories.length === 0) return;
+
+const doubled = [...categories, ...categories];
+const hasProducts = products.length > 0;
+const hasDestinations = destinations.length > 0;
+const sectionId = `hts-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<section class={`hts hts--${variant}`} id={sectionId}>
+  <div class="container">
+    <div class="hts__heading reveal">
+      <SectionHeading
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        align="left"
+        theme={variant === 'dark' ? 'dark' : 'light'}
+      />
+    </div>
+  </div>
+
+  <div class="hts__carousel-wrap">
+    <div
+      class="hts__carousel reveal"
+      aria-label={title}
+      style={`--hts-count: ${categories.length}`}
+      data-hts-carousel
+    >
+      <div class="hts__track" data-hts-track>
+        {doubled.map((cat, i) => {
+          const isClone = i >= categories.length;
+
+          return (
+            <TravelStyleCard
+              category={cat}
+              href={`${baseCategoryHref}/${cat.slug}`}
+              index={i}
+              isClone={isClone}
+              ctaText={ctaText}
+            />
+          );
+        })}
+      </div>
+    </div>
+
+    <div class="container hts__controls-wrap">
+      <div class="hts__controls" aria-label="Controles de estilos de viaje">
+        <button class="hts__control" type="button" data-hts-prev aria-label="Retroceder">
+          ←
+        </button>
+
+        <button class="hts__control hts__control--wide" type="button" data-hts-speed>
+          {quickText}
+        </button>
+
+        <button class="hts__control hts__control--wide" type="button" data-hts-pause>
+          {pauseText}
+        </button>
+
+        <button class="hts__control" type="button" data-hts-next aria-label="Avanzar">
+          →
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <script define:vars={{ sectionId }}>
+  const root = document.getElementById(sectionId);
+
+  if (root) {
+    const carousel = root.querySelector('[data-hts-carousel]');
+    const track = root.querySelector('[data-hts-track]');
+    const prev = root.querySelector('[data-hts-prev]');
+    const next = root.querySelector('[data-hts-next]');
+    const speed = root.querySelector('[data-hts-speed]');
+    const pause = root.querySelector('[data-hts-pause]');
+
+    let isFast = false;
+    let isPaused = false;
+    let isHovering = false;
+    let rafId = null;
+    let lastTime = 0;
+
+    const getHalfWidth = () => {
+      if (!track) return 0;
+      return track.scrollWidth / 2;
+    };
+
+    const getStep = () => {
+      const card = track?.querySelector('.travel-style-card');
+      if (!card) return 320;
+
+      const styles = window.getComputedStyle(track);
+      const gap = parseFloat(styles.columnGap || styles.gap || '24');
+
+      return card.getBoundingClientRect().width + gap;
+    };
+
+    const normalizeScroll = () => {
+      if (!carousel) return;
+
+      const half = getHalfWidth();
+
+      if (half <= 0) return;
+
+      if (carousel.scrollLeft >= half) {
+        carousel.scrollLeft = carousel.scrollLeft - half;
+      }
+
+      if (carousel.scrollLeft <= 0) {
+        carousel.scrollLeft = half + carousel.scrollLeft;
+      }
+    };
+
+    const scrollByStep = (direction) => {
+      if (!carousel) return;
+
+      carousel.classList.add('is-manual');
+
+      carousel.scrollBy({
+        left: direction * getStep(),
+        behavior: 'smooth',
+      });
+
+      window.setTimeout(() => {
+        normalizeScroll();
+        carousel.classList.remove('is-manual');
+      }, 520);
+    };
+
+    const autoScroll = (time) => {
+      if (!carousel) return;
+
+      if (!lastTime) lastTime = time;
+
+      const delta = time - lastTime;
+      lastTime = time;
+
+      const shouldMove = !isPaused && !isHovering && !carousel.classList.contains('is-manual');
+
+      if (shouldMove) {
+        const speedPx = isFast ? 0.075 : 0.035;
+        carousel.scrollLeft += delta * speedPx;
+        normalizeScroll();
+      }
+
+      rafId = window.requestAnimationFrame(autoScroll);
+    };
+
+    prev?.addEventListener('click', () => scrollByStep(-1));
+    next?.addEventListener('click', () => scrollByStep(1));
+
+    speed?.addEventListener('click', () => {
+      isFast = !isFast;
+      carousel?.classList.toggle('is-fast', isFast);
+      speed.textContent = isFast ? 'Velocidad normal' : 'Ver más rápido';
+    });
+
+    pause?.addEventListener('click', () => {
+      isPaused = !isPaused;
+      carousel?.classList.toggle('is-paused', isPaused);
+      pause.textContent = isPaused ? 'Continuar' : 'Pausar';
+    });
+
+    carousel?.addEventListener('mouseenter', () => {
+      isHovering = true;
+    });
+
+    carousel?.addEventListener('mouseleave', () => {
+      isHovering = false;
+    });
+
+    carousel?.addEventListener('scroll', () => {
+      normalizeScroll();
+    });
+
+    window.addEventListener('load', () => {
+      if (carousel) {
+        carousel.scrollLeft = 0;
+      }
+    });
+
+    rafId = window.requestAnimationFrame(autoScroll);
+  }
+</script>
+</section>

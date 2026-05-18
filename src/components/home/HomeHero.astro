@@ -1,0 +1,89 @@
+---
+import './HomeHero.scss';
+
+const {
+  copy,
+  heroImage = '/images/home-hero.jpg',
+  heroImages = [],
+} = Astro.props;
+
+const images = [
+  heroImage,
+  ...heroImages,
+]
+  .filter(Boolean)
+  .filter((item, index, arr) => arr.indexOf(item) === index)
+  .slice(0, 10);
+
+const firstImage = images[0] || heroImage;
+---
+
+<section
+  class="home-hero"
+  aria-label="Bienvenida"
+  style={`--hero-first-image: url('${firstImage}');`}
+>
+  <div class="home-hero__slider" aria-hidden="true">
+    {images.map((image, index) => (
+      <img
+        src={image}
+        alt=""
+        class={`home-hero__bg ${index === 0 ? 'is-active' : ''}`}
+        loading={index === 0 ? 'eager' : 'lazy'}
+        fetchpriority={index === 0 ? 'high' : 'auto'}
+        data-hero-slide
+      />
+    ))}
+  </div>
+
+  <div class="home-hero__overlay" aria-hidden="true"></div>
+  <div class="home-hero__grain" aria-hidden="true"></div>
+
+  <div class="container home-hero__content">
+    <p class="home-hero__eyebrow">
+      <span class="home-hero__eyebrow-icon" aria-hidden="true">⊙</span>
+      {copy.heroEyebrow}
+    </p>
+
+    <h1 class="home-hero__title" set:html={copy.heroTitle} />
+
+    <p class="home-hero__subtitle">
+      {copy.heroSubtitle}
+    </p>
+
+    <div class="home-hero__actions">
+      <a href={copy.routes.packages} class="home-hero__btn home-hero__btn--primary">
+        {copy.heroPrimary}
+        <span>→</span>
+      </a>
+
+      <a href={copy.routes.contact} class="home-hero__btn home-hero__btn--ghost">
+        {copy.heroSecondary}
+        <span>✦</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="home-hero__scroll" aria-hidden="true">
+    <span>Descubre</span>
+    <div class="home-hero__mouse">
+      <span></span>
+    </div>
+  </div>
+
+  <script is:inline>
+    const slides = document.querySelectorAll('[data-hero-slide]');
+
+    if (slides.length > 1) {
+      let current = 0;
+
+      window.setInterval(() => {
+        slides[current].classList.remove('is-active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('is-active');
+      }, 5200);
+    }
+
+    
+  </script>
+</section>

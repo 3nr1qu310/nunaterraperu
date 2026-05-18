@@ -1,0 +1,250 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import PeruRegionMap from '@/components/maps/PeruRegionMap.astro';
+
+import {
+  getRegionBySlug,
+  getDestinations,
+  getProductsByRegion,
+} from '@/lib/content';
+
+import './RegionDetail.scss';
+
+const slug = Astro.params.slug || '';
+
+const region = await getRegionBySlug(slug);
+
+if (!region) {
+  return Astro.redirect('/destinos');
+}
+
+const allDestinations = await getDestinations();
+
+const regionDestinations = allDestinations
+  .filter((destination) => destination.region === region.slug)
+  .slice(0, 5);
+
+const regionProducts = await getProductsByRegion(region.slug);
+
+const destinationSlugsWithProducts = new Set(
+  regionProducts.flatMap((p) => p.destinationSlugs ?? [])
+);
+
+const mapDestinations = regionDestinations.filter((d) =>
+  destinationSlugsWithProducts.has(d.slug)
+);
+
+const packages = regionProducts
+  .filter((product) => product.type === 'package')
+  .slice(0, 3);
+
+const tours = regionProducts
+  .filter((product) => product.type === 'tour')
+  .slice(0, 3);
+
+const featuredDestination = regionDestinations[0];
+const secondaryDestinations = regionDestinations.slice(1, 5);
+
+const heroImage =
+  region.heroImage ||
+  region.cardImage ||
+  '/images/placeholders/destination-placeholder.jpg';
+
+const storyImage =
+  featuredDestination?.cardImage ||
+  featuredDestination?.heroImage ||
+  region.cardImage ||
+  region.heroImage ||
+  '/images/placeholders/destination-placeholder.jpg';
+---
+
+<BaseLayout
+  title={`${region.name} del Perú | Nuna Terra Perú`}
+  description={region.description || region.headline}
+>
+  <section class="region-hero">
+    <img
+      src={heroImage}
+      alt={region.name}
+      class="region-hero__image"
+      loading="eager"
+      fetchpriority="high"
+    />
+
+    <div class="region-hero__overlay"></div>
+
+    <div class="container region-hero__content">
+      <p class="region-hero__eyebrow">Destinos del Perú</p>
+
+      <h1>{region.name} del Perú</h1>
+
+      <p>{region.headline || region.description}</p>
+
+      <div class="region-hero__actions">
+        <a href="#destinos" class="region-btn region-btn--primary">
+          Explorar destinos
+        </a>
+
+        <a href="/contacto" class="region-btn region-btn--ghost">
+          Diseñar mi viaje
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="region-quote">
+    <div class="container region-quote__inner">
+      <p>
+        “La {region.name.toLowerCase()} del Perú reúne paisajes, cultura y experiencias que revelan una forma profunda de vivir el país.”
+      </p>
+    </div>
+  </section>
+
+  <section class="region-map-section">
+    <div class="container">
+      <PeruRegionMap
+        destinations={mapDestinations}
+        title={`Ubica los destinos de ${region.name}`}
+        subtitle={`Explora visualmente los principales destinos de la ${region.name.toLowerCase()} del Perú y descubre qué experiencias puedes vivir en cada zona.`}
+      />
+    </div>
+  </section>
+
+
+  <section class="region-section region-destinations" id="destinos">
+    <div class="container">
+      <SectionHeading
+        eyebrow="Lugares emblemáticos"
+        title={`Destinos principales de ${region.name}`}
+        subtitle={region.description}
+        align="left"
+      />
+
+      {regionDestinations.length > 0 && (
+        <div class="region-destinations__layout">
+          {featuredDestination && (
+            <article class="region-destination-main">
+              <a href={`/destinos/${featuredDestination.slug}`}>
+                <img
+                  src={featuredDestination.cardImage || featuredDestination.heroImage || '/images/placeholders/destination-placeholder.jpg'}
+                  alt={featuredDestination.name}
+                  loading="lazy"
+                />
+
+                <div>
+                  <span>Destino destacado</span>
+                  <h3>{featuredDestination.name}</h3>
+                  <p>
+                    {featuredDestination.subtitle ||
+                      featuredDestination.shortDescription ||
+                      featuredDestination.description}
+                  </p>
+                  <b>Ver destino →</b>
+                </div>
+              </a>
+            </article>
+          )}
+
+          <div class="region-destination-list">
+            {secondaryDestinations.map((destination) => (
+              <article class="region-destination-mini">
+                <a href={`/destinos/${destination.slug}`}>
+                  <img
+                    src={destination.cardImage || destination.heroImage || '/images/placeholders/destination-placeholder.jpg'}
+                    alt={destination.name}
+                    loading="lazy"
+                  />
+
+                  <div>
+                    <h3>{destination.name}</h3>
+                    <span>{destination.region}</span>
+                    <b>Ver destino →</b>
+                  </div>
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+
+  {packages.length > 0 && (
+    <section class="region-section region-products" id="experiencias">
+      <div class="container">
+        <SectionHeading
+          eyebrow="Experiencias relacionadas"
+          title={`Paquetes para vivir ${region.name}`}
+          subtitle="Rutas diseñadas para descubrir el territorio con organización, tiempo y sentido."
+          centered
+        />
+
+        <div class="grid grid--3">
+          {packages.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {tours.length > 0 && (
+    <section class="region-section region-tours">
+      <div class="container">
+        <SectionHeading
+          title="Tours para explorar en menos tiempo"
+          subtitle="Experiencias cortas para conectar con lugares esenciales de esta región."
+          align="left"
+        />
+
+        <div class="grid grid--3">
+          {tours.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="region-story">
+    <div class="container region-story__grid">
+      <div class="region-story__image">
+        <img src={storyImage} alt={region.name} loading="lazy" />
+      </div>
+
+      <div class="region-story__content">
+        <p class="eyebrow">Cultura y esencia</p>
+
+        <h2>Una región para vivir el Perú desde otra perspectiva</h2>
+
+        <p>
+          Más allá de sus paisajes, esta región invita a conectar con la identidad del Perú:
+          sus caminos, su gente, sus sabores y su manera de recibir a cada viajero.
+        </p>
+
+        <blockquote>
+          “El viaje no es solo ver el paisaje, es sentir el pulso de la tierra bajo tus pies.”
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section class="region-final-cta">
+    <div class="container region-final-cta__inner">
+      <h2>¿Quieres descubrir la {region.name.toLowerCase()} del Perú a tu manera?</h2>
+      <p>Diseñamos una ruta personalizada según tus días, intereses y forma de viajar.</p>
+
+      <div>
+        <a href="/contacto" class="region-btn region-btn--primary">
+          Comenzar a planear
+        </a>
+
+        <a href="/contacto" class="region-btn region-btn--ghost">
+          Hablar con un asesor
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

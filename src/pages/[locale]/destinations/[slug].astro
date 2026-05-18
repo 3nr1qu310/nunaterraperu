@@ -1,0 +1,320 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import DestinationCard from '@/components/cards/DestinationCard.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import {
+  getRegionBySlug,
+  getDestinationBySlug,
+  getDestinations,
+  getProductsByRegion,
+  getProductsByDestinationSlug,
+} from '@/lib/content';
+import { isLocale, type Locale } from '@/lib/i18n';
+
+const localeParam = Astro.params.locale;
+const slug = Astro.params.slug || '';
+
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/destinos');
+}
+
+const locale = localeParam as Locale;
+
+const region = await getRegionBySlug(slug, locale);
+const destination = region ? null : await getDestinationBySlug(slug, locale);
+
+if (!region && !destination) {
+  return Astro.redirect(`/${locale}/destinations`);
+}
+
+const isRegion = Boolean(region);
+const data = region || destination;
+
+const regionDestinations = isRegion
+  ? (await getDestinations(locale)).filter((item) => item.region === region!.slug)
+  : [];
+
+const regionProducts = isRegion
+  ? await getProductsByRegion(region!.slug, locale)
+  : [];
+
+const relatedProducts = !isRegion
+  ? await getProductsByDestinationSlug(destination!.slug, locale)
+  : [];
+
+const copyByLocale = {
+  en: {
+    regionEyebrow: 'Destinations in Peru',
+    destinationEyebrow: 'Destination in Peru',
+    exploreDestinations: 'Explore destinations',
+    designTrip: 'Design my trip',
+    discoverRegionPrefix: 'Discover the',
+    discoverRegionSuffix: 'region of Peru',
+    destinationsRegion: 'Destinations in this region',
+    relatedExperiences: 'Related experiences',
+    relatedSubtitle: 'Packages and tours connected with this region.',
+    viewExperiencesPrefix: 'View experiences in',
+    discover: 'Discover',
+    destinationLead:
+      'Every destination has a story. At Nuna Terra Perú, we turn it into an organized, clear and memorable experience.',
+    usefulInfo: 'Useful information',
+    region: 'Region',
+    altitude: 'Altitude',
+    bestTime: 'Best time',
+    suggestedDuration: 'Suggested duration',
+    experiencesIn: 'Experiences in',
+    faqsAbout: 'Frequently asked questions about',
+    faqDays: 'How many days are recommended?',
+    faqDaysAnswer:
+      'It depends on the route, but we can adapt the experience to your dates and interests.',
+    faqCustom: 'Can I include this destination in a tailor-made itinerary?',
+    faqCustomAnswer:
+      'Yes. We design custom routes across the coast, Andes and Amazon.',
+  },
+
+  pt: {
+    regionEyebrow: 'Destinos do Peru',
+    destinationEyebrow: 'Destino no Peru',
+    exploreDestinations: 'Explorar destinos',
+    designTrip: 'Desenhar minha viagem',
+    discoverRegionPrefix: 'Descubra a região',
+    discoverRegionSuffix: 'do Peru',
+    destinationsRegion: 'Destinos desta região',
+    relatedExperiences: 'Experiências relacionadas',
+    relatedSubtitle: 'Pacotes e tours conectados com esta região.',
+    viewExperiencesPrefix: 'Ver experiências em',
+    discover: 'Descubra',
+    destinationLead:
+      'Cada destino tem uma história. Na Nuna Terra Perú, transformamos essa história em uma experiência organizada, clara e memorável.',
+    usefulInfo: 'Informações úteis',
+    region: 'Região',
+    altitude: 'Altitude',
+    bestTime: 'Melhor época',
+    suggestedDuration: 'Duração sugerida',
+    experiencesIn: 'Experiências em',
+    faqsAbout: 'Perguntas frequentes sobre',
+    faqDays: 'Quantos dias são recomendados?',
+    faqDaysAnswer:
+      'Depende da rota, mas podemos adaptar a experiência às suas datas e interesses.',
+    faqCustom: 'Posso incluir este destino em uma rota personalizada?',
+    faqCustomAnswer:
+      'Sim. Criamos roteiros sob medida pela costa, serra e selva.',
+  },
+
+  fr: {
+    regionEyebrow: 'Destinations du Pérou',
+    destinationEyebrow: 'Destination au Pérou',
+    exploreDestinations: 'Explorer les destinations',
+    designTrip: 'Créer mon voyage',
+    discoverRegionPrefix: 'Découvrez la région',
+    discoverRegionSuffix: 'du Pérou',
+    destinationsRegion: 'Destinations de cette région',
+    relatedExperiences: 'Expériences associées',
+    relatedSubtitle: 'Forfaits et tours liés à cette région.',
+    viewExperiencesPrefix: 'Voir les expériences à',
+    discover: 'Découvrir',
+    destinationLead:
+      'Chaque destination a une histoire. Chez Nuna Terra Perú, nous la transformons en une expérience organisée, claire et mémorable.',
+    usefulInfo: 'Informations utiles',
+    region: 'Région',
+    altitude: 'Altitude',
+    bestTime: 'Meilleure période',
+    suggestedDuration: 'Durée recommandée',
+    experiencesIn: 'Expériences à',
+    faqsAbout: 'Questions fréquentes sur',
+    faqDays: 'Combien de jours sont recommandés ?',
+    faqDaysAnswer:
+      'Cela dépend de l’itinéraire, mais nous pouvons adapter l’expérience à vos dates et à vos centres d’intérêt.',
+    faqCustom: 'Puis-je inclure cette destination dans un itinéraire sur mesure ?',
+    faqCustomAnswer:
+      'Oui. Nous créons des itinéraires personnalisés entre côte, Andes et Amazonie.',
+  },
+};
+
+const copy = copyByLocale[locale];
+
+const pageTitle = `${data.name} | Nuna Terra Perú`;
+const pageDescription = data.description || data.headline || data.subtitle || '';
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  {isRegion ? (
+    <>
+      <Hero
+        eyebrow={copy.regionEyebrow}
+        title={`${data.name}`}
+        subtitle={data.headline}
+        image={data.heroImage}
+        primaryText={copy.exploreDestinations}
+        primaryHref="#destinations"
+        secondaryText={copy.designTrip}
+        secondaryHref={`/${locale}/contact`}
+      />
+
+      <section class="section">
+        <div class="container">
+          <SectionHeading
+            title={`${copy.discoverRegionPrefix} ${data.name} ${copy.discoverRegionSuffix}`}
+            subtitle={data.description}
+          />
+        </div>
+      </section>
+
+      <section class="section" id="destinations">
+        <div class="container">
+          <SectionHeading title={copy.destinationsRegion} />
+
+          <div class="grid grid--3">
+            {regionDestinations.map((destination) => (
+              <DestinationCard destination={destination} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {regionProducts.length > 0 && (
+        <section class="section">
+          <div class="container">
+            <SectionHeading
+              title={copy.relatedExperiences}
+              subtitle={copy.relatedSubtitle}
+            />
+
+            <div class="grid grid--3">
+              {regionProducts.map((product) => (
+                <ProductCard product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+    </>
+  ) : (
+    <>
+      <Hero
+        eyebrow={copy.destinationEyebrow}
+        title={data.name}
+        subtitle={data.subtitle}
+        image={data.heroImage}
+        primaryText={`${copy.viewExperiencesPrefix} ${data.name}`}
+        primaryHref="#experiences"
+        secondaryText={copy.designTrip}
+        secondaryHref={`/${locale}/contact`}
+      />
+
+      <section class="section">
+        <div class="container info-grid">
+          <div>
+            <SectionHeading
+              title={`${copy.discover} ${data.name}`}
+              subtitle={data.description}
+            />
+
+            <p class="lead">{copy.destinationLead}</p>
+          </div>
+
+          <div class="quick-card">
+            <h3>{copy.usefulInfo}</h3>
+
+            <p>
+              <b>{copy.region}:</b> {data.region}
+            </p>
+
+            {data.altitude && (
+              <p>
+                <b>{copy.altitude}:</b> {data.altitude}
+              </p>
+            )}
+
+            {data.bestTime && (
+              <p>
+                <b>{copy.bestTime}:</b> {data.bestTime}
+              </p>
+            )}
+
+            {data.recommendedDays && (
+              <p>
+                <b>{copy.suggestedDuration}:</b> {data.recommendedDays}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {relatedProducts.length > 0 && (
+        <section class="section" id="experiences">
+          <div class="container">
+            <SectionHeading title={`${copy.experiencesIn} ${data.name}`} />
+
+            <div class="grid grid--3">
+              {relatedProducts.map((product) => (
+                <ProductCard product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section class="section">
+        <div class="container">
+          <SectionHeading title={`${copy.faqsAbout} ${data.name}`} />
+
+          <details>
+            <summary>{copy.faqDays}</summary>
+            <p>{copy.faqDaysAnswer}</p>
+          </details>
+
+          <details>
+            <summary>{copy.faqCustom}</summary>
+            <p>{copy.faqCustomAnswer}</p>
+          </details>
+        </div>
+      </section>
+    </>
+  )}
+</BaseLayout>
+
+<style lang="scss">
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1.3fr .7fr;
+    gap: 32px;
+  }
+
+  .quick-card {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 28px;
+    border: 1px solid rgba(90, 62, 43, .12);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .quick-card h3 {
+    font-family: var(--font-display);
+    color: var(--color-earth);
+    font-size: 2rem;
+    margin: 0 0 12px;
+  }
+
+  details {
+    background: white;
+    border: 1px solid rgba(90, 62, 43, .12);
+    padding: 18px 20px;
+    border-radius: 16px;
+    margin: 12px 0;
+  }
+
+  summary {
+    font-weight: 700;
+    color: var(--color-earth);
+    cursor: pointer;
+  }
+
+  @media(max-width: 800px) {
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

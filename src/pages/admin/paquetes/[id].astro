@@ -4,8 +4,16 @@ export const prerender = false;
 import AdminLayout from '@/components/admin/AdminLayout.astro';
 import MediaPicker from '@/components/admin/MediaPicker.astro';
 import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
+import './ProductEditor.scss';
 
 const { id } = Astro.params;
+const translationLocales = ['en', 'pt', 'fr'];
+
+const translationLabels = {
+  en: 'Inglés',
+  pt: 'Portugués',
+  fr: 'Francés',
+};
 ---
 
 <AdminLayout title="Editar producto | Admin">
@@ -260,6 +268,142 @@ const { id } = Astro.params;
         <input name="seo_keywords" />
       </div>
 
+      <hr />
+
+      <section class="admin-translations">
+        <h2 class="h3">Traducciones</h2>
+        <p class="admin-muted">
+          Completa estos campos solo si deseas mostrar el producto en otros idiomas. Si están vacíos, se mostrará el contenido base en español.
+        </p>
+
+        <div class="translation-tabs">
+          {translationLocales.map((lang, index) => (
+            <button
+              type="button"
+              class={`translation-tab ${index === 0 ? 'is-active' : ''}`}
+              data-lang-tab={lang}
+            >
+              {translationLabels[lang]}
+            </button>
+          ))}
+        </div>
+
+        {translationLocales.map((lang, index) => (
+          <div class={`translation-panel ${index === 0 ? 'is-active' : ''}`} data-lang-panel={lang}>
+            <div class="translation-section">
+              <h3>Contenido principal {lang.toUpperCase()}</h3>
+
+              <div class="admin-form-grid">
+                <div class="admin-field">
+                  <label>Título {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_title`} />
+                </div>
+
+                <div class="admin-field">
+                  <label>Subtítulo {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_subtitle`} />
+                </div>
+              </div>
+
+              <div class="admin-field">
+                <label>Descripción corta {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_short_description`}></textarea>
+              </div>
+
+              <div class="admin-field">
+                <label>Descripción larga {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_description`} style="min-height:140px"></textarea>
+              </div>
+
+              <div class="admin-form-grid admin-form-grid--3">
+                <div class="admin-field">
+                  <label>Duración {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_duration_text`} placeholder="5 days / 4 nights" />
+                </div>
+
+                <div class="admin-field">
+                  <label>Tipo de servicio {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_service_type`} />
+                </div>
+
+                <div class="admin-field">
+                  <label>Dificultad {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_difficulty_level`} />
+                </div>
+              </div>
+            </div>
+
+            <div class="translation-section">
+              <h3>Itinerario y detalles {lang.toUpperCase()}</h3>
+
+              <div class="admin-field">
+                <label>Itinerario {lang.toUpperCase()}</label>
+                <textarea
+                  name={`translation_${lang}_itinerary_text`}
+                  placeholder="1 | Arrival in Cusco | Reception and transfer | Not included | Hotel in Cusco | Transfer, acclimatization"
+                ></textarea>
+                <small class="admin-muted">
+                  Formato: día | título | descripción | comidas | alojamiento | actividades. Una línea por día.
+                </small>
+              </div>
+
+              <div class="admin-form-grid">
+                <div class="admin-field">
+                  <label>Incluye {lang.toUpperCase()}</label>
+                  <textarea name={`translation_${lang}_included_text`}></textarea>
+                </div>
+
+                <div class="admin-field">
+                  <label>No incluye {lang.toUpperCase()}</label>
+                  <textarea name={`translation_${lang}_not_included_text`}></textarea>
+                </div>
+              </div>
+
+              <div class="admin-form-grid">
+                <div class="admin-field">
+                  <label>Recomendaciones {lang.toUpperCase()}</label>
+                  <textarea name={`translation_${lang}_recommendations_text`}></textarea>
+                </div>
+
+                <div class="admin-field">
+                  <label>Notas importantes {lang.toUpperCase()}</label>
+                  <textarea name={`translation_${lang}_important_notes_text`}></textarea>
+                </div>
+              </div>
+
+              <div class="admin-field">
+                <label>FAQs {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_faqs_text`} placeholder="Question? | Answer"></textarea>
+                <small class="admin-muted">
+                  Formato: pregunta | respuesta. Una línea por pregunta.
+                </small>
+              </div>
+            </div>
+
+            <div class="translation-section">
+              <h3>SEO {lang.toUpperCase()}</h3>
+
+              <div class="admin-form-grid">
+                <div class="admin-field">
+                  <label>SEO title {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_seo_title`} />
+                </div>
+
+                <div class="admin-field">
+                  <label>SEO keywords {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_seo_keywords`} />
+                </div>
+              </div>
+
+              <div class="admin-field">
+                <label>SEO description {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_seo_description`}></textarea>
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+
       <div class="admin-actions" style="justify-content:flex-start">
         <button class="btn btn--primary" type="submit">Guardar</button>
         <a class="btn btn--outline-dark" href="/admin/paquetes">Volver</a>
@@ -273,6 +417,7 @@ const { id } = Astro.params;
     const form = document.querySelector('#productForm');
     const productId = document.querySelector('[data-product-id]')?.dataset.productId || '';
     const defaultType = new URLSearchParams(window.location.search).get('type') || 'package';
+    const translationLocales = ['en', 'pt', 'fr'];
 
     let destinations = [];
     let categories = [];
@@ -294,6 +439,9 @@ const { id } = Astro.params;
       if (field.tagName === 'TEXTAREA') {
         field.textContent = value ?? '';
       }
+
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     function getFieldValue(name) {
@@ -345,6 +493,91 @@ const { id } = Astro.params;
       document.querySelector('#mainDestinationSelect').innerHTML =
         '<option value="">Seleccionar</option>' +
         destinations.map((d) => `<option value="${d.id}">${d.name}</option>`).join('');
+    }
+
+    function setTranslationValues(product) {
+      const translations = product.product_translations || [];
+
+      translationLocales.forEach((lang) => {
+        const translation = translations.find((item) => item.locale === lang) || {};
+
+        setValue(`translation_${lang}_title`, translation.title || '');
+        setValue(`translation_${lang}_subtitle`, translation.subtitle || '');
+        setValue(`translation_${lang}_short_description`, translation.short_description || '');
+        setValue(`translation_${lang}_description`, translation.description || '');
+        setValue(`translation_${lang}_duration_text`, translation.duration_text || '');
+        setValue(`translation_${lang}_service_type`, translation.service_type || '');
+        setValue(`translation_${lang}_difficulty_level`, translation.difficulty_level || '');
+        setValue(`translation_${lang}_seo_title`, translation.seo_title || '');
+        setValue(`translation_${lang}_seo_description`, translation.seo_description || '');
+        setValue(`translation_${lang}_seo_keywords`, translation.seo_keywords || '');
+      });
+    }
+
+    function setChildTranslationValues(product) {
+      const itinerary = product.product_itinerary_days || [];
+      const inclusions = product.product_inclusions || [];
+      const faqs = product.product_faqs || [];
+
+      translationLocales.forEach((lang) => {
+        const itineraryText = itinerary
+          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+          .map((day) => {
+            const translation = (day.product_itinerary_day_translations || [])
+              .find((item) => item.locale === lang);
+
+            if (!translation) return '';
+
+            return [
+              day.day_number || '',
+              translation.title || '',
+              translation.description || '',
+              translation.meals || '',
+              translation.accommodation || '',
+              translation.activities || '',
+            ].join(' | ');
+          })
+          .filter(Boolean)
+          .join('\n');
+
+        setValue(`translation_${lang}_itinerary_text`, itineraryText);
+
+        const setInclusionTranslationText = (type, fieldName) => {
+          const text = inclusions
+            .filter((item) => item.item_type === type)
+            .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+            .map((item) => {
+              const translation = (item.product_inclusion_translations || [])
+                .find((translation) => translation.locale === lang);
+
+              return translation?.content || '';
+            })
+            .filter(Boolean)
+            .join('\n');
+
+          setValue(`translation_${lang}_${fieldName}`, text);
+        };
+
+        setInclusionTranslationText('included', 'included_text');
+        setInclusionTranslationText('not_included', 'not_included_text');
+        setInclusionTranslationText('recommendation', 'recommendations_text');
+        setInclusionTranslationText('important_note', 'important_notes_text');
+
+        const faqText = faqs
+          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+          .map((faq) => {
+            const translation = (faq.product_faq_translations || [])
+              .find((item) => item.locale === lang);
+
+            if (!translation) return '';
+
+            return `${translation.question || ''} | ${translation.answer || ''}`;
+          })
+          .filter(Boolean)
+          .join('\n');
+
+        setValue(`translation_${lang}_faqs_text`, faqText);
+      });
     }
 
     function productToForm(product) {
@@ -418,6 +651,9 @@ const { id } = Astro.params;
       updateGalleryPickers({
         gallery_text: galleryText,
       });
+
+      setTranslationValues(product);
+      setChildTranslationValues(product);
     }
 
     async function load() {
@@ -448,11 +684,21 @@ const { id } = Astro.params;
           .from('products')
           .select(`
             *,
+            product_translations(*),
             product_destinations(*),
             product_categories(*),
-            product_itinerary_days(*),
-            product_inclusions(*),
-            product_faqs(*),
+            product_itinerary_days(
+              *,
+              product_itinerary_day_translations(*)
+            ),
+            product_inclusions(
+              *,
+              product_inclusion_translations(*)
+            ),
+            product_faqs(
+              *,
+              product_faq_translations(*)
+            ),
             product_images(*)
           `)
           .eq('id', productId)
@@ -478,6 +724,240 @@ const { id } = Astro.params;
       return adminSupabase.from(table).insert(rows);
     }
 
+    async function replaceChildrenReturning(table, product_id, rows) {
+      await adminSupabase.from(table).delete().eq('product_id', product_id);
+
+      if (!rows.length) return { data: [], error: null };
+
+      const { data, error } = await adminSupabase
+        .from(table)
+        .insert(rows)
+        .select('*');
+
+      return { data, error };
+    }
+
+    function buildTranslationRows(productId, formData) {
+      return translationLocales
+        .map((locale) => {
+          const fields = {
+            title: String(formData.get(`translation_${locale}_title`) || '').trim(),
+            subtitle: String(formData.get(`translation_${locale}_subtitle`) || '').trim(),
+            short_description: String(formData.get(`translation_${locale}_short_description`) || '').trim(),
+            description: String(formData.get(`translation_${locale}_description`) || '').trim(),
+            duration_text: String(formData.get(`translation_${locale}_duration_text`) || '').trim(),
+            service_type: String(formData.get(`translation_${locale}_service_type`) || '').trim(),
+            difficulty_level: String(formData.get(`translation_${locale}_difficulty_level`) || '').trim(),
+            seo_title: String(formData.get(`translation_${locale}_seo_title`) || '').trim(),
+            seo_description: String(formData.get(`translation_${locale}_seo_description`) || '').trim(),
+            seo_keywords: String(formData.get(`translation_${locale}_seo_keywords`) || '').trim(),
+          };
+
+          const hasAnyValue = Object.values(fields).some(Boolean);
+
+          if (!hasAnyValue) return null;
+
+          return {
+            product_id: productId,
+            locale,
+            title: fields.title || String(formData.get('title') || '').trim(),
+            subtitle: fields.subtitle || null,
+            short_description: fields.short_description || null,
+            description: fields.description || null,
+            duration_text: fields.duration_text || null,
+            service_type: fields.service_type || null,
+            difficulty_level: fields.difficulty_level || null,
+            seo_title: fields.seo_title || null,
+            seo_description: fields.seo_description || null,
+            seo_keywords: fields.seo_keywords || null,
+            updated_at: new Date().toISOString(),
+          };
+        })
+        .filter(Boolean);
+    }
+
+    async function saveProductTranslations(productId, formData) {
+      const rows = buildTranslationRows(productId, formData);
+
+      const { error: deleteError } = await adminSupabase
+        .from('product_translations')
+        .delete()
+        .eq('product_id', productId)
+        .in('locale', translationLocales);
+
+      if (deleteError) return { error: deleteError };
+
+      if (!rows.length) return { error: null };
+
+      return adminSupabase
+        .from('product_translations')
+        .upsert(rows, {
+          onConflict: 'product_id,locale',
+        });
+    }
+
+    function buildTranslatedItineraryRows(formData, itineraryRows) {
+      const rows = [];
+
+      translationLocales.forEach((locale) => {
+        const translatedLines = lines(String(formData.get(`translation_${locale}_itinerary_text`) || ''));
+
+        translatedLines.forEach((line, index) => {
+          const baseDay = itineraryRows[index];
+          if (!baseDay) return;
+
+          const [day, title, description, meals, accommodation, activities] = line
+            .split('|')
+            .map((value) => value?.trim() || '');
+
+          const hasAnyValue = [title, description, meals, accommodation, activities].some(Boolean);
+          if (!hasAnyValue) return;
+
+          rows.push({
+            itinerary_day_id: baseDay.id,
+            locale,
+            title: title || null,
+            description: description || null,
+            meals: meals || null,
+            accommodation: accommodation || null,
+            activities: activities || null,
+            updated_at: new Date().toISOString(),
+          });
+        });
+      });
+
+      return rows;
+    }
+
+    function buildTranslatedInclusionRows(formData, inclusionRows) {
+      const rows = [];
+
+      const configs = [
+        { type: 'included', field: 'included_text' },
+        { type: 'not_included', field: 'not_included_text' },
+        { type: 'recommendation', field: 'recommendations_text' },
+        { type: 'important_note', field: 'important_notes_text' },
+      ];
+
+      translationLocales.forEach((locale) => {
+        configs.forEach((config) => {
+          const baseItems = inclusionRows
+            .filter((item) => item.item_type === config.type)
+            .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+          const translatedLines = lines(String(formData.get(`translation_${locale}_${config.field}`) || ''));
+
+          translatedLines.forEach((content, index) => {
+            const baseItem = baseItems[index];
+            if (!baseItem || !content) return;
+
+            rows.push({
+              inclusion_id: baseItem.id,
+              locale,
+              content,
+              updated_at: new Date().toISOString(),
+            });
+          });
+        });
+      });
+
+      return rows;
+    }
+
+    function buildTranslatedFaqRows(formData, faqRows) {
+      const rows = [];
+
+      translationLocales.forEach((locale) => {
+        const translatedLines = lines(String(formData.get(`translation_${locale}_faqs_text`) || ''));
+
+        translatedLines.forEach((line, index) => {
+          const baseFaq = faqRows[index];
+          if (!baseFaq) return;
+
+          const [question, answer] = line.split('|').map((value) => value?.trim() || '');
+          if (!question && !answer) return;
+
+          rows.push({
+            faq_id: baseFaq.id,
+            locale,
+            question: question || null,
+            answer: answer || null,
+            updated_at: new Date().toISOString(),
+          });
+        });
+      });
+
+      return rows;
+    }
+
+    async function saveChildTranslations(formData, itineraryRows, inclusionRows, faqRows) {
+      const itineraryTranslations = buildTranslatedItineraryRows(formData, itineraryRows);
+      const inclusionTranslations = buildTranslatedInclusionRows(formData, inclusionRows);
+      const faqTranslations = buildTranslatedFaqRows(formData, faqRows);
+
+      if (itineraryRows.length) {
+        const itineraryIds = itineraryRows.map((row) => row.id);
+
+        const { error } = await adminSupabase
+          .from('product_itinerary_day_translations')
+          .delete()
+          .in('itinerary_day_id', itineraryIds)
+          .in('locale', translationLocales);
+
+        if (error) return { error };
+      }
+
+      if (inclusionRows.length) {
+        const inclusionIds = inclusionRows.map((row) => row.id);
+
+        const { error } = await adminSupabase
+          .from('product_inclusion_translations')
+          .delete()
+          .in('inclusion_id', inclusionIds)
+          .in('locale', translationLocales);
+
+        if (error) return { error };
+      }
+
+      if (faqRows.length) {
+        const faqIds = faqRows.map((row) => row.id);
+
+        const { error } = await adminSupabase
+          .from('product_faq_translations')
+          .delete()
+          .in('faq_id', faqIds)
+          .in('locale', translationLocales);
+
+        if (error) return { error };
+      }
+
+      if (itineraryTranslations.length) {
+        const { error } = await adminSupabase
+          .from('product_itinerary_day_translations')
+          .insert(itineraryTranslations);
+
+        if (error) return { error };
+      }
+
+      if (inclusionTranslations.length) {
+        const { error } = await adminSupabase
+          .from('product_inclusion_translations')
+          .insert(inclusionTranslations);
+
+        if (error) return { error };
+      }
+
+      if (faqTranslations.length) {
+        const { error } = await adminSupabase
+          .from('product_faq_translations')
+          .insert(faqTranslations);
+
+        if (error) return { error };
+      }
+
+      return { error: null };
+    }
+
     form?.addEventListener('submit', async (event) => {
       event.preventDefault();
 
@@ -487,11 +967,6 @@ const { id } = Astro.params;
       const heroImageUrl = getFieldValue('hero_image_url');
       const ogImageUrl = getFieldValue('og_image_url');
       const galleryValue = getFieldValue('gallery_text');
-
-      console.log('CARD A GUARDAR:', cardImageUrl);
-      console.log('HERO A GUARDAR:', heroImageUrl);
-      console.log('OG A GUARDAR:', ogImageUrl);
-      console.log('GALERÍA A GUARDAR:', galleryValue);
 
       const payload = {
         product_type: data.get('product_type'),
@@ -512,10 +987,8 @@ const { id } = Astro.params;
         language_options: csv(String(data.get('language_options') || '')),
         min_people: toNumber(data.get('min_people')),
         max_people: toNumber(data.get('max_people')),
-
         card_image_url: cardImageUrl || null,
         hero_image_url: heroImageUrl || null,
-
         video_url: data.get('video_url') || null,
         is_featured: data.get('is_featured') === 'on',
         is_active: data.get('is_active') === 'on',
@@ -647,19 +1120,37 @@ const { id } = Astro.params;
         })
         .filter((img) => img.image_url);
 
-      const ops = [
+      const baseOps = [
         replaceChildren('product_destinations', pid, destRows),
         replaceChildren('product_categories', pid, catRows),
-        replaceChildren('product_itinerary_days', pid, itineraryRows),
-        replaceChildren('product_inclusions', pid, inclusionRows),
-        replaceChildren('product_faqs', pid, faqRows),
         replaceChildren('product_images', pid, imageRows),
+        saveProductTranslations(pid, data),
       ];
 
-      const results = await Promise.all(ops);
-      const childError = results.find((r) => r?.error)?.error;
+      const baseResults = await Promise.all(baseOps);
+      const baseError = baseResults.find((r) => r?.error)?.error;
 
-      if (childError) return notify(childError.message, 'error');
+      if (baseError) return notify(baseError.message, 'error');
+
+      const itineraryResult = await replaceChildrenReturning('product_itinerary_days', pid, itineraryRows);
+      if (itineraryResult.error) return notify(itineraryResult.error.message, 'error');
+
+      const inclusionsResult = await replaceChildrenReturning('product_inclusions', pid, inclusionRows);
+      if (inclusionsResult.error) return notify(inclusionsResult.error.message, 'error');
+
+      const faqsResult = await replaceChildrenReturning('product_faqs', pid, faqRows);
+      if (faqsResult.error) return notify(faqsResult.error.message, 'error');
+
+      const childTranslationResult = await saveChildTranslations(
+        data,
+        itineraryResult.data || [],
+        inclusionsResult.data || [],
+        faqsResult.data || []
+      );
+
+      if (childTranslationResult.error) {
+        return notify(childTranslationResult.error.message, 'error');
+      }
 
       notify('Producto guardado correctamente.', 'success');
 
@@ -669,6 +1160,20 @@ const { id } = Astro.params;
       }
 
       await load();
+    });
+
+    document.querySelectorAll('[data-lang-tab]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const lang = tab.dataset.langTab;
+
+        document.querySelectorAll('[data-lang-tab]').forEach((item) => {
+          item.classList.toggle('is-active', item.dataset.langTab === lang);
+        });
+
+        document.querySelectorAll('[data-lang-panel]').forEach((panel) => {
+          panel.classList.toggle('is-active', panel.dataset.langPanel === lang);
+        });
+      });
     });
 
     window.setTimeout(load, 250);

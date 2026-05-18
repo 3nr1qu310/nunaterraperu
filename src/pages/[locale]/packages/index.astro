@@ -1,0 +1,143 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import { getPackages } from '@/lib/content';
+import { isLocale, type Locale } from '@/lib/i18n';
+
+const localeParam = Astro.params.locale;
+
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/paquetes');
+}
+
+const locale = localeParam as Locale;
+
+const packages = await getPackages(locale);
+
+const copyByLocale = {
+  en: {
+    pageTitle: 'Travel packages in Peru | Nuna Terra Perú',
+    eyebrow: 'Travel packages in Peru',
+    title: 'Travel packages in Peru',
+    subtitle:
+      'Multi-day experiences designed to discover Peru’s coast, Andes and Amazon with organization, guidance and meaning.',
+    primaryText: 'View featured packages',
+    secondaryText: 'Design my trip',
+    catalogTitle: 'Choose your next experience',
+    catalogSubtitle:
+      'Filter by region, duration or travel style. These packages are loaded from Supabase; if the database is still empty, sample data will be shown.',
+    all: 'All',
+    coast: 'Coast',
+    andes: 'Andes',
+    amazon: 'Amazon',
+    family: 'Family',
+    premium: 'Premium',
+    contactHref: '/en/contact',
+  },
+
+  pt: {
+    pageTitle: 'Pacotes turísticos pelo Peru | Nuna Terra Perú',
+    eyebrow: 'Pacotes turísticos pelo Peru',
+    title: 'Pacotes turísticos pelo Peru',
+    subtitle:
+      'Experiências de vários dias para descobrir a costa, a serra e a selva do Peru com organização, acompanhamento e sentido.',
+    primaryText: 'Ver pacotes em destaque',
+    secondaryText: 'Desenhar minha viagem',
+    catalogTitle: 'Escolha sua próxima experiência',
+    catalogSubtitle:
+      'Filtre por região, duração ou estilo de viagem. Estes pacotes são carregados do Supabase; se a base ainda estiver vazia, serão exibidos dados de exemplo.',
+    all: 'Todos',
+    coast: 'Costa',
+    andes: 'Serra',
+    amazon: 'Selva',
+    family: 'Familiar',
+    premium: 'Premium',
+    contactHref: '/pt/contact',
+  },
+
+  fr: {
+    pageTitle: 'Forfaits touristiques au Pérou | Nuna Terra Perú',
+    eyebrow: 'Forfaits touristiques au Pérou',
+    title: 'Forfaits touristiques au Pérou',
+    subtitle:
+      'Des expériences de plusieurs jours pour découvrir la côte, les Andes et l’Amazonie du Pérou avec organisation, accompagnement et sens.',
+    primaryText: 'Voir les forfaits en vedette',
+    secondaryText: 'Créer mon voyage',
+    catalogTitle: 'Choisissez votre prochaine expérience',
+    catalogSubtitle:
+      'Filtrez par région, durée ou style de voyage. Ces forfaits sont chargés depuis Supabase; si la base est encore vide, des données d’exemple seront affichées.',
+    all: 'Tous',
+    coast: 'Côte',
+    andes: 'Andes',
+    amazon: 'Amazonie',
+    family: 'Famille',
+    premium: 'Premium',
+    contactHref: '/fr/contact',
+  },
+};
+
+const copy = copyByLocale[locale];
+---
+
+<BaseLayout title={copy.pageTitle} description={copy.subtitle}>
+  <Hero
+    eyebrow={copy.eyebrow}
+    title={copy.title}
+    subtitle={copy.subtitle}
+    image="/images/packages-hero.jpg"
+    primaryText={copy.primaryText}
+    primaryHref="#catalog"
+    secondaryText={copy.secondaryText}
+    secondaryHref={copy.contactHref}
+  />
+
+  <section class="section" id="catalog">
+    <div class="container">
+      <SectionHeading
+        title={copy.catalogTitle}
+        subtitle={copy.catalogSubtitle}
+      />
+
+      <div class="filters">
+        <button>{copy.all}</button>
+        <button>{copy.coast}</button>
+        <button>{copy.andes}</button>
+        <button>{copy.amazon}</button>
+        <button>{copy.family}</button>
+        <button>{copy.premium}</button>
+      </div>
+
+      <div class="grid grid--3">
+        {packages.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style lang="scss">
+  .filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .filters button {
+    border: 1px solid rgba(90, 62, 43, .18);
+    background: rgba(255, 255, 255, .45);
+    border-radius: 999px;
+    padding: 10px 16px;
+    color: var(--color-earth);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .filters button:first-child {
+    background: var(--color-green);
+    color: var(--color-ivory);
+  }
+</style>

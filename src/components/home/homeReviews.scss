@@ -1,0 +1,125 @@
+.home-reviews {
+  background: var(--color-charcoal);
+  padding: 100px 0;
+  color: var(--color-ivory);
+  overflow: hidden;
+}
+
+.home-reviews__heading {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.home-reviews__heading p {
+  color: var(--color-sand);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+
+.home-reviews__heading h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  line-height: 1.05;
+  margin: 12px 0 0;
+  color: var(--color-ivory);
+}
+
+.home-reviews__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 52px;
+}
+
+.review-card {
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(247, 241, 231, .08);
+  border-radius: var(--radius-md);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.review-card__stars {
+  color: var(--color-sand);
+}
+
+.review-card__text {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-style: italic;
+  color: rgba(247, 241, 231, .86);
+  line-height: 1.65;
+  flex: 1;
+}
+
+.review-card__author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(247, 241, 231, .08);
+}
+
+.review-card__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(216, 185, 130, .15);
+  border: 1px solid rgba(216, 185, 130, .25);
+  color: var(--color-sand);
+  font-family: var(--font-display);
+}
+
+.review-card__author strong {
+  display: block;
+  color: rgba(247, 241, 231, .88);
+}
+
+.review-card__author span {
+  display: block;
+  color: rgba(247, 241, 231, .42);
+  font-size: .78rem;
+}
+
+.home-reviews__platforms {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 60px;
+  padding-top: 36px;
+  border-top: 1px solid rgba(247, 241, 231, .08);
+  flex-wrap: wrap;
+}
+
+.home-reviews__platforms div {
+  display: grid;
+  text-align: center;
+  gap: 4px;
+}
+
+.home-reviews__platforms strong {
+  color: var(--color-sand);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
+.home-reviews__platforms span {
+  color: rgba(247, 241, 231, .5);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .home-reviews__grid {
+    grid-template-columns: 1fr;
+  }
+}

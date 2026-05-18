@@ -1,24 +1,113 @@
 ---
 import type { Destination } from '@/types/content';
-interface Props { destination: Destination; }
-const { destination } = Astro.props;
-console.log(destination);
+import { getLocaleFromUrl } from '@/lib/i18n';
+import './DestinationCard.scss';
+
+interface Props {
+  destination: Destination;
+  size?: 'large' | 'compact';
+}
+
+const { destination, size = 'large' } = Astro.props;
+
+const currentLocale = getLocaleFromUrl(Astro.url.pathname);
+
+const href =
+  currentLocale === 'es'
+    ? `/destinos/${destination.slug}`
+    : `/${currentLocale}/destinations/${destination.slug}`;
+
+const image =
+  destination.cardImage ||
+  destination.heroImage ||
+  '/images/placeholders/destination-placeholder.jpg';
+
+const regionLabel =
+  destination.region === 'costa'
+    ? 'Costa'
+    : destination.region === 'sierra'
+      ? 'Sierra'
+      : destination.region === 'selva'
+        ? 'Selva'
+        : destination.region || '';
+
+const ctaLabel =
+  currentLocale === 'es'
+    ? 'Explorar destino'
+    : currentLocale === 'pt'
+      ? 'Explorar destino'
+      : currentLocale === 'fr'
+        ? 'Explorer la destination'
+        : 'Explore destination';
+
+const description =
+  destination.shortDescription ||
+  destination.subtitle ||
+  destination.description ||
+  '';
+
+const meta =
+  destination.bestTime ||
+  destination.recommendedDays ||
+  destination.altitude ||
+  '';
+
+const compactMeta = [
+  regionLabel,
+  meta,
+].filter(Boolean).join(' · ');
 ---
-<article class="card destination-card">
-  <a href={`/destinos/${destination.slug}`}>
-    <img class="card__image" src={destination.cardImage} alt={destination.name} loading="lazy" />
-    <div class="destination-card__body">
-      <span>{destination.region}</span>
-      <h3>{destination.name}</h3>
-      <p>{destination.description}</p>
-      <b>Ver destino →</b>
-    </div>
+
+<article class={`destination-card destination-card--${size}`}>
+  <a href={href} class="destination-card__link" aria-label={`${ctaLabel}: ${destination.name}`}>
+    {size === 'large' ? (
+      <>
+        <img
+          class="destination-card__image"
+          src={image}
+          alt={destination.name}
+          loading="lazy"
+        />
+
+        <div class="destination-card__shade"></div>
+
+        <div class="destination-card__content">
+          <span class="destination-card__region">
+            {regionLabel} · Destino destacado
+          </span>
+
+          <h3 class="destination-card__title">{destination.name}</h3>
+
+          <p class="destination-card__description">
+            {description}
+          </p>
+
+          <b class="destination-card__cta">
+            {ctaLabel}
+            <span>→</span>
+          </b>
+        </div>
+      </>
+    ) : (
+      <>
+        <div class="destination-card__thumb">
+          <img
+            src={image}
+            alt={destination.name}
+            loading="lazy"
+          />
+        </div>
+
+        <div class="destination-card__compact-body">
+          <h3>{destination.name}</h3>
+
+          <span>
+            {compactMeta}
+          </span>
+
+          <b>→</b>
+        </div>
+      </>
+    )}
   </a>
 </article>
-<style lang="scss">
-.destination-card__body { padding: 22px; }
-.destination-card span { text-transform: uppercase; letter-spacing: .14em; color: var(--color-green); font-size: .72rem; font-weight: 800; }
-.destination-card h3 { font-family: var(--font-display); color: var(--color-earth); font-size: 2rem; margin: 6px 0; }
-.destination-card p { color: rgba(37,37,37,.72); }
-.destination-card b { color: var(--color-earth); }
-</style>

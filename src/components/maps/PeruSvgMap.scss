@@ -1,0 +1,36 @@
+.peru-svg-map {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  filter: drop-shadow(0 24px 42px rgba(37, 37, 37, 0.14));
+}
+
+.peru-svg-map__base {
+  fill: rgba(90, 62, 43, 0.06);
+  stroke: rgba(90, 62, 43, 0.22);
+  stroke-width: 2;
+}
+
+.peru-svg-map__region {
+  opacity: 0.16;
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
+.peru-svg-map__region--costa {
+  fill: #d8b982;
+}
+
+.peru-svg-map__region--sierra {
+  fill: #5a3e2b;
+}
+
+.peru-svg-map__region--selva {
+  fill: #2f5d50;
+}
+
+.peru-svg-map--costa .peru-svg-map__region--costa,
+.peru-svg-map--sierra .peru-svg-map__region--sierra,
+.peru-svg-map--selva .peru-svg-map__region--selva {
+  opacity: 0.92;
+  filter: drop-shadow(0 12px 22px rgba(37, 37, 37, 0.16));
+}

@@ -1,69 +1,238 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
-import ProductCard from '@/components/cards/ProductCard.astro';
-import DestinationCard from '@/components/cards/DestinationCard.astro';
-import { getRegions, getDestinations, getPackages, getTours } from '@/lib/content';
-const regions = await getRegions();
-const destinations = await getDestinations();
-const packages = await getPackages();
-const tours = await getTours();
+import HomeHero from '@/components/home/HomeHero.astro';
+import HomeValueProps from '@/components/home/HomeValueProps.astro';
+import HomeRegions from '@/components/home/HomeRegions.astro';
+import HomeProductsShowcase from '@/components/home/HomeProductsShowcase.astro';
+import HomePremiumCta from '@/components/home/HomePremiumCta.astro';
+import HomeDestinations from '@/components/home/HomeDestinations.astro';
+import HomeTravelStyles from '@/components/home/HomeTravelStyles.astro';
+import HomeReviews from '@/components/home/HomeReviews.astro';
+import HomeReveal from '@/components/home/HomeReveal.astro';
+import { getRegions, getDestinations, getPackages, getTours, getTravelCategories } from '@/lib/content';
+import { site } from '@/lib/site';
+
+const [regions, destinations, packages, tours, travelCategories] = await Promise.all([
+  getRegions(),
+  getDestinations(),
+  getPackages(),
+  getTours(),
+  getTravelCategories(),
+]);
+
+
+const allProducts = [...packages, ...tours];
+
+const destinationsWithProducts = destinations
+  .filter((destination) => {
+    return allProducts.some((product) => {
+      const destinationNames = product.destinations || [];
+      const destinationSlugs = product.destinationSlugs || [];
+
+      return (
+        destinationNames.includes(destination.name) ||
+        destinationSlugs.includes(destination.slug)
+      );
+    });
+  })
+  .slice(0, 5);
+
+const heroImages = [
+  ...regions.map((item) => item.heroImage || item.cardImage),
+  ...destinations.map((item) => item.heroImage || item.cardImage),
+  ...packages.map((item) => item.heroImage || item.cardImage),
+  ...tours.map((item) => item.heroImage || item.cardImage),
+].filter(Boolean);
+
+const copy = {
+  pageTitle: 'Nuna Terra Perú | El alma del Perú en cada destino',
+  pageDescription:
+    'Diseñamos experiencias de viaje auténticas por costa, sierra y selva del Perú. Paquetes y tours con atención personalizada.',
+
+  heroEyebrow: 'Costa · Sierra · Selva',
+  heroTitle: 'El alma del Perú <em>en cada destino</em>',
+  heroSubtitle:
+    'Diseñamos experiencias de viaje auténticas por toda la geografía del Perú, combinando cultura, naturaleza y atención personalizada.',
+  heroPrimary: 'Explorar paquetes',
+  heroSecondary: 'Diseñar mi viaje',
+
+  trust: [
+    { value: '+500', label: 'Viajeros' },
+    { value: '3', label: 'Regiones' },
+    { value: '5★', label: 'Experiencias' },
+    { value: '24/7', label: 'Soporte' },
+  ],
+
+  props: [
+  {
+    icon: '〽',
+    title: 'Viajes personalizados',
+    desc: 'Rutas diseñadas según tu tiempo, estilo e intereses.',
+  },
+  {
+    icon: '♡',
+    title: 'Atención cercana',
+    desc: 'Acompañamiento antes, durante y después del viaje.',
+  },
+  {
+    icon: '⌖',
+    title: 'Perú completo',
+    desc: 'Experiencias por costa, sierra y selva.',
+  },
+  {
+    icon: '◇',
+    title: 'Organización confiable',
+    desc: 'Cuidamos cada detalle para que disfrutes más.',
+  },
+],
+  regionsEyebrow: 'Costa, Sierra y Selva',
+  regionsTitle: 'Descubre el Perú por regiones',
+  regionsSubtitle:
+    'Tres territorios únicos, cada uno con su propia esencia, paisaje y experiencia.',
+  exploreRegion: 'Explorar región',
+
+  packagesEyebrow: 'Paquetes',
+  packagesTitle: 'Experiencias diseñadas para descubrir el Perú',
+  packagesSubtitle:
+    'Rutas completas para vivir el país con calma, organización y sentido.',
+  packagesButton: 'Ver todos los paquetes',
+
+  toursEyebrow: 'Tours',
+  toursTitle: 'Tours para vivir el Perú en menos tiempo',
+  toursSubtitle:
+    'Experiencias de uno o dos días para descubrir destinos únicos con organización y acompañamiento.',
+  toursButton: 'Ver todos los tours',
+
+  stylesEyebrow: 'Estilos de viaje',
+  stylesTitle: 'Encuentra tu estilo de viaje',
+  stylesSubtitle:
+    'Explora el Perú según la experiencia que buscas: cultural, aventura, familiar o premium.',
+
+  premiumEyebrow: 'Viajes a medida',
+  premiumTitle: '¿No encuentras la ruta ideal? La diseñamos contigo.',
+  premiumText:
+    'Cuéntanos cuántos días tienes, qué destinos quieres conocer y qué estilo de viaje buscas. Nosotros nos encargamos de convertirlo en una experiencia clara, cuidada y memorable.',
+  premiumPrimary: 'Diseñar mi viaje',
+  premiumSecondary: 'Hablar por WhatsApp',
+
+  destinationsEyebrow: 'Destinos',
+  destinationsTitle: 'Destinos que conectan con la esencia del Perú',
+  destinationsSubtitle:
+    'Explora ciudades, paisajes y territorios que hacen del Perú un país inolvidable.',
+  destinationsButton: 'Ver todos los destinos',
+
+  reviewsEyebrow: 'Testimonios',
+  reviewsTitle: 'Lo que dicen nuestros viajeros',
+  reviews: [
+    {
+      text: 'Todo estuvo organizado con mucha calma y cuidado. Sentimos que cada detalle tenía sentido.',
+      author: 'María F.',
+      location: 'Lima, Perú',
+      avatar: 'M',
+    },
+    {
+      text: 'La atención fue personalizada desde el primer mensaje. Una experiencia muy bien llevada.',
+      author: 'Carlos R.',
+      location: 'Buenos Aires, Argentina',
+      avatar: 'C',
+    },
+    {
+      text: 'La ruta fue clara, cómoda y auténtica. Definitivamente volveríamos a viajar con ellos.',
+      author: 'Sophie L.',
+      location: 'Paris, France',
+      avatar: 'S',
+    },
+  ],
+
+  routes: {
+    packages: '/paquetes',
+    tours: '/tours',
+    destinations: '/destinos',
+    contact: '/contacto',
+  },
+};
+
 ---
-<BaseLayout title="Nuna Terra Perú | El alma del Perú en cada destino">
-  <Hero eyebrow="Viajes personalizados por todo el Perú" title="El alma del Perú en cada destino" subtitle="Diseñamos experiencias de viaje por la costa, sierra y selva del Perú, conectando cultura, naturaleza y atención personalizada." image="/images/home-hero.jpg" primaryText="Explorar paquetes" primaryHref="/paquetes" secondaryText="Diseñar mi viaje" secondaryHref="/contacto" />
 
-  <section class="section section--tight">
-    <div class="container grid grid--4">
-      {['Viajes personalizados','Atención cercana','Perú completo','Organización confiable'].map((item) => <div class="card" style="padding:24px"><h3 class="h3" style="font-size:1.6rem">{item}</h3><p>Experiencias diseñadas con claridad, acompañamiento y sentido.</p></div>)}
-    </div>
-  </section>
+<BaseLayout title={copy.pageTitle} description={copy.pageDescription}>
+  <HomeHero
+    copy={copy}
+    heroImage="/images/home-hero.jpg"
+    heroImages={heroImages}
+  />
 
-  <section class="section">
-    <div class="container">
-      <SectionHeading eyebrow="Costa, Sierra y Selva" title="Descubre Perú por regiones" subtitle="Elige entre territorios, paisajes y experiencias que muestran la diversidad del país." centered />
-      <div class="grid grid--3">
-        {regions.map((region) => <article class="region-card"><img src={region.cardImage} alt={region.name} /><div><h3>{region.name}</h3><p>{region.headline}</p><a href={`/destinos/${region.slug}`}>Explorar región →</a></div></article>)}
-      </div>
-    </div>
-  </section>
+  <HomeValueProps props={copy.props} />
 
-  <section class="section">
-    <div class="container">
-      <SectionHeading eyebrow="Paquetes" title="Experiencias diseñadas para descubrir Perú" subtitle="Rutas completas para vivir el país con calma, organización y sentido." />
-      <div class="grid grid--3">{packages.map((product) => <ProductCard product={product} />)}</div>
-    </div>
-  </section>
+  <HomeRegions
+    regions={regions}
+    eyebrow={copy.regionsEyebrow}
+    title={copy.regionsTitle}
+    subtitle={copy.regionsSubtitle}
+    exploreText={copy.exploreRegion}
+    baseHref="/regiones"
+  />
 
-  <section class="section">
-    <div class="container">
-      <SectionHeading eyebrow="Tours" title="Tours para vivir Perú en menos tiempo" subtitle="Experiencias de uno o dos días para descubrir destinos únicos con organización y acompañamiento." />
-      <div class="grid grid--3">{tours.map((product) => <ProductCard product={product} />)}</div>
-    </div>
-  </section>
+  <HomeProductsShowcase
+    variant="dark"
+    eyebrow={copy.packagesEyebrow}
+    title={copy.packagesTitle}
+    subtitle={copy.packagesSubtitle}
+    buttonText={copy.packagesButton}
+    buttonHref={copy.routes.packages}
+    products={packages.slice(0, 6)}
+  />
 
-  <section class="section custom-trip">
-    <div class="container custom-trip__inner">
-      <div><p class="eyebrow">Viajes a medida</p><h2 class="h2">¿No encuentras la ruta ideal? La diseñamos contigo.</h2><p class="lead">Cuéntanos cuántos días tienes, qué destinos quieres conocer y qué estilo de viaje buscas.</p><a class="btn btn--gold" href="/contacto">Diseñar mi viaje</a></div>
-    </div>
-  </section>
+  <HomeProductsShowcase
+    variant="light"
+    animationType="flip"
+    eyebrow={copy.toursEyebrow}
+    title={copy.toursTitle}
+    subtitle={copy.toursSubtitle}
+    buttonText={copy.toursButton}
+    buttonHref={copy.routes.tours}
+    products={tours.slice(0, 6)}
+  />
 
-  <section class="section">
-    <div class="container">
-      <SectionHeading eyebrow="Destinos" title="Destinos que conectan con la esencia del Perú" subtitle="Explora ciudades, paisajes y territorios que hacen del Perú un país inolvidable." />
-      <div class="grid grid--3">{destinations.slice(0,6).map((destination) => <DestinationCard destination={destination} />)}</div>
-    </div>
-  </section>
+  {travelCategories.length > 0 && (
+    <HomeTravelStyles
+      categories={travelCategories}
+      products={allProducts.filter((p) => p.featured).slice(0, 8)}
+      destinations={destinationsWithProducts.slice(0, 6)}
+      eyebrow={copy.stylesEyebrow}
+      title={copy.stylesTitle}
+      subtitle={copy.stylesSubtitle}
+      productsTitle="Experiencias destacadas"
+      destinationsTitle="Destinos populares"
+      baseCategoryHref="/categorias"
+      variant="light"
+    />
+  )}
+
+  <HomePremiumCta
+    eyebrow={copy.premiumEyebrow}
+    title={copy.premiumTitle}
+    text={copy.premiumText}
+    primaryText={copy.premiumPrimary}
+    primaryHref={copy.routes.contact}
+    secondaryText={copy.premiumSecondary}
+    secondaryHref={site.whatsappUrl}
+  />
+
+  <HomeDestinations
+    destinations={destinationsWithProducts}
+    eyebrow={copy.destinationsEyebrow}
+    title={copy.destinationsTitle}
+    subtitle={copy.destinationsSubtitle}
+    buttonText={copy.destinationsButton}
+    buttonHref={copy.routes.destinations}
+    products={allProducts}
+  />
+
+  <HomeReviews
+    eyebrow={copy.reviewsEyebrow}
+    title={copy.reviewsTitle}
+    reviews={copy.reviews}
+  />
+
+  <HomeReveal />
 </BaseLayout>
-<style lang="scss">
-.region-card { min-height: 420px; position: relative; overflow: hidden; border-radius: var(--radius-lg); color: var(--color-ivory); display: grid; align-items: end; padding: 28px; }
-.region-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 600ms ease; }
-.region-card::after { content:''; position:absolute; inset:0; background: linear-gradient(to top, rgba(37,37,37,.78), rgba(37,37,37,.12)); }
-.region-card:hover img { transform: scale(1.08); }
-.region-card div { position: relative; z-index: 1; }
-.region-card h3 { font-family: var(--font-display); font-size: 3rem; margin: 0; }
-.region-card a { color: var(--color-sand); font-weight: 700; }
-.custom-trip { background: var(--color-earth); color: var(--color-ivory); }
-.custom-trip .h2, .custom-trip .lead { color: var(--color-ivory); }
-.custom-trip__inner { min-height: 360px; display: grid; align-items: center; }
-</style>

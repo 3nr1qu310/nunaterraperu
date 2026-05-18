@@ -1,0 +1,147 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import { getTours } from '@/lib/content';
+import { isLocale, type Locale } from '@/lib/i18n';
+
+const localeParam = Astro.params.locale;
+
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/tours');
+}
+
+const locale = localeParam as Locale;
+
+const tours = await getTours(locale);
+
+const copyByLocale = {
+  en: {
+    pageTitle: 'Tours in Peru | Nuna Terra Perú',
+    eyebrow: 'Tours and experiences',
+    title: 'Tours in Peru',
+    subtitle:
+      'One-day or two-day experiences to discover unique destinations with organization, guidance and personalized attention.',
+    primaryText: 'View featured tours',
+    secondaryText: 'Chat on WhatsApp',
+    catalogTitle: 'Find your ideal tour',
+    catalogSubtitle:
+      'Short, clear and well-organized experiences to make the most of your time.',
+    all: 'All',
+    fullDay: 'Full Day',
+    cusco: 'Cusco',
+    lima: 'Lima',
+    ica: 'Ica',
+    adventure: 'Adventure',
+    cultural: 'Cultural',
+    contactHref: '/en/contact',
+  },
+
+  pt: {
+    pageTitle: 'Tours pelo Peru | Nuna Terra Perú',
+    eyebrow: 'Tours e experiências',
+    title: 'Tours pelo Peru',
+    subtitle:
+      'Experiências de um ou dois dias para descobrir destinos únicos com organização, acompanhamento e atenção personalizada.',
+    primaryText: 'Ver tours em destaque',
+    secondaryText: 'Falar pelo WhatsApp',
+    catalogTitle: 'Encontre seu tour ideal',
+    catalogSubtitle:
+      'Experiências curtas, claras e bem organizadas para aproveitar melhor seu tempo.',
+    all: 'Todos',
+    fullDay: 'Full Day',
+    cusco: 'Cusco',
+    lima: 'Lima',
+    ica: 'Ica',
+    adventure: 'Aventura',
+    cultural: 'Cultural',
+    contactHref: '/pt/contact',
+  },
+
+  fr: {
+    pageTitle: 'Tours au Pérou | Nuna Terra Perú',
+    eyebrow: 'Tours et expériences',
+    title: 'Tours au Pérou',
+    subtitle:
+      'Des expériences d’un ou deux jours pour découvrir des destinations uniques avec organisation, accompagnement et attention personnalisée.',
+    primaryText: 'Voir les tours en vedette',
+    secondaryText: 'Écrire sur WhatsApp',
+    catalogTitle: 'Trouvez votre tour idéal',
+    catalogSubtitle:
+      'Des expériences courtes, claires et bien organisées pour profiter au mieux de votre temps.',
+    all: 'Tous',
+    fullDay: 'Journée complète',
+    cusco: 'Cusco',
+    lima: 'Lima',
+    ica: 'Ica',
+    adventure: 'Aventure',
+    cultural: 'Culturel',
+    contactHref: '/fr/contact',
+  },
+};
+
+const copy = copyByLocale[locale];
+---
+
+<BaseLayout title={copy.pageTitle} description={copy.subtitle}>
+  <Hero
+    eyebrow={copy.eyebrow}
+    title={copy.title}
+    subtitle={copy.subtitle}
+    image="/images/tours-hero.jpg"
+    primaryText={copy.primaryText}
+    primaryHref="#catalog"
+    secondaryText={copy.secondaryText}
+    secondaryHref={copy.contactHref}
+  />
+
+  <section class="section" id="catalog">
+    <div class="container">
+      <SectionHeading
+        title={copy.catalogTitle}
+        subtitle={copy.catalogSubtitle}
+      />
+
+      <div class="filters">
+        <button>{copy.all}</button>
+        <button>{copy.fullDay}</button>
+        <button>{copy.cusco}</button>
+        <button>{copy.lima}</button>
+        <button>{copy.ica}</button>
+        <button>{copy.adventure}</button>
+        <button>{copy.cultural}</button>
+      </div>
+
+      <div class="grid grid--3">
+        {tours.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style lang="scss">
+  .filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .filters button {
+    border: 1px solid rgba(90, 62, 43, .18);
+    background: rgba(255, 255, 255, .45);
+    border-radius: 999px;
+    padding: 10px 16px;
+    color: var(--color-earth);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .filters button:first-child {
+    background: var(--color-green);
+    color: var(--color-ivory);
+  }
+</style>

@@ -1,0 +1,81 @@
+---
+import type { Destination } from '@/types/content';
+import { getLocaleFromUrl } from '@/lib/i18n';
+import './PeruRegionMap.scss';
+
+interface Props {
+  destinations: Destination[];
+  title?: string;
+  subtitle?: string;
+}
+
+const {
+  destinations = [],
+  title = 'Mapa del Perú',
+  subtitle = 'Explora los destinos disponibles.',
+} = Astro.props;
+
+const currentLocale = getLocaleFromUrl(Astro.url.pathname);
+
+const destinationBase =
+  currentLocale === 'es' ? '/destinos' : `/${currentLocale}/destinations`;
+
+const pins = destinations.filter(
+  (d) => typeof d.mapX === 'number' && typeof d.mapY === 'number'
+);
+---
+
+<section class="peru-map-section">
+  <div class="peru-map-section__intro">
+    <p class="peru-map-section__eyebrow">Mapa interactivo</p>
+    <h2 class="peru-map-section__title">{title}</h2>
+    <p class="peru-map-section__subtitle">{subtitle}</p>
+
+    <div class="peru-map-section__legend">
+      <span class="legend-pill legend-pill--coast">Costa</span>
+      <span class="legend-pill legend-pill--sierra">Sierra</span>
+      <span class="legend-pill legend-pill--selva">Selva</span>
+    </div>
+  </div>
+
+  <div class="peru-map">
+    <div class="peru-map__wrapper">
+      <!-- Capa de colores por región, recortada con la silueta del SVG -->
+      <div class="peru-map__region-fill" aria-hidden="true"></div>
+      <!-- SVG encima: aporta los bordes de departamentos -->
+      <img
+        src="/images/peru.svg"
+        alt="Mapa del Perú"
+        class="peru-map__img"
+        draggable="false"
+      />
+
+      <div class="peru-map__pins">
+        {pins.map((destination) => (
+          <a
+            href={`${destinationBase}/${destination.slug}`}
+            class="peru-map__pin"
+            style={`--x:${destination.mapX}%;--y:${destination.mapY}%`}
+            aria-label={`Ver ${destination.name}`}
+            data-region={destination.region}
+          >
+            <span class="peru-map__pin-dot" aria-hidden="true"></span>
+
+            <div class="peru-map__pin-card" aria-hidden="true">
+              <div class="peru-map__pin-photo-wrap">
+                <img
+                  src={destination.cardImage}
+                  alt={destination.name}
+                  class="peru-map__pin-photo"
+                  loading="lazy"
+                  draggable="false"
+                />
+              </div>
+              <span class="peru-map__pin-name">{destination.name}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

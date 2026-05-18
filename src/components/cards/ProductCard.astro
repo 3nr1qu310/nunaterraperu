@@ -1,31 +1,149 @@
 ---
 import type { Product } from '@/types/content';
-interface Props { product: Product; }
+import { getLocaleFromUrl } from '@/lib/i18n';
+import './ProductCard.scss';
+
+interface Props {
+  product: Product;
+}
+
 const { product } = Astro.props;
-const href = product.type === 'package' ? `/paquetes/${product.slug}` : `/tours/${product.slug}`;
+
+const currentLocale = getLocaleFromUrl(Astro.url.pathname);
+
+const href =
+  product.type === 'package'
+    ? currentLocale === 'es'
+      ? `/paquetes/${product.slug}`
+      : `/${currentLocale}/packages/${product.slug}`
+    : currentLocale === 'es'
+      ? `/tours/${product.slug}`
+      : `/${currentLocale}/tours/${product.slug}`;
+
+const image =
+  product.cardImage ||
+  product.heroImage ||
+  '/images/placeholders/package-placeholder.jpg';
+
+const typeLabel =
+  product.type === 'package'
+    ? currentLocale === 'es'
+      ? 'Paquete'
+      : currentLocale === 'pt'
+        ? 'Pacote'
+        : currentLocale === 'fr'
+          ? 'Forfait'
+          : 'Package'
+    : 'Tour';
+
+const fromLabel =
+  currentLocale === 'es'
+    ? 'Desde'
+    : currentLocale === 'pt'
+      ? 'A partir de'
+      : currentLocale === 'fr'
+        ? 'À partir de'
+        : 'From';
+
+const ctaLabel =
+  currentLocale === 'es'
+    ? 'Ver experiencia'
+    : currentLocale === 'pt'
+      ? 'Ver experiência'
+      : currentLocale === 'fr'
+        ? 'Voir l’expérience'
+        : 'View experience';
+
+const destinationText = product.destinations?.length
+  ? product.destinations.join(' · ')
+  : currentLocale === 'es'
+    ? 'Ruta personalizada'
+    : currentLocale === 'pt'
+      ? 'Rota personalizada'
+      : currentLocale === 'fr'
+        ? 'Itinéraire personnalisé'
+        : 'Tailor-made route';
 ---
-<article class="card product-card">
-  <a href={href}>
-    <img class="card__image" src={product.cardImage} alt={product.title} loading="lazy" />
+
+<article class="product-card">
+  <a href={href} class="product-card__link" aria-label={`${ctaLabel}: ${product.title}`}>
+    <div class="product-card__media">
+      <img
+        class="product-card__image"
+        src={image}
+        alt={product.title}
+        loading="lazy"
+      />
+
+      <div class="product-card__shade"></div>
+
+      <span class="product-card__tag">
+        {typeLabel}
+      </span>
+
+      {product.featured && (
+        <span class="product-card__featured">
+          ★
+        </span>
+      )}
+    </div>
+
     <div class="product-card__body">
-      <span class="product-card__tag">{product.type === 'package' ? 'Paquete' : 'Tour'}</span>
-      <h3>{product.title}</h3>
-      <p>{product.subtitle}</p>
-      <div class="product-card__meta">
-        <span>{product.durationText}</span>
-        <span>{product.destinations.join(' · ')}</span>
+      <div class="product-card__topline">
+        <span>{product.durationText || 'Flexible'}</span>
       </div>
-      {product.priceFrom && <strong>Desde {product.currency} {product.priceFrom}</strong>}
-      <span class="product-card__link">Ver experiencia →</span>
+
+      <h3 class="product-card__title">
+        {product.title}
+      </h3>
+
+      <p class="product-card__subtitle">
+        {product.subtitle || product.shortDescription}
+      </p>
+
+      <div class="product-card__meta">
+        <span class="product-card__meta-icon">⌖</span>
+        <span>{destinationText}</span>
+      </div>
+
+      <div class="product-card__footer">
+        {product.priceFrom ? (
+          <strong class="product-card__price">
+            <small>{fromLabel}</small>
+            {product.currency || 'USD'} {product.priceFrom}
+          </strong>
+        ) : (
+          <strong class="product-card__price product-card__price--empty">
+            <small>{fromLabel}</small>
+            Consultar
+          </strong>
+        )}
+
+        <span class="product-card__cta">
+          {ctaLabel}
+          <span>→</span>
+        </span>
+      </div>
+
+      {product.promotions && product.promotions.length > 0 && (
+        <div class="product-card__promotions">
+          {product.promotions.slice(0, 2).map((promo) => {
+            const badge = promo.customBadge || promo.badgeText || promo.title;
+            const discount =
+              promo.discountValue && promo.discountType === 'percentage'
+                ? `${promo.discountValue}% OFF`
+                : promo.discountValue && promo.discountType === 'fixed'
+                  ? `${promo.discountValue} OFF`
+                  : '';
+            const label = discount ? `${badge} · ${discount}` : badge;
+            return (
+              <span class="product-card__promo-badge">
+                ◆ {label}
+              </span>
+            );
+          })}
+        </div>
+      )}
     </div>
   </a>
 </article>
-<style lang="scss">
-.product-card__body { padding: 22px; }
-.product-card__tag { display: inline-flex; border-radius: 999px; background: rgba(216,185,130,.28); color: var(--color-earth); padding: 6px 10px; font-size: .75rem; font-weight: 700; margin-bottom: 12px; }
-.product-card h3 { font-family: var(--font-display); color: var(--color-earth); font-size: 1.7rem; margin: 0 0 8px; line-height: 1.05; }
-.product-card p { color: rgba(37,37,37,.74); margin: 0 0 14px; }
-.product-card__meta { display: grid; gap: 4px; font-size: .85rem; color: rgba(37,37,37,.68); margin-bottom: 14px; }
-.product-card strong { color: var(--color-green); display: block; margin-bottom: 16px; }
-.product-card__link { color: var(--color-earth); font-weight: 700; }
-</style>

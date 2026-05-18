@@ -1,0 +1,142 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import DestinationCard from '@/components/cards/DestinationCard.astro';
+import { getRegions, getDestinations } from '@/lib/content';
+import { isLocale, type Locale } from '@/lib/i18n';
+import '../../destinos/Destinos.scss';
+
+const localeParam = Astro.params.locale;
+
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/destinos');
+}
+
+const locale = localeParam as Locale;
+
+const regions = await getRegions(locale);
+const destinations = await getDestinations(locale);
+
+const copyByLocale = {
+  en: {
+    pageTitle: 'Tourist destinations in Peru | Nuna Terra Perú',
+    eyebrow: 'Coast, Andes and Amazon',
+    title: 'Destinations that connect with the essence of Peru',
+    subtitle:
+      'Explore the coast, Andes and Amazon through experiences designed to discover Peru from its soul, culture and land.',
+    primaryText: 'Explore regions',
+    secondaryText: 'Design my trip',
+    regionsTitle: 'Explore Peru by regions',
+    regionsSubtitle:
+      'Discover experiences across the coast, Andes and Amazon, with routes designed around your travel style.',
+    regionLabel: 'Region',
+    allTitle: 'All destinations',
+    allSubtitle:
+      'Cities, landscapes and territories to design your journey through Peru.',
+    contactHref: '/en/contact',
+    regionsHref: '#regions',
+  },
+
+  pt: {
+    pageTitle: 'Destinos turísticos no Peru | Nuna Terra Perú',
+    eyebrow: 'Costa, Serra e Selva',
+    title: 'Destinos que conectam com a essência do Peru',
+    subtitle:
+      'Explore a costa, a serra e a selva por meio de experiências criadas para descobrir o país a partir de sua alma, cultura e território.',
+    primaryText: 'Explorar regiões',
+    secondaryText: 'Desenhar minha viagem',
+    regionsTitle: 'Explore o Peru por regiões',
+    regionsSubtitle:
+      'Descubra experiências entre costa, serra e selva, com roteiros pensados para o seu estilo de viagem.',
+    regionLabel: 'Região',
+    allTitle: 'Todos os destinos',
+    allSubtitle:
+      'Cidades, paisagens e territórios para desenhar sua rota pelo Peru.',
+    contactHref: '/pt/contact',
+    regionsHref: '#regions',
+  },
+
+  fr: {
+    pageTitle: 'Destinations touristiques au Pérou | Nuna Terra Perú',
+    eyebrow: 'Côte, Andes et Amazonie',
+    title: 'Des destinations connectées à l’essence du Pérou',
+    subtitle:
+      'Explorez la côte, les Andes et l’Amazonie à travers des expériences conçues pour découvrir le pays depuis son âme, sa culture et sa terre.',
+    primaryText: 'Explorer les régions',
+    secondaryText: 'Créer mon voyage',
+    regionsTitle: 'Explorer le Pérou par régions',
+    regionsSubtitle:
+      'Découvrez des expériences entre côte, Andes et Amazonie, avec des itinéraires pensés selon votre manière de voyager.',
+    regionLabel: 'Région',
+    allTitle: 'Toutes les destinations',
+    allSubtitle:
+      'Villes, paysages et territoires pour construire votre itinéraire au Pérou.',
+    contactHref: '/fr/contact',
+    regionsHref: '#regions',
+  },
+};
+
+const copy = copyByLocale[locale];
+
+const heroImage =
+  regions.find((region) => region.slug === 'sierra')?.heroImage ||
+  regions[0]?.heroImage ||
+  '/images/destinations-hero.jpg';
+---
+
+<BaseLayout title={copy.pageTitle} description={copy.subtitle}>
+  <Hero
+    eyebrow={copy.eyebrow}
+    title={copy.title}
+    subtitle={copy.subtitle}
+    image={heroImage}
+    primaryText={copy.primaryText}
+    primaryHref={copy.regionsHref}
+    secondaryText={copy.secondaryText}
+    secondaryHref={copy.contactHref}
+  />
+
+  <section class="section destinations-regions" id="regions">
+    <div class="container">
+      <SectionHeading
+        title={copy.regionsTitle}
+        subtitle={copy.regionsSubtitle}
+        centered
+      />
+
+      <div class="grid grid--3">
+        {regions.map((region) => (
+          <a class="region-link" href={`/${locale}/destinations/${region.slug}`}>
+            <img
+              src={region.cardImage || region.heroImage || '/images/placeholders/destination-placeholder.jpg'}
+              alt={region.name}
+              loading="lazy"
+            />
+
+            <div class="region-link__content">
+              <span>{copy.regionLabel}</span>
+              <h3>{region.name}</h3>
+              <p>{region.headline}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section destinations-list">
+    <div class="container">
+      <SectionHeading
+        title={copy.allTitle}
+        subtitle={copy.allSubtitle}
+      />
+
+      <div class="grid grid--3">
+        {destinations.map((destination) => (
+          <DestinationCard destination={destination} />
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

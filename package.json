@@ -8,13 +8,13 @@
     "preview": "astro preview"
   },
   "dependencies": {
+    "@astrojs/check": "latest",
     "@astrojs/node": "latest",
     "@astrojs/sitemap": "latest",
-    "@astrojs/check": "latest",
+    "@inlang/paraglide-js": "^2.18.0",
     "@supabase/supabase-js": "latest",
     "astro": "latest",
     "sass": "latest",
     "typescript": "latest"
-  },
-  "devDependencies": {}
+  }
 }

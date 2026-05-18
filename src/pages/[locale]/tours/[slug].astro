@@ -1,0 +1,396 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+import { getProductBySlug, getTours } from '@/lib/content';
+import { isLocale, type Locale } from '@/lib/i18n';
+
+const localeParam = Astro.params.locale;
+const slug = Astro.params.slug || '';
+
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/tours');
+}
+
+const locale = localeParam as Locale;
+
+const product = await getProductBySlug(slug, 'tour', locale);
+
+if (!product) {
+  return Astro.redirect(`/${locale}/tours`);
+}
+
+const allTours = await getTours(locale);
+const related = allTours
+  .filter((item) => item.slug !== product.slug)
+  .slice(0, 3);
+
+const mainDestination = product.destinations?.[0] || '';
+
+const copyByLocale = {
+  en: {
+    eyebrow: 'Tour and experience',
+    quote: 'Request a quote',
+    whatsapp: 'Chat on WhatsApp',
+    duration: 'Duration',
+    departure: 'Departure',
+    service: 'Service',
+    difficulty: 'Difficulty',
+    serviceDefault: 'Private or shared',
+    difficultyDefault: 'Depends on the route',
+    experiencePrefix: 'An experience to enjoy',
+    experienceSuffix: 'in less time',
+    routeTitle: 'Tour route',
+    startTitle: 'Start of the tour',
+    startText: 'Pick-up or meeting point according to coordination.',
+    mainRouteTitle: 'Main route',
+    mainRouteText: 'Visits and activities indicated in the program.',
+    returnTitle: 'Return',
+    returnText: 'Approximate arrival at the final point of the service.',
+    includesTitle: 'What this tour includes',
+    includes: 'Includes',
+    notIncludes: 'Does not include',
+    includedTransport: 'Tourist transportation',
+    includedAssistance: 'Assistance during the route',
+    includedServices: 'Indicated services',
+    notIncludedFood: 'Meals not mentioned',
+    notIncludedPersonal: 'Personal expenses',
+    notIncludedServices: 'Services not specified',
+    from: 'From',
+    relatedTitle: 'You could also enjoy these experiences',
+    contactHref: '/en/contact',
+  },
+
+  pt: {
+    eyebrow: 'Tour e experiência',
+    quote: 'Solicitar cotação',
+    whatsapp: 'Falar pelo WhatsApp',
+    duration: 'Duração',
+    departure: 'Saída',
+    service: 'Serviço',
+    difficulty: 'Dificuldade',
+    serviceDefault: 'Privado ou compartilhado',
+    difficultyDefault: 'Depende da rota',
+    experiencePrefix: 'Uma experiência para viver',
+    experienceSuffix: 'em menos tempo',
+    routeTitle: 'Roteiro do tour',
+    startTitle: 'Início do tour',
+    startText: 'Busca ou ponto de encontro conforme coordenação.',
+    mainRouteTitle: 'Rota principal',
+    mainRouteText: 'Visitas e atividades indicadas no programa.',
+    returnTitle: 'Retorno',
+    returnText: 'Chegada aproximada ao ponto final do serviço.',
+    includesTitle: 'O que este tour inclui',
+    includes: 'Inclui',
+    notIncludes: 'Não inclui',
+    includedTransport: 'Transporte turístico',
+    includedAssistance: 'Assistência durante o percurso',
+    includedServices: 'Serviços indicados',
+    notIncludedFood: 'Alimentação não mencionada',
+    notIncludedPersonal: 'Gastos pessoais',
+    notIncludedServices: 'Serviços não especificados',
+    from: 'A partir de',
+    relatedTitle: 'Você também poderia viver estas experiências',
+    contactHref: '/pt/contact',
+  },
+
+  fr: {
+    eyebrow: 'Tour et expérience',
+    quote: 'Demander un devis',
+    whatsapp: 'Écrire sur WhatsApp',
+    duration: 'Durée',
+    departure: 'Départ',
+    service: 'Service',
+    difficulty: 'Difficulté',
+    serviceDefault: 'Privé ou partagé',
+    difficultyDefault: 'Selon l’itinéraire',
+    experiencePrefix: 'Une expérience pour découvrir',
+    experienceSuffix: 'en moins de temps',
+    routeTitle: 'Parcours du tour',
+    startTitle: 'Début du tour',
+    startText: 'Prise en charge ou point de rencontre selon coordination.',
+    mainRouteTitle: 'Parcours principal',
+    mainRouteText: 'Visites et activités indiquées dans le programme.',
+    returnTitle: 'Retour',
+    returnText: 'Arrivée approximative au point final du service.',
+    includesTitle: 'Ce que ce tour inclut',
+    includes: 'Inclus',
+    notIncludes: 'Non inclus',
+    includedTransport: 'Transport touristique',
+    includedAssistance: 'Assistance pendant le parcours',
+    includedServices: 'Services indiqués',
+    notIncludedFood: 'Repas non mentionnés',
+    notIncludedPersonal: 'Dépenses personnelles',
+    notIncludedServices: 'Services non spécifiés',
+    from: 'À partir de',
+    relatedTitle: 'Vous pourriez aussi vivre ces expériences',
+    contactHref: '/fr/contact',
+  },
+};
+
+const copy = copyByLocale[locale];
+
+const pageTitle = `${product.seoTitle || product.title} | Nuna Terra Perú`;
+const pageDescription = product.seoDescription || product.description || product.subtitle || '';
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <Hero
+    eyebrow={copy.eyebrow}
+    title={product.title}
+    subtitle={product.subtitle}
+    image={product.heroImage}
+    primaryText={copy.quote}
+    primaryHref={copy.contactHref}
+    secondaryText={copy.whatsapp}
+    secondaryHref={copy.contactHref}
+  />
+
+  <section class="section">
+    <div class="container detail-layout">
+      <div>
+        <div class="summary-grid">
+          <div>
+            <b>{copy.duration}</b>
+            <span>{product.durationText}</span>
+          </div>
+
+          <div>
+            <b>{copy.departure}</b>
+            <span>{mainDestination || '—'}</span>
+          </div>
+
+          <div>
+            <b>{copy.service}</b>
+            <span>{product.serviceType || copy.serviceDefault}</span>
+          </div>
+
+          <div>
+            <b>{copy.difficulty}</b>
+            <span>{product.difficulty || copy.difficultyDefault}</span>
+          </div>
+        </div>
+
+        <SectionHeading
+          title={`${copy.experiencePrefix} ${mainDestination || 'Peru'} ${copy.experienceSuffix}`}
+          subtitle={product.description}
+        />
+
+        <section class="section--tight">
+          <h2 class="h2 small">{copy.routeTitle}</h2>
+
+          {product.itinerary?.length > 0 ? (
+            <div class="timeline">
+              {product.itinerary.map((day) => (
+                <details open>
+                  <summary>
+                    <span>{day.day}</span>
+                    {day.title}
+                  </summary>
+                  <p>{day.description}</p>
+                </details>
+              ))}
+            </div>
+          ) : (
+            <div class="timeline">
+              <details open>
+                <summary>{copy.startTitle}</summary>
+                <p>{copy.startText}</p>
+              </details>
+
+              <details open>
+                <summary>{copy.mainRouteTitle}</summary>
+                <p>{copy.mainRouteText}</p>
+              </details>
+
+              <details open>
+                <summary>{copy.returnTitle}</summary>
+                <p>{copy.returnText}</p>
+              </details>
+            </div>
+          )}
+        </section>
+
+        <section class="section--tight">
+          <h2 class="h2 small">{copy.includesTitle}</h2>
+
+          <div class="two-cols">
+            <div class="list-card">
+              <h3>{copy.includes}</h3>
+
+              {product.includes?.length > 0 ? (
+                product.includes.map((item) => <p>✓ {item}</p>)
+              ) : (
+                <>
+                  <p>✓ {copy.includedTransport}</p>
+                  <p>✓ {copy.includedAssistance}</p>
+                  <p>✓ {copy.includedServices}</p>
+                </>
+              )}
+            </div>
+
+            <div class="list-card">
+              <h3>{copy.notIncludes}</h3>
+
+              {product.notIncludes?.length > 0 ? (
+                product.notIncludes.map((item) => <p>— {item}</p>)
+              ) : (
+                <>
+                  <p>— {copy.notIncludedFood}</p>
+                  <p>— {copy.notIncludedPersonal}</p>
+                  <p>— {copy.notIncludedServices}</p>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {product.recommendations?.length > 0 && (
+          <section class="section--tight">
+            <h2 class="h2 small">Recommendations</h2>
+
+            <div class="list-card">
+              {product.recommendations.map((item) => (
+                <p>✓ {item}</p>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+
+      <aside class="quote-card">
+        <span>{copy.from}</span>
+        <strong>{product.currency} {product.priceFrom}</strong>
+        <p>{product.durationText}</p>
+
+        <a class="btn btn--primary" href={copy.contactHref}>
+          {copy.quote}
+        </a>
+
+        <a class="btn btn--outline-dark" href={copy.contactHref}>
+          WhatsApp
+        </a>
+      </aside>
+    </div>
+  </section>
+
+  {related.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <SectionHeading title={copy.relatedTitle} />
+
+        <div class="grid grid--3">
+          {related.map((item) => (
+            <ProductCard product={item} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style lang="scss">
+  .detail-layout {
+    display: grid;
+    grid-template-columns: 1fr 330px;
+    gap: 34px;
+    align-items: start;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 42px;
+  }
+
+  .summary-grid div,
+  .list-card,
+  .quote-card {
+    background: white;
+    border: 1px solid rgba(90, 62, 43, .12);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: 0 10px 32px rgba(37, 37, 37, .06);
+  }
+
+  .summary-grid b {
+    display: block;
+    color: var(--color-earth);
+  }
+
+  .small {
+    font-size: 2.4rem;
+    margin-bottom: 20px;
+  }
+
+  .timeline {
+    border-left: 2px solid var(--color-sand);
+    padding-left: 22px;
+  }
+
+  .timeline details {
+    background: white;
+    border-radius: 18px;
+    margin: 14px 0;
+    padding: 18px;
+    border: 1px solid rgba(90, 62, 43, .12);
+  }
+
+  .timeline summary {
+    cursor: pointer;
+    font-weight: 800;
+    color: var(--color-earth);
+  }
+
+  .timeline summary span {
+    color: var(--color-green);
+    margin-right: 12px;
+  }
+
+  .two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .quote-card {
+    position: sticky;
+    top: 130px;
+  }
+
+  .quote-card strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: var(--color-earth);
+    line-height: 1;
+  }
+
+  .quote-card .btn {
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  @media(max-width: 900px) {
+    .detail-layout,
+    .two-cols {
+      grid-template-columns: 1fr;
+    }
+
+    .summary-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .quote-card {
+      position: static;
+    }
+  }
+
+  @media(max-width: 600px) {
+    .summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

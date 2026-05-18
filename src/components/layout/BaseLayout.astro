@@ -7,21 +7,34 @@ interface Props {
   title?: string;
   description?: string;
 }
-const { title = 'Nuna Terra Perú', description = 'El alma del Perú en cada destino.' } = Astro.props;
+
+const {
+  title = 'Nuna Terra Perú',
+  description = 'El alma del Perú en cada destino.'
+} = Astro.props;
 ---
+
 <!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/icons/isotopo.svg" />
+    <link rel="shortcut icon" href="/icons/isotopo 2.svg" type="image/svg+xml" />
+
     <meta name="description" content={description} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+
     <title>{title}</title>
   </head>
+
   <body>
     <Header />
-    <main><slot /></main>
+    <main>
+      <slot />
+    </main>
     <Footer />
   </body>
 </html>

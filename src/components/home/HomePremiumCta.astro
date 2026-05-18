@@ -1,0 +1,86 @@
+---
+import './HomePremiumCta.scss';
+
+const {
+  eyebrow,
+  title,
+  text,
+  primaryText,
+  primaryHref,
+  secondaryText,
+  secondaryHref,
+} = Astro.props;
+---
+
+<section class="home-premium-cta" aria-label="Diseñar viaje a medida">
+  <div class="home-premium-cta__bg" aria-hidden="true"></div>
+  <div class="home-premium-cta__line" aria-hidden="true"></div>
+
+  <div class="container home-premium-cta__inner">
+    <div class="home-premium-cta__content reveal">
+      <p class="home-premium-cta__eyebrow">
+        <span></span>
+        {eyebrow}
+      </p>
+
+      <h2 class="home-premium-cta__title">{title}</h2>
+
+      <p class="home-premium-cta__text">{text}</p>
+
+      <div class="home-premium-cta__features">
+        <span>Rutas personalizadas</span>
+        <span>Atención directa</span>
+        <span>Perú completo</span>
+      </div>
+    </div>
+
+    <div class="home-premium-cta__panel reveal">
+      <div class="home-premium-cta__logo-wrap">
+        <img
+          src="/icons/logo.svg"
+          alt="Nuna Terra Perú"
+          class="home-premium-cta__logo"
+          loading="lazy"
+        />
+      </div>
+
+      <p>
+        Creamos una propuesta pensada para tu tiempo, tu estilo de viaje y los destinos que deseas vivir.
+      </p>
+
+      <div class="home-premium-cta__mini-grid">
+        <div>
+          <strong>01</strong>
+          <span>Cuéntanos tu idea</span>
+        </div>
+
+        <div>
+          <strong>02</strong>
+          <span>Diseñamos tu ruta</span>
+        </div>
+
+        <div>
+          <strong>03</strong>
+          <span>Viaja con soporte</span>
+        </div>
+      </div>
+
+      <div class="home-premium-cta__actions">
+        <a href={primaryHref} class="home-premium-cta__primary">
+          {primaryText}
+          <span>→</span>
+        </a>
+
+        <a
+          href={secondaryHref}
+          class="home-premium-cta__wa"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {secondaryText}
+          <span>↗</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

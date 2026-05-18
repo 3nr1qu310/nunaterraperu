@@ -1,0 +1,73 @@
+---
+import type { TravelCategory } from '@/types/content';
+import './TravelStyleCard.scss';
+
+interface Props {
+  category: TravelCategory;
+  href: string;
+  index?: number;
+  isClone?: boolean;
+  ctaText?: string;
+}
+
+const {
+  category,
+  href,
+  index = 0,
+  isClone = false,
+  ctaText = 'Explorar',
+} = Astro.props;
+
+const image =
+  category.cardImage ||
+  category.image ||
+  category.heroImage ||
+  '';
+
+const colorIndex = (index % 5) + 1;
+---
+
+<a
+  href={href}
+  class={`travel-style-card travel-style-card--${colorIndex} ${image ? 'travel-style-card--image' : ''}`}
+  aria-label={`${ctaText}: ${category.name}`}
+  aria-hidden={isClone ? 'true' : 'false'}
+  tabindex={isClone ? -1 : 0}
+>
+  {image ? (
+    <img
+      src={image}
+      alt={category.name}
+      class="travel-style-card__image"
+      loading="lazy"
+    />
+  ) : (
+    <div class="travel-style-card__bg" aria-hidden="true"></div>
+  )}
+
+  <div class="travel-style-card__overlay" aria-hidden="true"></div>
+  <div class="travel-style-card__shine" aria-hidden="true"></div>
+
+  {category.icon && (
+    <span class="travel-style-card__icon" aria-hidden="true">
+      {category.icon}
+    </span>
+  )}
+
+  <div class="travel-style-card__body">
+    <span class="travel-style-card__label">Estilo de viaje</span>
+
+    <h3 class="travel-style-card__name">{category.name}</h3>
+
+    {(category.shortDescription || category.description) && (
+      <p class="travel-style-card__desc">
+        {category.shortDescription || category.description}
+      </p>
+    )}
+  </div>
+
+  <span class="travel-style-card__cta">
+    {ctaText}
+    <span class="travel-style-card__arrow" aria-hidden="true">→</span>
+  </span>
+</a>

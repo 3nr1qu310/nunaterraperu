@@ -1,0 +1,27 @@
+---
+import './HomeValueProps.scss';
+
+const { props = [] } = Astro.props;
+---
+
+<section class="home-props" aria-label="Por qué elegirnos">
+  <div class="container">
+    <div class="home-props__grid">
+      {props.map((item, index) => (
+        <article
+          class={`home-prop reveal ${index === 2 ? 'is-featured' : ''}`}
+          style={`transition-delay:${index * 0.1}s`}
+        >
+          <div class="home-prop__glow" aria-hidden="true"></div>
+
+          <div class="home-prop__icon" aria-hidden="true">
+            <span>{item.icon}</span>
+          </div>
+
+          <h3 class="home-prop__title">{item.title}</h3>
+          <p class="home-prop__desc">{item.desc}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
