@@ -1,0 +1,304 @@
+---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import ProductCard from '@/components/cards/ProductCard.astro';
+
+import {
+  getPlaceBySlug,
+  getProductsByPlaceSlug,
+} from '@/lib/content';
+
+import './LugarDetail.scss';
+
+const slug = Astro.params.slug || '';
+
+const place = await getPlaceBySlug(slug);
+
+if (!place) {
+  return Astro.redirect('/destinos');
+}
+
+const relatedProducts = await getProductsByPlaceSlug(slug);
+
+const packages = relatedProducts.filter((p) => p.type === 'package');
+const tours = relatedProducts.filter((p) => p.type === 'tour');
+
+const heroImage =
+  place.heroImage ||
+  place.cardImage ||
+  '/images/placeholders/destination-placeholder.jpg';
+---
+
+<BaseLayout
+  title={place.seoTitle || `${place.name} | Nuna Terra Perú`}
+  description={place.seoDescription || place.shortDescription || place.subtitle}
+>
+  <!-- HERO -->
+  <section class="lugar-hero">
+    <img
+      src={heroImage}
+      alt={place.name}
+      class="lugar-hero__image"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="lugar-hero__overlay" aria-hidden="true"></div>
+
+    <div class="container lugar-hero__content">
+      <nav class="lugar-hero__breadcrumb" aria-label="Navegación">
+        <a href="/destinos">Destinos</a>
+        <span class="lugar-hero__breadcrumb-sep" aria-hidden="true">›</span>
+        {place.destinationSlug ? (
+          <a href={`/destinos/${place.destinationSlug}`}>
+            {place.destinationName || 'Destino'}
+          </a>
+        ) : (
+          <span>{place.destinationName || 'Destino'}</span>
+        )}
+        <span class="lugar-hero__breadcrumb-sep" aria-hidden="true">›</span>
+        <span>{place.name}</span>
+      </nav>
+
+      <p class="lugar-hero__eyebrow">Lugar de interés</p>
+      <h1>{place.name}</h1>
+
+      {(place.subtitle || place.shortDescription) && (
+        <p class="lugar-hero__subtitle">
+          {place.subtitle || place.shortDescription}
+        </p>
+      )}
+
+      <div class="lugar-hero__actions">
+        <a href="#informacion" class="lugar-btn lugar-btn--primary">
+          Conocer más
+        </a>
+        <a href="/contacto" class="lugar-btn lugar-btn--ghost">
+          Diseñar mi viaje
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  {(place.altitude || place.bestTime || place.recommendedDays) && (
+    <div class="lugar-stats-bar">
+      <div class="container lugar-stats-bar__inner">
+        {place.altitude && (
+          <div class="lugar-stat">
+            <span class="lugar-stat__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3l4 8 5-5 5 15H2L8 3z"/>
+              </svg>
+            </span>
+            <span>
+              <span class="lugar-stat__label">Altitud</span>
+              <span class="lugar-stat__value">{place.altitude}</span>
+            </span>
+          </div>
+        )}
+        {place.bestTime && (
+          <div class="lugar-stat">
+            <span class="lugar-stat__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+              </svg>
+            </span>
+            <span>
+              <span class="lugar-stat__label">Mejor época</span>
+              <span class="lugar-stat__value">{place.bestTime}</span>
+            </span>
+          </div>
+        )}
+        {place.recommendedDays && (
+          <div class="lugar-stat">
+            <span class="lugar-stat__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </span>
+            <span>
+              <span class="lugar-stat__label">Días sugeridos</span>
+              <span class="lugar-stat__value">{place.recommendedDays}</span>
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+
+  <!-- INFO -->
+  <section class="lugar-section lugar-info" id="informacion">
+    <div class="container lugar-info__grid">
+
+      <div>
+        <SectionHeading
+          eyebrow="Sobre este lugar"
+          title={`Descubre ${place.name}`}
+          align="left"
+        />
+
+        <div class="lugar-info__description">
+          {place.description
+            ? place.description.split('\n').filter(Boolean).map((para: string) => (
+                <p>{para}</p>
+              ))
+            : (
+                <p>
+                  {place.shortDescription ||
+                    place.subtitle ||
+                    `${place.name} es uno de los lugares más destacados de este destino, con una riqueza cultural y natural que vale la pena descubrir.`}
+                </p>
+              )
+          }
+        </div>
+      </div>
+
+      <aside class="lugar-info-card">
+        <div class="lugar-info-card__header">
+          <span class="lugar-info-card__eyebrow">Información clave</span>
+          <h3>{place.name}</h3>
+        </div>
+
+        <div class="lugar-info-card__rows">
+          {place.destinationName && place.destinationSlug && (
+            <div class="lugar-info-card__row">
+              <span class="lugar-info-card__row-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+              </span>
+              <div class="lugar-info-card__row-content">
+                <span class="lugar-info-card__row-label">Destino</span>
+                <span class="lugar-info-card__row-value">{place.destinationName}</span>
+              </div>
+            </div>
+          )}
+
+          {place.altitude && (
+            <div class="lugar-info-card__row">
+              <span class="lugar-info-card__row-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 3l4 8 5-5 5 15H2L8 3z"/>
+                </svg>
+              </span>
+              <div class="lugar-info-card__row-content">
+                <span class="lugar-info-card__row-label">Altitud</span>
+                <span class="lugar-info-card__row-value">{place.altitude}</span>
+              </div>
+            </div>
+          )}
+
+          {place.bestTime && (
+            <div class="lugar-info-card__row">
+              <span class="lugar-info-card__row-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                </svg>
+              </span>
+              <div class="lugar-info-card__row-content">
+                <span class="lugar-info-card__row-label">Mejor época</span>
+                <span class="lugar-info-card__row-value">{place.bestTime}</span>
+              </div>
+            </div>
+          )}
+
+          {place.recommendedDays && (
+            <div class="lugar-info-card__row">
+              <span class="lugar-info-card__row-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </span>
+              <div class="lugar-info-card__row-content">
+                <span class="lugar-info-card__row-label">Días sugeridos</span>
+                <span class="lugar-info-card__row-value">{place.recommendedDays}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {place.idealFor && place.idealFor.length > 0 && (
+          <div class="lugar-info-card__tags" aria-label="Ideal para">
+            {place.idealFor.map((tag: string) => (
+              <span class="lugar-info-card__tag">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        {place.destinationSlug && (
+          <a
+            href={`/destinos/${place.destinationSlug}`}
+            class="lugar-info-card__dest-link"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            Ver destino: {place.destinationName}
+          </a>
+        )}
+      </aside>
+    </div>
+  </section>
+
+  <!-- RELATED PACKAGES -->
+  {packages.length > 0 && (
+    <section class="lugar-section lugar-products" id="experiencias">
+      <div class="container">
+        <SectionHeading
+          eyebrow="Paquetes"
+          title={`Paquetes que incluyen ${place.name}`}
+          subtitle="Rutas completas que pasan por este lugar, organizadas para que aproveches cada momento."
+          align="left"
+        />
+        <div class="lugar-products__scroll">
+          {packages.map((product) => (
+            <div class="lugar-products__item">
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- RELATED TOURS -->
+  {tours.length > 0 && (
+    <section class="lugar-section" style="background: var(--color-ivory);">
+      <div class="container">
+        <SectionHeading
+          eyebrow="Tours"
+          title={`Tours en ${place.name}`}
+          subtitle="Experiencias cortas y enfocadas en este lugar, con guía y acompañamiento especializado."
+          align="left"
+        />
+        <div class="lugar-products__scroll">
+          {tours.map((product) => (
+            <div class="lugar-products__item">
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- FINAL CTA -->
+  <section class="lugar-final-cta">
+    <div class="container">
+      <h2>¿Quieres visitar {place.name} en tu próximo viaje?</h2>
+      <p>
+        Diseñamos una ruta personalizada que incluye este lugar con la logística,
+        el tiempo y el acompañamiento que merece.
+      </p>
+
+      <div class="lugar-final-cta__actions">
+        <a href="/contacto" class="lugar-btn lugar-btn--primary">
+          Comenzar a planear
+        </a>
+        <a href="/contacto" class="lugar-btn lugar-btn--ghost">
+          Hablar con un asesor
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

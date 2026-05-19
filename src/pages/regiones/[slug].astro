@@ -26,25 +26,16 @@ const regionDestinations = allDestinations
   .filter((destination) => destination.region === region.slug)
   .slice(0, 5);
 
+const mapDestinations = allDestinations.filter(
+  (d) => d.region === region.slug
+);
+
 const regionProducts = await getProductsByRegion(region.slug);
 
-const destinationSlugsWithProducts = new Set(
-  regionProducts.flatMap((p) => p.destinationSlugs ?? [])
-);
+const packages = regionProducts.filter((product) => product.type === 'package');
+const tours    = regionProducts.filter((product) => product.type === 'tour');
 
-const mapDestinations = regionDestinations.filter((d) =>
-  destinationSlugsWithProducts.has(d.slug)
-);
-
-const packages = regionProducts
-  .filter((product) => product.type === 'package')
-  .slice(0, 3);
-
-const tours = regionProducts
-  .filter((product) => product.type === 'tour')
-  .slice(0, 3);
-
-const featuredDestination = regionDestinations[0];
+const featuredDestination   = regionDestinations[0];
 const secondaryDestinations = regionDestinations.slice(1, 5);
 
 const heroImage =
@@ -58,12 +49,14 @@ const storyImage =
   region.cardImage ||
   region.heroImage ||
   '/images/placeholders/destination-placeholder.jpg';
+
+const pageTitle       = region.seoTitle       || `${region.name} del Perú | Nuna Terra Perú`;
+const pageDescription = region.seoDescription || region.description || region.headline;
 ---
 
-<BaseLayout
-  title={`${region.name} del Perú | Nuna Terra Perú`}
-  description={region.description || region.headline}
->
+<BaseLayout title={pageTitle} description={pageDescription}>
+
+  <!-- HERO -->
   <section class="region-hero">
     <img
       src={heroImage}
@@ -94,25 +87,29 @@ const storyImage =
     </div>
   </section>
 
-  <section class="region-quote">
+  <!-- QUOTE — uses region.description as large pull text -->
+  <section class="region-quote" data-animate="fade-up">
     <div class="container region-quote__inner">
       <p>
-        “La {region.name.toLowerCase()} del Perú reúne paisajes, cultura y experiencias que revelan una forma profunda de vivir el país.”
+        "{region.description ||
+          `La ${region.name.toLowerCase()} del Perú reúne paisajes, cultura y experiencias que revelan una forma profunda de vivir el país.`}"
       </p>
     </div>
   </section>
 
-  <section class="region-map-section">
+  <!-- MAP -->
+  <section class="region-map-section" data-animate="fade-up">
     <div class="container">
       <PeruRegionMap
         destinations={mapDestinations}
+        region={region.slug}
         title={`Ubica los destinos de ${region.name}`}
         subtitle={`Explora visualmente los principales destinos de la ${region.name.toLowerCase()} del Perú y descubre qué experiencias puedes vivir en cada zona.`}
       />
     </div>
   </section>
 
-
+  <!-- DESTINATIONS -->
   <section class="region-section region-destinations" id="destinos">
     <div class="container">
       <SectionHeading
@@ -123,7 +120,7 @@ const storyImage =
       />
 
       {regionDestinations.length > 0 && (
-        <div class="region-destinations__layout">
+        <div class="region-destinations__layout" data-animate="fade-up">
           {featuredDestination && (
             <article class="region-destination-main">
               <a href={`/destinos/${featuredDestination.slug}`}>
@@ -171,8 +168,9 @@ const storyImage =
     </div>
   </section>
 
+  <!-- PACKAGES CAROUSEL -->
   {packages.length > 0 && (
-    <section class="region-section region-products" id="experiencias">
+    <section class="region-section region-products" id="experiencias" data-animate="fade-up">
       <div class="container">
         <SectionHeading
           eyebrow="Experiencias relacionadas"
@@ -181,17 +179,46 @@ const storyImage =
           centered
         />
 
-        <div class="grid grid--3">
-          {packages.map((product) => (
-            <ProductCard product={product} />
-          ))}
+        <div class="region-carousel" data-carousel>
+          <div class="region-carousel__track" data-track>
+            {packages.map((product) => (
+              <div class="region-carousel__slide">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+
+          <div class="region-carousel__footer">
+            <button
+              class="region-carousel__arrow"
+              data-prev
+              aria-label="Paquete anterior"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+
+            <div class="region-carousel__dots" data-dots></div>
+
+            <button
+              class="region-carousel__arrow"
+              data-next
+              aria-label="Paquete siguiente"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </section>
   )}
 
+  <!-- TOURS CAROUSEL -->
   {tours.length > 0 && (
-    <section class="region-section region-tours">
+    <section class="region-section region-tours" data-animate="fade-up">
       <div class="container">
         <SectionHeading
           title="Tours para explorar en menos tiempo"
@@ -199,39 +226,70 @@ const storyImage =
           align="left"
         />
 
-        <div class="grid grid--3">
-          {tours.map((product) => (
-            <ProductCard product={product} />
-          ))}
+        <div class="region-carousel region-carousel--tours" data-carousel>
+          <div class="region-carousel__track" data-track>
+            {tours.map((product) => (
+              <div class="region-carousel__slide">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+
+          <div class="region-carousel__footer">
+            <button
+              class="region-carousel__arrow"
+              data-prev
+              aria-label="Tour anterior"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+
+            <div class="region-carousel__dots" data-dots></div>
+
+            <button
+              class="region-carousel__arrow"
+              data-next
+              aria-label="Tour siguiente"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </section>
   )}
 
+  <!-- STORY — uses region.description + headline -->
   <section class="region-story">
     <div class="container region-story__grid">
-      <div class="region-story__image">
+      <div class="region-story__image" data-animate="slide-left">
         <img src={storyImage} alt={region.name} loading="lazy" />
       </div>
 
-      <div class="region-story__content">
+      <div class="region-story__content" data-animate="slide-right">
         <p class="eyebrow">Cultura y esencia</p>
 
         <h2>Una región para vivir el Perú desde otra perspectiva</h2>
 
         <p>
-          Más allá de sus paisajes, esta región invita a conectar con la identidad del Perú:
-          sus caminos, su gente, sus sabores y su manera de recibir a cada viajero.
+          {region.description ||
+            `Más allá de sus paisajes, esta región invita a conectar con la identidad del Perú:
+            sus caminos, su gente, sus sabores y su manera de recibir a cada viajero.`}
         </p>
 
-        <blockquote>
-          “El viaje no es solo ver el paisaje, es sentir el pulso de la tierra bajo tus pies.”
-        </blockquote>
+        {region.headline && (
+          <blockquote>"{region.headline}"</blockquote>
+        )}
       </div>
     </div>
   </section>
 
-  <section class="region-final-cta">
+  <!-- FINAL CTA -->
+  <section class="region-final-cta" data-animate="fade-up">
     <div class="container region-final-cta__inner">
       <h2>¿Quieres descubrir la {region.name.toLowerCase()} del Perú a tu manera?</h2>
       <p>Diseñamos una ruta personalizada según tus días, intereses y forma de viajar.</p>
@@ -247,4 +305,190 @@ const storyImage =
       </div>
     </div>
   </section>
+
 </BaseLayout>
+
+<script>
+/* =====================================================
+   SCROLL ANIMATIONS — IntersectionObserver
+===================================================== */
+function initAnimations(): void {
+  const els = document.querySelectorAll<HTMLElement>('[data-animate]');
+  if (!els.length) return;
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -56px 0px' }
+  );
+
+  els.forEach((el) => io.observe(el));
+}
+
+/* =====================================================
+   CAROUSEL
+===================================================== */
+class Carousel {
+  private el: HTMLElement;
+  private track: HTMLElement;
+  private slides: HTMLElement[];
+  private dots: HTMLElement | null;
+  private prevBtn: HTMLButtonElement | null;
+  private nextBtn: HTMLButtonElement | null;
+  private current: number = 0;
+  private timer: ReturnType<typeof setInterval> | null = null;
+  private readonly gap: number = 24;
+  private readonly interval: number = 5000;
+
+  constructor(el: HTMLElement) {
+    this.el = el;
+    this.track = el.querySelector<HTMLElement>('[data-track]')!;
+    this.slides = Array.from(this.track.querySelectorAll<HTMLElement>('.region-carousel__slide'));
+    this.dots = el.querySelector<HTMLElement>('[data-dots]');
+    this.prevBtn = el.querySelector<HTMLButtonElement>('[data-prev]');
+    this.nextBtn = el.querySelector<HTMLButtonElement>('[data-next]');
+
+    if (!this.slides.length) return;
+
+    this.setup();
+    this.render();
+    this.startTimer();
+  }
+
+  private perView(): number {
+    if (window.innerWidth >= 980) return 3;
+    if (window.innerWidth >= 640) return 2;
+    return 1;
+  }
+
+  private totalPages(): number {
+    return Math.max(1, this.slides.length - this.perView() + 1);
+  }
+
+  private setup(): void {
+    const pv = this.perView();
+
+    /* If all slides fit, switch track to grid and hide controls */
+    if (this.slides.length <= pv) {
+      this.track.style.display = 'grid';
+      this.track.style.gridTemplateColumns = `repeat(${this.slides.length}, 1fr)`;
+      this.el.querySelector<HTMLElement>('.region-carousel__footer')?.remove();
+      return;
+    }
+
+    this.buildDots();
+    this.bindEvents();
+
+    window.addEventListener('resize', () => {
+      this.current = 0;
+      this.render();
+      this.buildDots();
+    });
+  }
+
+  private buildDots(): void {
+    if (!this.dots) return;
+    this.dots.innerHTML = '';
+    const total = this.totalPages();
+    for (let i = 0; i < total; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'region-carousel__dot';
+      btn.setAttribute('aria-label', `Ir a elemento ${i + 1}`);
+      btn.addEventListener('click', () => { this.go(i); this.resetTimer(); });
+      this.dots.appendChild(btn);
+    }
+    this.syncDots();
+  }
+
+  private syncDots(): void {
+    this.dots?.querySelectorAll('.region-carousel__dot').forEach((d, i) => {
+      d.classList.toggle('is-active', i === this.current);
+    });
+    if (this.prevBtn) this.prevBtn.disabled = this.current === 0;
+    if (this.nextBtn) this.nextBtn.disabled = this.current >= this.totalPages() - 1;
+  }
+
+  private render(): void {
+    const slideW = this.slides[0]?.offsetWidth ?? 0;
+    const offset = this.current * (slideW + this.gap);
+    this.track.style.transform = `translateX(-${offset}px)`;
+    this.syncDots();
+  }
+
+  go(idx: number): void {
+    this.current = Math.max(0, Math.min(idx, this.totalPages() - 1));
+    this.render();
+  }
+
+  next(): void {
+    this.go(this.current >= this.totalPages() - 1 ? 0 : this.current + 1);
+  }
+
+  prev(): void {
+    this.go(this.current <= 0 ? this.totalPages() - 1 : this.current - 1);
+  }
+
+  private bindEvents(): void {
+    this.prevBtn?.addEventListener('click', () => { this.prev(); this.resetTimer(); });
+    this.nextBtn?.addEventListener('click', () => { this.next(); this.resetTimer(); });
+
+    /* Pause on hover / focus */
+    this.el.addEventListener('mouseenter', () => this.stopTimer());
+    this.el.addEventListener('mouseleave', () => this.startTimer());
+    this.el.addEventListener('focusin',    () => this.stopTimer());
+    this.el.addEventListener('focusout',   () => {
+      if (!this.el.contains(document.activeElement)) this.startTimer();
+    });
+
+    /* Touch swipe */
+    let startX = 0;
+    this.track.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+    this.track.addEventListener('touchend', (e) => {
+      const delta = startX - e.changedTouches[0].clientX;
+      if (Math.abs(delta) > 48) {
+        delta > 0 ? this.next() : this.prev();
+        this.resetTimer();
+      }
+    });
+  }
+
+  private startTimer(): void {
+    this.timer = setInterval(() => this.next(), this.interval);
+  }
+
+  private stopTimer(): void {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
+  }
+
+  private resetTimer(): void {
+    this.stopTimer();
+    this.startTimer();
+  }
+}
+
+/* =====================================================
+   BOOT
+===================================================== */
+function boot(): void {
+  initAnimations();
+
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((el) => {
+    if (!el.dataset.ready) {
+      el.dataset.ready = '1';
+      new Carousel(el);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+document.addEventListener('astro:page-load', boot);
+</script>

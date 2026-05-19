@@ -1,0 +1,220 @@
+$ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+.place-card {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid rgba(47, 93, 80, 0.10);
+  box-shadow:
+    0 2px 4px rgba(37, 37, 37, 0.04),
+    0 16px 42px rgba(37, 37, 37, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition:
+    transform 0.45s $ease-soft,
+    box-shadow 0.45s $ease-soft,
+    border-color 0.35s ease;
+}
+
+.place-card:hover {
+  transform: translateY(-9px);
+  border-color: rgba(47, 93, 80, 0.30);
+  box-shadow:
+    0 4px 8px rgba(37, 37, 37, 0.04),
+    0 32px 78px rgba(37, 37, 37, 0.11),
+    0 0 0 1px rgba(47, 93, 80, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.place-card__link {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── IMAGE ─────────────────────────────── */
+
+.place-card__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--color-charcoal);
+}
+
+.place-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92);
+  transition:
+    transform 0.80s $ease-soft,
+    filter 0.80s $ease-soft;
+}
+
+.place-card:hover .place-card__image {
+  transform: scale(1.08);
+  filter: saturate(1.06) brightness(1.03);
+}
+
+.place-card__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(37, 37, 37, 0) 40%,
+    rgba(37, 37, 37, 0.48) 100%
+  );
+  opacity: 0.7;
+  transition: opacity 0.45s ease;
+}
+
+.place-card:hover .place-card__shade {
+  opacity: 0.9;
+}
+
+/* Pin indicator — top-right corner */
+.place-card__pin {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(47, 93, 80, 0.88);
+  color: var(--color-ivory);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(37, 37, 37, 0.20);
+  transition: transform 0.38s $ease-soft;
+}
+
+.place-card:hover .place-card__pin {
+  transform: translateY(-3px) scale(1.08);
+}
+
+/* ── BODY ──────────────────────────────── */
+
+.place-card__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 22px 22px;
+}
+
+/* Green separator that fades in on hover */
+.place-card__body::before {
+  content: '';
+  position: absolute;
+  inset: 0 22px auto;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(47, 93, 80, 0.55),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.place-card:hover .place-card__body::before {
+  opacity: 1;
+}
+
+/* Metadata chips */
+.place-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  min-height: 24px;
+}
+
+.place-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(47, 93, 80, 0.08);
+  border: 1px solid rgba(47, 93, 80, 0.16);
+  color: var(--color-green);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Name */
+.place-card__name {
+  margin: 0 0 10px;
+  color: var(--color-earth);
+  font-family: var(--font-display);
+  font-size: clamp(1.60rem, 2vw, 2.10rem);
+  line-height: 0.96;
+  letter-spacing: -0.015em;
+}
+
+/* Description */
+.place-card__desc {
+  margin: 0 0 auto;
+  color: rgba(37, 37, 37, 0.58);
+  font-size: 0.88rem;
+  line-height: 1.68;
+  padding-bottom: 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* CTA */
+.place-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-green);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  transition: gap 0.28s $ease-soft;
+  border-top: 1px solid rgba(47, 93, 80, 0.10);
+  padding-top: 16px;
+  margin-top: auto;
+}
+
+.place-card:hover .place-card__cta {
+  gap: 12px;
+}
+
+.place-card__arrow {
+  transition: transform 0.28s $ease-soft;
+}
+
+.place-card:hover .place-card__arrow {
+  transform: translateX(4px);
+}
+
+/* ── RESPONSIVE ────────────────────────── */
+
+@media (max-width: 640px) {
+  .place-card {
+    border-radius: 18px;
+  }
+
+  .place-card__body {
+    padding: 18px;
+  }
+
+  .place-card__body::before {
+    inset: 0 18px auto;
+  }
+}

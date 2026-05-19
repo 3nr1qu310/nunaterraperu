@@ -1,0 +1,75 @@
+---
+import type { DestinationPlace } from '@/types/content';
+import './PlaceCard.scss';
+
+interface Props {
+  place: DestinationPlace;
+  href?: string;
+}
+
+const { place, href } = Astro.props;
+
+const url = href ?? `/lugares/${place.slug}`;
+
+const image =
+  place.cardImage ||
+  place.heroImage ||
+  '/images/placeholders/destination-placeholder.jpg';
+---
+
+<article class="place-card">
+  <a href={url} class="place-card__link" aria-label={`Explorar: ${place.name}`}>
+    <div class="place-card__media">
+      <img
+        class="place-card__image"
+        src={image}
+        alt={place.name}
+        loading="lazy"
+      />
+
+      <div class="place-card__shade" aria-hidden="true"></div>
+
+      <span class="place-card__pin" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      </span>
+    </div>
+
+    <div class="place-card__body">
+      <div class="place-card__chips">
+        {place.altitude && (
+          <span class="place-card__chip">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 3l4 8 5-5 5 15H2L8 3z"/>
+            </svg>
+            {place.altitude}
+          </span>
+        )}
+        {place.bestTime && (
+          <span class="place-card__chip">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
+            {place.bestTime}
+          </span>
+        )}
+      </div>
+
+      <h3 class="place-card__name">{place.name}</h3>
+
+      {(place.shortDescription || place.subtitle) && (
+        <p class="place-card__desc">
+          {place.shortDescription || place.subtitle}
+        </p>
+      )}
+
+      <span class="place-card__cta">
+        Explorar lugar
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="place-card__arrow">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </span>
+    </div>
+  </a>
+</article>

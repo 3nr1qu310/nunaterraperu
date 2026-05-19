@@ -22,8 +22,9 @@
 
 .home-props__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 26px;
+  /* Slightly wider first card — breaks uniform symmetry */
+  grid-template-columns: 1.35fr 1fr 1fr 1fr;
+  gap: 20px;
 }
 
 .home-prop {
@@ -33,12 +34,13 @@
 
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
+  /* Left-aligned, not centered — reads more editorial */
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 14px;
 
-  padding: 38px 30px;
-  text-align: center;
+  padding: 36px 30px;
+  text-align: left;
 
   border: 1px solid rgba(90, 62, 43, 0.12);
   border-radius: 22px;
@@ -138,20 +140,24 @@
   position: relative;
   z-index: 1;
 
-  width: 76px;
-  height: 76px;
+  width: 56px;
+  height: 56px;
   display: grid;
   place-items: center;
 
-  border-radius: 50%;
+  /* Squircle instead of circle */
+  border-radius: 14px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 241, 231, 0.82));
   border: 1px solid rgba(90, 62, 43, 0.08);
 
   color: var(--color-earth);
   box-shadow:
-    0 12px 28px rgba(37, 37, 37, 0.06),
+    0 8px 20px rgba(37, 37, 37, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  /* Positioned top-left for left-aligned layout */
+  margin-bottom: 4px;
 
   transition:
     transform 0.35s ease,
@@ -162,9 +168,8 @@
 .home-prop__icon span {
   display: grid;
   place-items: center;
-  font-size: 1.45rem;
+  font-size: 1.3rem;
   line-height: 1;
-  transform: translateY(1px);
 }
 
 .home-prop:hover .home-prop__icon {
@@ -196,11 +201,12 @@
   position: relative;
   z-index: 1;
 
-  max-width: 235px;
-  margin: 0 auto;
+  max-width: 240px;
+  margin: 0;
   color: rgba(37, 37, 37, 0.58);
-  font-size: 0.9rem;
-  line-height: 1.7;
+  font-size: 0.88rem;
+  line-height: 1.72;
+  text-wrap: pretty;
 }
 
 

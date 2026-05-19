@@ -1,0 +1,168 @@
+.peru-departments-map {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.peru-departments-map svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 18px 36px rgba(37, 37, 37, 0.14));
+}
+
+/* Base general */
+.peru-departments-map svg path {
+  fill: rgba(247, 241, 231, 0.22);
+  stroke: rgba(160, 154, 142, 0.58);
+  stroke-width: 1.5;
+  transition:
+    fill 0.28s ease,
+    stroke 0.28s ease,
+    stroke-width 0.28s ease,
+    opacity 0.28s ease,
+    filter 0.28s ease;
+}
+
+/* Ocultar lago u otros paths no departamentales si estorban */
+.peru-departments-map svg #PE-LKT {
+  fill: rgba(170, 183, 190, 0.16);
+  stroke: rgba(170, 183, 190, 0.4);
+}
+
+/* -----------------------------
+   COSTA
+   Tumbes, Piura, Lambayeque, La Libertad,
+   Áncash, Lima, Callao, Ica, Arequipa,
+   Moquegua, Tacna
+------------------------------ */
+
+.peru-departments-map svg #PE-TUM,
+.peru-departments-map svg #PE-PIU,
+.peru-departments-map svg #PE-LAM,
+.peru-departments-map svg #PE-LAL,
+.peru-departments-map svg #PE-ANC,
+.peru-departments-map svg #PE-LIM,
+.peru-departments-map svg #PE-LMA,
+.peru-departments-map svg #PE-CAL,
+.peru-departments-map svg #PE-ICA,
+.peru-departments-map svg #PE-ARE,
+.peru-departments-map svg #PE-MOQ,
+.peru-departments-map svg #PE-TAC {
+  stroke: rgba(198, 154, 42, 0.72);
+}
+
+/* -----------------------------
+   SIERRA
+------------------------------ */
+
+.peru-departments-map svg #PE-CAJ,
+.peru-departments-map svg #PE-HUC,
+.peru-departments-map svg #PE-PAS,
+.peru-departments-map svg #PE-JUN,
+.peru-departments-map svg #PE-HUV,
+.peru-departments-map svg #PE-AYA,
+.peru-departments-map svg #PE-APU,
+.peru-departments-map svg #PE-CUS,
+.peru-departments-map svg #PE-PUN {
+  stroke: rgba(154, 95, 44, 0.72);
+}
+
+/* -----------------------------
+   SELVA
+------------------------------ */
+
+.peru-departments-map svg #PE-AMA,
+.peru-departments-map svg #PE-SAM,
+.peru-departments-map svg #PE-LOR,
+.peru-departments-map svg #PE-UCA,
+.peru-departments-map svg #PE-MDD {
+  stroke: rgba(95, 146, 112, 0.72);
+}
+
+/* =====================================================
+   ESTADO ACTIVO: COSTA
+===================================================== */
+
+.peru-departments-map--costa svg path {
+  fill: rgba(247, 241, 231, 0.12);
+  stroke: rgba(170, 164, 154, 0.38);
+  opacity: 0.72;
+}
+
+.peru-departments-map--costa svg #PE-TUM,
+.peru-departments-map--costa svg #PE-PIU,
+.peru-departments-map--costa svg #PE-LAM,
+.peru-departments-map--costa svg #PE-LAL,
+.peru-departments-map--costa svg #PE-ANC,
+.peru-departments-map--costa svg #PE-LIM,
+.peru-departments-map--costa svg #PE-LMA,
+.peru-departments-map--costa svg #PE-CAL,
+.peru-departments-map--costa svg #PE-ICA,
+.peru-departments-map--costa svg #PE-ARE,
+.peru-departments-map--costa svg #PE-MOQ,
+.peru-departments-map--costa svg #PE-TAC {
+  fill: rgba(214, 168, 51, 0.38);
+  stroke: #c99b28;
+  stroke-width: 2.6;
+  opacity: 1;
+  filter: drop-shadow(0 0 7px rgba(214, 168, 51, 0.22));
+}
+
+/* =====================================================
+   ESTADO ACTIVO: SIERRA
+===================================================== */
+
+.peru-departments-map--sierra svg path {
+  fill: rgba(247, 241, 231, 0.12);
+  stroke: rgba(170, 164, 154, 0.38);
+  opacity: 0.72;
+}
+
+.peru-departments-map--sierra svg #PE-CAJ,
+.peru-departments-map--sierra svg #PE-HUC,
+.peru-departments-map--sierra svg #PE-PAS,
+.peru-departments-map--sierra svg #PE-JUN,
+.peru-departments-map--sierra svg #PE-HUV,
+.peru-departments-map--sierra svg #PE-AYA,
+.peru-departments-map--sierra svg #PE-APU,
+.peru-departments-map--sierra svg #PE-CUS,
+.peru-departments-map--sierra svg #PE-PUN {
+  fill: rgba(154, 95, 44, 0.34);
+  stroke: #9a5f2c;
+  stroke-width: 2.6;
+  opacity: 1;
+  filter: drop-shadow(0 0 7px rgba(154, 95, 44, 0.22));
+}
+
+/* =====================================================
+   ESTADO ACTIVO: SELVA
+===================================================== */
+
+.peru-departments-map--selva svg path {
+  fill: rgba(247, 241, 231, 0.12);
+  stroke: rgba(170, 164, 154, 0.38);
+  opacity: 0.72;
+}
+
+.peru-departments-map--selva svg #PE-AMA,
+.peru-departments-map--selva svg #PE-SAM,
+.peru-departments-map--selva svg #PE-LOR,
+.peru-departments-map--selva svg #PE-UCA,
+.peru-departments-map--selva svg #PE-MDD {
+  fill: rgba(95, 146, 112, 0.38);
+  stroke: #5f9270;
+  stroke-width: 2.6;
+  opacity: 1;
+  filter: drop-shadow(0 0 7px rgba(95, 146, 112, 0.22));
+}
+
+/* Hover general */
+.peru-departments-map svg path:hover {
+  fill: rgba(216, 185, 130, 0.42);
+  stroke: var(--color-earth);
+  stroke-width: 2.8;
+  opacity: 1;
+}

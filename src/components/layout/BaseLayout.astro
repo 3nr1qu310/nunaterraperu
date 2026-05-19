@@ -26,13 +26,17 @@ const {
     <meta name="description" content={description} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+    <meta property="og:image" content="/images/og-image.jpg" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <title>{title}</title>
   </head>
 
   <body>
+    <a class="skip-link" href="#main-content">Ir al contenido principal</a>
     <Header />
-    <main>
+    <main id="main-content">
       <slot />
     </main>
     <Footer />

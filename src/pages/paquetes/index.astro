@@ -1,13 +1,1031 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
-import { getPackages } from '@/lib/content';
-const packages = await getPackages();
+import { getPackages, getTravelCategories } from '@/lib/content';
+import { travelCategories as mockCategories } from '@/data/categories';
+import type { TravelCategory, ProductExtended } from '@/types/content';
+
+const allPackages = await getPackages();
+const dbCategories = await getTravelCategories();
+const categories: TravelCategory[] = dbCategories.length ? dbCategories : mockCategories;
+
+function normalizeStr(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+}
+
+type StyleSection = { category: TravelCategory; packages: ProductExtended[] };
+
+const sections: StyleSection[] = categories
+  .map((cat) => ({
+    category: cat,
+    packages: allPackages.filter((pkg) => {
+      const slugMatch = pkg.categorySlugs?.some(
+        (s) => normalizeStr(s) === normalizeStr(cat.slug)
+      );
+      const nameMatch = pkg.categories?.some(
+        (c) => normalizeStr(c) === normalizeStr(cat.name)
+      );
+      return slugMatch || nameMatch;
+    }),
+  }))
+  .filter((s) => s.packages.length > 0);
+
+const categorizedSlugs = new Set(sections.flatMap((s) => s.packages.map((p) => p.slug)));
+const uncategorized = allPackages.filter((p) => !categorizedSlugs.has(p.slug));
 ---
+
 <BaseLayout title="Paquetes turísticos por Perú | Nuna Terra Perú">
-  <Hero eyebrow="Paquetes turísticos por Perú" title="Paquetes turísticos por Perú" subtitle="Experiencias de varios días diseñadas para descubrir la costa, sierra y selva del Perú con organización, acompañamiento y sentido." image="/images/packages-hero.jpg" primaryText="Ver paquetes destacados" primaryHref="#catalogo" secondaryText="Diseñar mi viaje" secondaryHref="/contacto" />
-  <section class="section" id="catalogo"><div class="container"><SectionHeading title="Elige tu próxima experiencia" subtitle="Filtra por región, duración o estilo de viaje. Estos paquetes se cargan desde Supabase; si la base aún está vacía se muestran datos de ejemplo." /><div class="filters"><button>Todos</button><button>Costa</button><button>Sierra</button><button>Selva</button><button>Familiar</button><button>Premium</button></div><div class="grid grid--3">{packages.map((product) => <ProductCard product={product} />)}</div></div></section>
+
+  <!-- HERO: Split-screen asimétrico -->
+  <section class="pkg-hero">
+    <div class="pkg-hero__left">
+      <div class="pkg-hero__content">
+        <p class="pkg-hero__eyebrow">Experiencias de viaje</p>
+        <h1 class="pkg-hero__title">
+          Paquetes<br /><em>por el Perú</em>
+        </h1>
+        <p class="pkg-hero__subtitle">
+          Experiencias de varios días diseñadas para descubrir la costa, sierra
+          y selva del Perú con organización, acompañamiento y sentido.
+        </p>
+        <div class="pkg-hero__actions">
+          <a href="#paquetes" class="pkg-hero__btn-primary">Explorar paquetes</a>
+          <a href="/contacto" class="pkg-hero__btn-secondary">Diseñar mi viaje</a>
+        </div>
+        {sections.length > 0 && (
+          <div class="pkg-hero__cats">
+            <span class="pkg-hero__cats-label">Estilos disponibles</span>
+            <div class="pkg-hero__cat-pills">
+              {sections.map(({ category }) => (
+                <a href={`#cat-${category.slug}`} class="pkg-hero__cat-pill">
+                  {category.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div class="pkg-hero__right">
+      <img
+        class="pkg-hero__img"
+        src="/images/packages-hero.jpg"
+        alt="Paisaje de Perú"
+        loading="eager"
+      />
+      <div class="pkg-hero__img-overlay"></div>
+      <div class="pkg-hero__stats">
+        <div class="pkg-hero__stat">
+          <span class="pkg-hero__stat-num">{allPackages.length > 0 ? `${allPackages.length}+` : '12+'}</span>
+          <span class="pkg-hero__stat-lbl">Paquetes activos</span>
+        </div>
+        <div class="pkg-hero__stat-sep"></div>
+        <div class="pkg-hero__stat">
+          <span class="pkg-hero__stat-num">{sections.length > 0 ? sections.length : '4'}</span>
+          <span class="pkg-hero__stat-lbl">Estilos de viaje</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NAV STICKY DE CATEGORÍAS -->
+  {sections.length > 1 && (
+    <nav class="pkg-nav" id="paquetes" aria-label="Estilos de viaje">
+      <div class="container pkg-nav__inner">
+        <span class="pkg-nav__label">Filtrar por</span>
+        <div class="pkg-nav__pills">
+          {sections.map(({ category, packages }) => (
+            <a
+              href={`#cat-${category.slug}`}
+              class="pkg-nav__pill"
+              data-nav-target={category.slug}
+            >
+              {category.name}
+              <span class="pkg-nav__count">{packages.length}</span>
+            </a>
+          ))}
+          {uncategorized.length > 0 && (
+            <a href="#cat-otros" class="pkg-nav__pill" data-nav-target="otros">
+              Otros
+              <span class="pkg-nav__count">{uncategorized.length}</span>
+            </a>
+          )}
+        </div>
+      </div>
+    </nav>
+  )}
+
+  <!-- CONTENIDO DE PAQUETES -->
+  <div id={sections.length <= 1 ? 'paquetes' : undefined} class="pkg-content">
+
+    {sections.length === 0 && allPackages.length === 0 && (
+      <section class="section pkg-empty">
+        <div class="container pkg-empty__inner animate-up">
+          <div class="pkg-empty__icon">
+            <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+              <circle cx="26" cy="26" r="25" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 3.5" opacity="0.35"/>
+              <path d="M18 26h16M26 18v16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h2 class="pkg-empty__title">Próximamente</h2>
+          <p class="pkg-empty__subtitle">
+            Estamos preparando nuestros paquetes. Escríbenos para diseñar tu experiencia a medida.
+          </p>
+          <a href="/contacto" class="btn btn--primary">Contáctanos</a>
+        </div>
+      </section>
+    )}
+
+    {sections.map(({ category, packages }, i) => {
+      const isReversed = i % 2 !== 0;
+      const featuredPkg = packages.find((p) => p.featured) || packages[0];
+      const sidePkgs = packages.filter((p) => p.slug !== featuredPkg?.slug).slice(0, 2);
+      const overflowPkgs = packages.filter((p) => p.slug !== featuredPkg?.slug).slice(2);
+
+      return (
+        <section
+          id={`cat-${category.slug}`}
+          class="pkg-section"
+          data-nav-section={category.slug}
+        >
+          <div class="container">
+
+            <header class="pkg-section__head animate-up">
+              <div class="pkg-section__head-left">
+                <span class="pkg-section__idx" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div class="pkg-section__titles">
+                  <p class="pkg-section__eyebrow">Estilo de viaje</p>
+                  <h2 class="pkg-section__title">{category.name}</h2>
+                </div>
+              </div>
+              <div class="pkg-section__head-right">
+                {category.description && (
+                  <p class="pkg-section__desc">{category.description}</p>
+                )}
+                <a href={`/categorias/${category.slug}`} class="pkg-section__all-link">
+                  Ver todos en {category.name} <span aria-hidden="true">→</span>
+                </a>
+              </div>
+            </header>
+
+            {featuredPkg && (
+              <div class={`pkg-main-row animate-up ${sidePkgs.length === 0 ? 'pkg-main-row--solo' : ''} ${isReversed && sidePkgs.length > 0 ? 'pkg-main-row--reverse' : ''}`} style="--delay: 80ms">
+                <div class="pkg-main-row__featured">
+                  <ProductCard product={featuredPkg} />
+                </div>
+                {sidePkgs.length > 0 && (
+                  <div class="pkg-main-row__sidebar">
+                    {sidePkgs.map((pkg, j) => (
+                      <div class="animate-up" style={`--delay: ${(j + 1) * 100}ms`}>
+                        <ProductCard product={pkg} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {overflowPkgs.length > 0 && (
+              <div class="pkg-overflow-grid">
+                {overflowPkgs.map((pkg, j) => (
+                  <div class="animate-up" style={`--delay: ${j * 80}ms`}>
+                    <ProductCard product={pkg} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+          <div class="pkg-section__sep" aria-hidden="true"></div>
+        </section>
+      );
+    })}
+
+    {uncategorized.length > 0 && (
+      <section id="cat-otros" class="pkg-section" data-nav-section="otros">
+        <div class="container">
+          <header class="pkg-section__head animate-up">
+            <div class="pkg-section__head-left">
+              <span class="pkg-section__idx" aria-hidden="true">
+                {String(sections.length + 1).padStart(2, '0')}
+              </span>
+              <div class="pkg-section__titles">
+                <p class="pkg-section__eyebrow">Más opciones</p>
+                <h2 class="pkg-section__title">Otras experiencias</h2>
+              </div>
+            </div>
+            <div class="pkg-section__head-right">
+              <p class="pkg-section__desc">
+                Paquetes seleccionados para completar tu viaje por el Perú.
+              </p>
+            </div>
+          </header>
+          <div class="pkg-overflow-grid">
+            {uncategorized.map((pkg, j) => (
+              <div class="animate-up" style={`--delay: ${j * 80}ms`}>
+                <ProductCard product={pkg} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+  </div>
+
+  <!-- CTA STRIP FINAL -->
+  <section class="pkg-cta">
+    <div class="container pkg-cta__inner animate-up">
+      <div class="pkg-cta__text">
+        <p class="pkg-cta__eyebrow">Viaje a medida</p>
+        <h2 class="pkg-cta__title">¿No encuentras lo que buscas?</h2>
+        <p class="pkg-cta__subtitle">
+          Diseñamos tu itinerario desde cero. Cuéntanos qué quieres vivir.
+        </p>
+      </div>
+      <a href="/contacto" class="pkg-cta__btn">Diseñar mi viaje</a>
+    </div>
+  </section>
+
 </BaseLayout>
-<style lang="scss">.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}.filters button{border:1px solid rgba(90,62,43,.18);background:rgba(255,255,255,.45);border-radius:999px;padding:10px 16px;color:var(--color-earth);font-weight:700}.filters button:first-child{background:var(--color-green);color:var(--color-ivory)}</style>
+
+<style lang="scss">
+
+  /* ─── KEYFRAMES ─────────────────────────────────── */
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ─── SCROLL REVEAL ─────────────────────────────── */
+
+  .animate-up {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+
+    &.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-up {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+
+    .pkg-hero__eyebrow,
+    .pkg-hero__title,
+    .pkg-hero__subtitle,
+    .pkg-hero__actions,
+    .pkg-hero__cats,
+    .pkg-hero__img,
+    .pkg-hero__stats {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ─── HERO ─────────────────────────────────────── */
+
+  .pkg-hero {
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    min-height: 100dvh;
+    position: relative;
+  }
+
+  .pkg-hero__left {
+    background: var(--color-green);
+    display: flex;
+    align-items: center;
+    padding: 140px 64px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .pkg-hero__content {
+    max-width: 500px;
+    width: 100%;
+  }
+
+  /* Hero entrance: each element animates on load with stagger */
+  .pkg-hero__eyebrow {
+    color: var(--color-sand);
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+
+    &::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 1px;
+      background: var(--color-sand);
+      opacity: 0.6;
+      flex-shrink: 0;
+    }
+  }
+
+  .pkg-hero__title {
+    font-family: var(--font-display);
+    color: var(--color-ivory);
+    font-size: clamp(3.6rem, 6.5vw, 7rem);
+    line-height: 0.9;
+    letter-spacing: -0.025em;
+    margin: 0 0 28px;
+    font-weight: 600;
+    animation: slideUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+
+    em {
+      font-style: italic;
+      color: var(--color-sand);
+    }
+  }
+
+  .pkg-hero__subtitle {
+    color: rgba(247, 241, 231, 0.68);
+    font-size: clamp(0.92rem, 1.1vw, 1.04rem);
+    line-height: 1.78;
+    max-width: 420px;
+    margin: 0 0 36px;
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+  }
+
+  .pkg-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 52px;
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+  }
+
+  .pkg-hero__btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-sand);
+    color: var(--color-charcoal);
+    border-radius: 999px;
+    padding: 13px 26px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease;
+
+    &:hover { transform: translateY(-2px); background: #e8cc9a; }
+    &:active { transform: translateY(0) scale(0.98); }
+  }
+
+  .pkg-hero__btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 12px 26px;
+    border: 1px solid rgba(247, 241, 231, 0.3);
+    color: rgba(247, 241, 231, 0.85);
+    font-size: 0.84rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, color 0.22s ease;
+
+    &:hover { transform: translateY(-2px); border-color: rgba(247, 241, 231, 0.6); color: var(--color-ivory); }
+    &:active { transform: translateY(0) scale(0.98); }
+  }
+
+  .pkg-hero__cats {
+    border-top: 1px solid rgba(247, 241, 231, 0.12);
+    padding-top: 28px;
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+  }
+
+  .pkg-hero__cats-label {
+    display: block;
+    color: rgba(247, 241, 231, 0.42);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .pkg-hero__cat-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pkg-hero__cat-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(247, 241, 231, 0.18);
+    background: rgba(247, 241, 231, 0.06);
+    color: rgba(247, 241, 231, 0.72);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &:hover {
+      background: rgba(247, 241, 231, 0.14);
+      border-color: rgba(247, 241, 231, 0.35);
+      color: var(--color-ivory);
+      transform: translateY(-1px);
+    }
+  }
+
+  .pkg-hero__right {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pkg-hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: fadeIn 1.1s ease 0.1s both;
+  }
+
+  .pkg-hero__img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      rgba(47, 93, 80, 0.42) 0%,
+      rgba(37, 37, 37, 0.15) 55%,
+      transparent 100%
+    );
+  }
+
+  .pkg-hero__stats {
+    position: absolute;
+    bottom: 40px;
+    right: 36px;
+    display: flex;
+    align-items: stretch;
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(18px);
+    background: rgba(247, 241, 231, 0.1);
+    border: 1px solid rgba(247, 241, 231, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+  }
+
+  .pkg-hero__stat {
+    display: flex;
+    flex-direction: column;
+    padding: 18px 26px;
+  }
+
+  .pkg-hero__stat-sep {
+    width: 1px;
+    background: rgba(247, 241, 231, 0.12);
+    align-self: stretch;
+  }
+
+  .pkg-hero__stat-num {
+    font-family: var(--font-display);
+    font-size: 2.6rem;
+    line-height: 1;
+    color: var(--color-sand);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .pkg-hero__stat-lbl {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(247, 241, 231, 0.52);
+    margin-top: 5px;
+  }
+
+  /* ─── NAV STICKY ────────────────────────────────── */
+
+  .pkg-nav {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(247, 241, 231, 0.95);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(90, 62, 43, 0.1);
+  }
+
+  .pkg-nav__inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .pkg-nav__label {
+    color: rgba(90, 62, 43, 0.4);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .pkg-nav__pills {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .pkg-nav__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(90, 62, 43, 0.16);
+    color: var(--color-earth);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background 0.22s ease,
+      border-color 0.22s ease,
+      color 0.22s ease,
+      transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &:hover, &.is-active {
+      background: var(--color-green);
+      border-color: var(--color-green);
+      color: var(--color-ivory);
+
+      .pkg-nav__count {
+        background: rgba(247, 241, 231, 0.2);
+        color: var(--color-ivory);
+      }
+    }
+
+    &:active { transform: scale(0.97); }
+  }
+
+  .pkg-nav__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(90, 62, 43, 0.08);
+    color: rgba(90, 62, 43, 0.6);
+    font-size: 0.64rem;
+    font-weight: 700;
+    transition: background 0.22s ease, color 0.22s ease;
+  }
+
+  /* ─── SECCIONES DE PAQUETES ─────────────────────── */
+
+  .pkg-content {
+    background: var(--color-ivory);
+  }
+
+  .pkg-section {
+    padding: clamp(64px, 8vw, 96px) 0 0;
+    scroll-margin-top: 52px;
+  }
+
+  .pkg-section__sep {
+    margin-top: clamp(64px, 8vw, 96px);
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(90, 62, 43, 0.1) 20%,
+      rgba(216, 185, 130, 0.3) 50%,
+      rgba(90, 62, 43, 0.1) 80%,
+      transparent
+    );
+  }
+
+  /* Section header: title side gets more room */
+  .pkg-section__head {
+    display: grid;
+    grid-template-columns: 62fr 38fr;
+    gap: clamp(32px, 4vw, 64px);
+    align-items: start;
+    margin-bottom: clamp(40px, 5vw, 60px);
+  }
+
+  .pkg-section__head-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .pkg-section__idx {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 6vw, 7rem);
+    line-height: 0.82;
+    color: var(--color-sand);
+    opacity: 0.32;
+    letter-spacing: -0.04em;
+    flex-shrink: 0;
+    user-select: none;
+    font-weight: 600;
+    /* subtle float on the number */
+    transition: opacity 0.4s ease;
+  }
+
+  .pkg-section:hover .pkg-section__idx {
+    opacity: 0.5;
+  }
+
+  .pkg-section__titles {
+    padding-top: 6px;
+  }
+
+  .pkg-section__eyebrow {
+    color: var(--color-green);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+
+  .pkg-section__title {
+    font-family: var(--font-display);
+    color: var(--color-earth);
+    font-size: clamp(2.2rem, 3.5vw, 3.8rem);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .pkg-section__head-right {
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    /* Align with the title by accounting for eyebrow height */
+    padding-top: clamp(28px, 3vw, 36px);
+  }
+
+  .pkg-section__desc {
+    color: rgba(37, 37, 37, 0.6);
+    font-size: 0.96rem;
+    line-height: 1.75;
+    margin: 0;
+    max-width: 400px;
+  }
+
+  .pkg-section__all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-green);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: gap 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+    span { transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    &:hover {
+      gap: 14px;
+      span { transform: translateX(4px); }
+    }
+  }
+
+  /* ─── LAYOUT: FEATURED + SIDEBAR ───────────────── */
+
+  .pkg-main-row {
+    display: grid;
+    grid-template-columns: 58fr 42fr;
+    grid-template-areas: "featured sidebar";
+    gap: 24px;
+    align-items: start;
+
+    &--solo {
+      grid-template-columns: 1fr;
+      grid-template-areas: "featured";
+      max-width: 520px;
+    }
+
+    /* Alternate layout: sidebar left, featured right */
+    &--reverse {
+      grid-template-columns: 42fr 58fr;
+      grid-template-areas: "sidebar featured";
+    }
+  }
+
+  .pkg-main-row__featured {
+    grid-area: featured;
+
+    :global(.product-card__media) {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  .pkg-main-row__sidebar {
+    grid-area: sidebar;
+    display: grid;
+    gap: 24px;
+  }
+
+  /* Overflow grid: responsive without breakpoints */
+  .pkg-overflow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  /* ─── ESTADO VACÍO ──────────────────────────────── */
+
+  .pkg-empty__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 96px 0;
+    gap: 20px;
+  }
+
+  .pkg-empty__icon {
+    color: var(--color-earth);
+    opacity: 0.3;
+    margin-bottom: 8px;
+  }
+
+  .pkg-empty__title {
+    font-family: var(--font-display);
+    color: var(--color-earth);
+    font-size: clamp(2rem, 3vw, 3rem);
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .pkg-empty__subtitle {
+    color: rgba(37, 37, 37, 0.58);
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 440px;
+    margin: 0;
+  }
+
+  /* ─── CTA STRIP FINAL ───────────────────────────── */
+
+  .pkg-cta {
+    background: var(--color-earth);
+    padding: clamp(60px, 8vw, 88px) 0;
+    margin-top: clamp(64px, 8vw, 96px);
+  }
+
+  .pkg-cta__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+  }
+
+  .pkg-cta__eyebrow {
+    color: var(--color-sand);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 1px;
+      background: var(--color-sand);
+      opacity: 0.6;
+    }
+  }
+
+  .pkg-cta__title {
+    font-family: var(--font-display);
+    color: var(--color-ivory);
+    font-size: clamp(1.8rem, 3vw, 3rem);
+    line-height: 0.96;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+
+  .pkg-cta__subtitle {
+    color: rgba(247, 241, 231, 0.6);
+    font-size: 0.96rem;
+    line-height: 1.65;
+    margin: 0;
+    max-width: 400px;
+  }
+
+  .pkg-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 14px 32px;
+    border-radius: 999px;
+    background: var(--color-sand);
+    color: var(--color-charcoal);
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease;
+
+    &:hover { transform: translateY(-2px); background: #e8cc9a; }
+    &:active { transform: translateY(0) scale(0.98); }
+  }
+
+  /* ─── RESPONSIVE ────────────────────────────────── */
+
+  @media (max-width: 1024px) {
+    .pkg-hero {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    .pkg-hero__right {
+      height: 52vw;
+      min-height: 280px;
+    }
+
+    .pkg-hero__left {
+      padding: 120px 28px 56px;
+    }
+
+    .pkg-hero__content {
+      max-width: 100%;
+    }
+
+    .pkg-section__head {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .pkg-section__head-right {
+      padding-top: 0;
+    }
+
+    .pkg-main-row,
+    .pkg-main-row--reverse {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "featured"
+        "sidebar";
+    }
+
+    .pkg-main-row__featured {
+      :global(.product-card__media) {
+        aspect-ratio: 16 / 10;
+      }
+    }
+
+    .pkg-cta__inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pkg-hero__left {
+      padding: 100px 20px 48px;
+    }
+
+    .pkg-hero__stats {
+      bottom: 20px;
+      right: 20px;
+    }
+
+    .pkg-hero__stat {
+      padding: 14px 18px;
+    }
+
+    .pkg-hero__stat-num {
+      font-size: 2rem;
+    }
+
+    .pkg-section__head-left {
+      gap: 14px;
+    }
+
+    .pkg-overflow-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .pkg-nav__label {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Scroll-reveal ─────────────────────────────── */
+  if (!prefersReduced) {
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    document.querySelectorAll('.animate-up').forEach((el) => {
+      revealObserver.observe(el);
+    });
+  } else {
+    /* Skip animation: make everything visible immediately */
+    document.querySelectorAll('.animate-up').forEach((el) => {
+      el.classList.add('is-visible');
+    });
+  }
+
+  /* ── Active nav pill on scroll ─────────────────── */
+  const navSections = document.querySelectorAll<HTMLElement>('[data-nav-section]');
+  const navPills = document.querySelectorAll<HTMLElement>('.pkg-nav__pill[data-nav-target]');
+
+  if (navSections.length && navPills.length) {
+    const navHeight = (document.querySelector('.pkg-nav') as HTMLElement | null)?.offsetHeight ?? 52;
+
+    const activeObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = (entry.target as HTMLElement).dataset.navSection;
+            navPills.forEach((pill) => {
+              pill.classList.toggle('is-active', pill.dataset.navTarget === id);
+            });
+          }
+        });
+      },
+      {
+        threshold: 0.25,
+        rootMargin: `-${navHeight + 8}px 0px -40% 0px`,
+      }
+    );
+
+    navSections.forEach((section) => activeObserver.observe(section));
+  }
+</script>

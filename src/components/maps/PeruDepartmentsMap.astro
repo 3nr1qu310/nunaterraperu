@@ -1,0 +1,17 @@
+---
+import type { RegionSlug } from '@/types/content';
+import peruSvgRaw from '@/assets/maps/peru.svg?raw';
+import './PeruDepartmentsMap.scss';
+
+interface Props {
+  activeRegion?: RegionSlug;
+}
+
+const { activeRegion } = Astro.props;
+
+const mapClass = activeRegion
+  ? `peru-departments-map peru-departments-map--${activeRegion}`
+  : 'peru-departments-map';
+---
+
+<div class={mapClass} set:html={peruSvgRaw} />

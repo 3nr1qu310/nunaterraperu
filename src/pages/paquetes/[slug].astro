@@ -1,35 +1,413 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
-import { getProductBySlug, getPackages } from '@/lib/content';
+import LucideIcon from '@/components/cards/LucideIcon.astro';
+import { getProductBySlug, getRelatedProducts, getTravelCategories, getProductPromotions } from '@/lib/content';
+import { site } from '@/lib/site';
+import './PackageDetail.scss';
 
 const slug = Astro.params.slug || '';
 const product = await getProductBySlug(slug, 'package');
 if (!product) return Astro.redirect('/paquetes');
-const allPackages = await getPackages();
-const related = allPackages.filter((p) => p.slug !== product.slug).slice(0, 3);
+
+const [related, allCategories, promotions] = await Promise.all([
+  getRelatedProducts(slug, 'es', 3),
+  getTravelCategories(),
+  getProductPromotions(slug),
+]);
+
+const productCategories = allCategories.filter(
+  (cat) => product.categorySlugs?.includes(cat.slug)
+);
 ---
-<BaseLayout title={`${product.title} | Nuna Terra Perú`}>
-  <Hero eyebrow="Paquete turístico" title={product.title} subtitle={product.subtitle} image={product.heroImage} primaryText="Solicitar cotización" primaryHref="/contacto" secondaryText="Hablar por WhatsApp" secondaryHref="/contacto" />
-  <section class="section package-detail">
-    <div class="container detail-layout">
-      <div>
-        <div class="summary-grid">
-          <div><b>Duración</b><span>{product.durationText}</span></div>
-          <div><b>Destinos</b><span>{product.destinations.join(' · ')}</span></div>
-          <div><b>Servicio</b><span>{product.serviceType || 'Personalizable'}</span></div>
-          <div><b>Dificultad</b><span>{product.difficulty || 'Según ruta'}</span></div>
-        </div>
-        <SectionHeading title="Una ruta para vivir el Perú desde su esencia" subtitle={product.description} />
-        {product.itinerary && <section><h2 class="h2 small">Itinerario del viaje</h2><div class="timeline">{product.itinerary.map((day)=><details open><summary><span>{day.day}</span>{day.title}</summary><p>{day.description}</p></details>)}</div></section>}
-        <section class="section--tight"><h2 class="h2 small">Incluye / No incluye</h2><div class="two-cols"><div class="list-card"><h3>Incluye</h3>{product.includes?.map((i)=><p>✓ {i}</p>)}</div><div class="list-card"><h3>No incluye</h3>{product.notIncludes?.map((i)=><p>— {i}</p>)}</div></div></section>
-        <section class="section--tight"><h2 class="h2 small">Recomendaciones</h2><div class="list-card">{product.recommendations?.map((i)=><p>✓ {i}</p>)}</div></section>
+
+<BaseLayout
+  title={`${product.title} | Nuna Terra Perú`}
+  description={product.seoDescription || product.shortDescription || product.subtitle}
+>
+  <!-- HERO -->
+  <section class="pkg-hero" aria-labelledby="pkg-hero-title">
+    <img
+      src={product.heroImage}
+      alt={product.title}
+      class="pkg-hero__img"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="pkg-hero__overlay" aria-hidden="true"></div>
+
+    <div class="container pkg-hero__content">
+      <nav class="pkg-breadcrumb" aria-label="Ubicación en el sitio">
+        <a href="/paquetes">← Paquetes</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{product.title}</span>
+      </nav>
+
+      <p class="pkg-hero__eyebrow">Paquete turístico</p>
+      <h1 class="pkg-hero__title" id="pkg-hero-title">{product.title}</h1>
+
+      {product.subtitle && (
+        <p class="pkg-hero__subtitle">{product.subtitle}</p>
+      )}
+
+      <div class="pkg-hero__actions">
+        <a href="/contacto" class="pkg-hero__btn pkg-hero__btn--primary">
+          Solicitar cotización
+        </a>
+        <a
+          href={site.whatsappUrl}
+          class="pkg-hero__btn pkg-hero__btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp ↗
+        </a>
       </div>
-      <aside class="quote-card"><span>Desde</span><strong>{product.currency} {product.priceFrom}</strong><p>{product.durationText}</p><a class="btn btn--primary" href="/contacto">Solicitar cotización</a><a class="btn btn--outline-dark" href="/contacto">WhatsApp</a></aside>
     </div>
   </section>
-  {related.length > 0 && <section class="section"><div class="container"><SectionHeading title="También podría interesarte" /><div class="grid grid--3">{related.map((item)=><ProductCard product={item}/>)}</div></div></section>}
+
+  <!-- SUMMARY STRIP -->
+  <div class="pkg-summary" aria-label="Resumen del paquete">
+    <div class="container pkg-summary__inner">
+      {product.durationText && (
+        <div class="pkg-summary__item">
+          <span>Duración</span>
+          <strong>{product.durationText}</strong>
+        </div>
+      )}
+      {product.destinations?.length > 0 && (
+        <div class="pkg-summary__item">
+          <span>Destinos</span>
+          <strong>{product.destinations.join(' · ')}</strong>
+        </div>
+      )}
+      {product.serviceType && (
+        <div class="pkg-summary__item">
+          <span>Servicio</span>
+          <strong>{product.serviceType}</strong>
+        </div>
+      )}
+      {product.difficulty && (
+        <div class="pkg-summary__item">
+          <span>Dificultad</span>
+          <strong>{product.difficulty}</strong>
+        </div>
+      )}
+      {product.categories?.length > 0 && (
+        <div class="pkg-summary__item">
+          <span>Estilo</span>
+          <strong>{product.categories[0]}</strong>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <!-- MAIN DETAIL -->
+  <section class="pkg-detail">
+    <div class="container pkg-detail__layout">
+
+      <!-- ── MAIN CONTENT ── -->
+      <div class="pkg-main">
+
+        <!-- Description -->
+        {product.description && (
+          <div>
+            <h2 class="pkg-section-title">Una ruta para vivir el Perú desde su esencia</h2>
+            <p class="pkg-desc">{product.description}</p>
+          </div>
+        )}
+
+        <!-- Travel styles this package belongs to -->
+        {productCategories.length > 0 && (
+          <div class="pkg-styles">
+            <h2 class="pkg-styles__title">Lo que hace este viaje único</h2>
+            <div class="pkg-styles__grid">
+              {productCategories.map((cat) => (
+                <div class="pkg-style-item">
+                  <div class="pkg-style-item__icon-wrap" aria-hidden="true">
+                    <LucideIcon name={cat.icon || 'compass'} size={22} class="pkg-style-item__lucide" />
+                  </div>
+                  <h3 class="pkg-style-item__name">{cat.name}</h3>
+                  {cat.description && (
+                    <p class="pkg-style-item__desc">{cat.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Gallery -->
+        {product.gallery && product.gallery.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">Galería</h2>
+            <div class="pkg-gallery">
+              {product.gallery.slice(0, 5).map((img) => (
+                <img
+                  src={img.imageUrl}
+                  alt={img.altText || product.title}
+                  loading="lazy"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Itinerary -->
+        {product.itinerary && product.itinerary.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">Itinerario del viaje</h2>
+            <div class="pkg-timeline">
+              {product.itinerary.map((day, i) => (
+                <details class="pkg-day" open={i === 0}>
+                  <summary class="pkg-day__summary">
+                    <span class="pkg-day__num">{day.dayNumber || i + 1}</span>
+                    <span class="pkg-day__title">{day.title}</span>
+                    <span class="pkg-day__chevron" aria-hidden="true"></span>
+                  </summary>
+                  <div class="pkg-day__body">
+                    {day.description && <p>{day.description}</p>}
+                    {day.meals && (
+                      <p class="pkg-day__meta">
+                        <strong>Comidas:</strong> {day.meals}
+                      </p>
+                    )}
+                    {day.accommodation && (
+                      <p class="pkg-day__meta">
+                        <strong>Alojamiento:</strong> {day.accommodation}
+                      </p>
+                    )}
+                    {day.activities && (
+                      <p class="pkg-day__meta">
+                        <strong>Actividades:</strong> {day.activities}
+                      </p>
+                    )}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Includes / Not includes -->
+        {(product.includes?.length > 0 || product.notIncludes?.length > 0) && (
+          <div>
+            <h2 class="pkg-section-title">Incluye / No incluye</h2>
+            <div class="pkg-inclusions">
+              {product.includes && product.includes.length > 0 && (
+                <div class="pkg-incl-col">
+                  <h3>Incluye</h3>
+                  <ul>
+                    {product.includes.map((item) => (
+                      <li>
+                        <span class="pkg-check" aria-hidden="true">✓</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {product.notIncludes && product.notIncludes.length > 0 && (
+                <div class="pkg-incl-col pkg-incl-col--no">
+                  <h3>No incluye</h3>
+                  <ul>
+                    {product.notIncludes.map((item) => (
+                      <li>
+                        <span class="pkg-dash" aria-hidden="true">—</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <!-- Recommendations -->
+        {product.recommendations && product.recommendations.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">Recomendaciones</h2>
+            <ul class="pkg-recs">
+              {product.recommendations.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <!-- Important notes -->
+        {product.importantNotes && product.importantNotes.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">Notas importantes</h2>
+            <ul class="pkg-recs">
+              {product.importantNotes.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <!-- FAQs -->
+        {product.faqs && product.faqs.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">Preguntas frecuentes</h2>
+            <div class="pkg-faqs">
+              {product.faqs.map((faq) => (
+                <details class="pkg-faq">
+                  <summary>{faq.question}</summary>
+                  <p>{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      <!-- ── SIDEBAR ── -->
+      <aside class="pkg-sidebar" aria-label="Cotización y detalles">
+        <div class="pkg-quote">
+
+          <!-- Price -->
+          <div class="pkg-quote__price">
+            <span class="pkg-quote__from">Desde</span>
+            {product.priceFrom ? (
+              <strong class="pkg-quote__amount">
+                {product.currency} {product.priceFrom.toLocaleString('es-PE')}
+              </strong>
+            ) : (
+              <strong class="pkg-quote__amount pkg-quote__amount--consult">
+                A consultar
+              </strong>
+            )}
+            <span class="pkg-quote__per">por persona</span>
+          </div>
+
+          <!-- Details: duration, destinations, places -->
+          <dl class="pkg-quote__details">
+            <span class="pkg-quote__dt">Duración</span>
+            <span class="pkg-quote__dd">{product.durationText}</span>
+
+            {product.destinations?.length > 0 && (
+              <>
+                <span class="pkg-quote__dt">Destinos</span>
+                <span class="pkg-quote__dd">{product.destinations.join(' · ')}</span>
+              </>
+            )}
+
+            {product.places?.length > 0 && (
+              <>
+                <span class="pkg-quote__dt">Lugares</span>
+                <span class="pkg-quote__dd">{product.places.join(' · ')}</span>
+              </>
+            )}
+          </dl>
+
+          <!-- Promotions (below price details) -->
+          {promotions.length > 0 && (
+            <div class="pkg-sidebar-promos">
+              <div class="pkg-sidebar-promos__header">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <span>Oferta activa</span>
+              </div>
+
+              {promotions.map((promo) => {
+                const discount =
+                  promo.discountValue && promo.discountType === 'percentage'
+                    ? `${promo.discountValue}% OFF`
+                    : promo.discountValue && promo.discountType === 'fixed'
+                      ? `${product.currency} ${promo.discountValue} OFF`
+                      : null;
+
+                const badge = promo.customBadge || promo.badgeText || '';
+
+                const expiresLabel = promo.endDate
+                  ? `Válido hasta ${new Date(promo.endDate).toLocaleDateString('es-PE', {
+                      day: 'numeric',
+                      month: 'long',
+                    })}`
+                  : null;
+
+                return (
+                  <div class="pkg-sidebar-promo-card">
+                    {(discount || badge) && (
+                      <div class="pkg-sidebar-promo-card__top">
+                        {discount && (
+                          <span class="pkg-sidebar-promo-card__discount">{discount}</span>
+                        )}
+                        {badge && (
+                          <span class="pkg-sidebar-promo-card__badge">{badge}</span>
+                        )}
+                      </div>
+                    )}
+
+                    <p class="pkg-sidebar-promo-card__title">{promo.title}</p>
+
+                    {promo.subtitle && (
+                      <p class="pkg-sidebar-promo-card__sub">{promo.subtitle}</p>
+                    )}
+
+                    {promo.notes && (
+                      <p class="pkg-sidebar-promo-card__notes">{promo.notes}</p>
+                    )}
+
+                    {expiresLabel && (
+                      <p class="pkg-sidebar-promo-card__expires">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {expiresLabel}
+                      </p>
+                    )}
+
+                    <a href="/contacto" class="pkg-sidebar-promo-card__cta">
+                      Aprovechar esta oferta
+                      <span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <!-- CTAs -->
+          <div class="pkg-quote__actions">
+            <a href="/contacto" class="pkg-quote__btn pkg-quote__btn--primary">
+              Solicitar cotización
+            </a>
+            <a
+              href={site.whatsappUrl}
+              class="pkg-quote__btn pkg-quote__btn--wa"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Hablar por WhatsApp
+            </a>
+          </div>
+
+          <p class="pkg-quote__note">
+            Sin costo de asesoría. Respondemos en menos de 24 h.
+          </p>
+
+        </div>
+      </aside>
+
+    </div>
+  </section>
+
+  <!-- RELATED PRODUCTS -->
+  {related.length > 0 && (
+    <section class="pkg-related" aria-label="Paquetes relacionados">
+      <div class="container">
+        <div class="pkg-related__head">
+          <h2 class="pkg-related__title">También podría interesarte</h2>
+        </div>
+        <div class="pkg-related__grid">
+          {related.map((item) => (
+            <ProductCard product={item} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
 </BaseLayout>
-<style lang="scss">.detail-layout{display:grid;grid-template-columns:1fr 330px;gap:34px;align-items:start}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:42px}.summary-grid div,.list-card,.quote-card{background:white;border:1px solid rgba(90,62,43,.12);border-radius:var(--radius-md);padding:20px;box-shadow:0 10px 32px rgba(37,37,37,.06)}.summary-grid b{display:block;color:var(--color-earth)}.summary-grid span{font-size:.9rem}.small{font-size:2.4rem;margin-bottom:20px}.timeline{border-left:2px solid var(--color-sand);padding-left:22px}.timeline details{background:white;border-radius:18px;margin:14px 0;padding:18px;border:1px solid rgba(90,62,43,.12)}.timeline summary{cursor:pointer;font-weight:800;color:var(--color-earth)}.timeline summary span{color:var(--color-green);margin-right:12px}.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}.quote-card{position:sticky;top:130px}.quote-card span{color:rgba(37,37,37,.65)}.quote-card strong{display:block;font-family:var(--font-display);font-size:3rem;color:var(--color-earth);line-height:1}.quote-card .btn{width:100%;margin-top:12px}@media(max-width:900px){.detail-layout,.two-cols{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.quote-card{position:static}}@media(max-width:600px){.summary-grid{grid-template-columns:1fr}}</style>

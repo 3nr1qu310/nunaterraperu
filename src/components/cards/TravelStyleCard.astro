@@ -2,12 +2,16 @@
 import type { TravelCategory } from '@/types/content';
 import './TravelStyleCard.scss';
 
+
+import LucideIcon from './LucideIcon.astro'; 
+
 interface Props {
   category: TravelCategory;
   href: string;
   index?: number;
   isClone?: boolean;
   ctaText?: string;
+  cardImage?: string;
 }
 
 const {
@@ -50,7 +54,7 @@ const colorIndex = (index % 5) + 1;
 
   {category.icon && (
     <span class="travel-style-card__icon" aria-hidden="true">
-      {category.icon}
+      <LucideIcon name={category.icon} size={28} />
     </span>
   )}
 

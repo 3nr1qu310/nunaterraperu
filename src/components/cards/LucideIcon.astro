@@ -1,0 +1,24 @@
+---
+import * as icons from 'lucide-astro';
+
+interface Props {
+  name: string;
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 24, class: className = '' } = Astro.props;
+
+// Convierte "mountain-snow" → "MountainSnow"
+const toPascalCase = (str: string) =>
+  str.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+
+const iconName = toPascalCase(name);
+const Icon = (icons as Record<string, any>)[iconName];
+---
+
+{Icon ? (
+  <Icon size={size} class={className} />
+) : (
+  <span class={className} aria-hidden="true">◆</span>
+)}

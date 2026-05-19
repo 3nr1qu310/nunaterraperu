@@ -41,6 +41,7 @@ const {
 if (categories.length === 0) return;
 
 const doubled = [...categories, ...categories];
+console.log(doubled);
 const hasProducts = products.length > 0;
 const hasDestinations = destinations.length > 0;
 const sectionId = `hts-${Math.random().toString(36).slice(2, 8)}`;

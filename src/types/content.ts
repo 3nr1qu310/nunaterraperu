@@ -76,13 +76,24 @@ export interface ProductPromotion {
   slug: string;
   title: string;
   subtitle?: string;
+  description?: string;
+  promotionType?: string;
   badgeText?: string;
   discountType?: string;
   discountValue?: number;
+  currency?: string;
+  terms?: string;
   startDate?: string;
   endDate?: string;
+  minPeople?: number;
+  maxPeople?: number;
+  isFeatured?: boolean;
+  bannerImageUrl?: string;
+  cardImageUrl?: string;
   notes?: string;
   customBadge?: string;
+  promotionalPrice?: number;
+  originalPrice?: number;
 }
 
 export interface Product {
@@ -134,3 +145,28 @@ export interface Product {
 }
 
 export type ProductExtended = Product;
+
+export interface DestinationPlace {
+  id: string;
+  destinationId: string;
+  destinationSlug?: string;
+  destinationName?: string;
+  name: string;
+  slug: string;
+  subtitle?: string;
+  shortDescription?: string;
+  description?: string;
+  heroImage?: string;
+  cardImage?: string;
+  altitude?: string;
+  bestTime?: string;
+  recommendedDays?: string;
+  idealFor?: string[];
+  latitude?: number;
+  longitude?: number;
+  mapX?: number;
+  mapY?: number;
+  showOnMap?: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+}

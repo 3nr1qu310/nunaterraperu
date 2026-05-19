@@ -1,13 +1,205 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
-import { getTours } from '@/lib/content';
+import { getTours, getTravelCategories } from '@/lib/content';
+import { site } from '@/lib/site';
+import './TourIndex.scss';
+
 const tours = await getTours();
+const allCategories = await getTravelCategories();
+
+const activeCategorySlugs = new Set(tours.flatMap((t) => t.categorySlugs || []));
+const activeCategories = allCategories.filter((cat) =>
+  activeCategorySlugs.has(cat.slug)
+);
+
+const uniqueDestinations = new Set(tours.flatMap((t) => t.destinations || []));
 ---
-<BaseLayout title="Tours por Perú | Nuna Terra Perú">
-  <Hero eyebrow="Tours y experiencias" title="Tours por Perú" subtitle="Experiencias de uno o dos días para descubrir destinos únicos con organización, acompañamiento y atención personalizada." image="/images/tours-hero.jpg" primaryText="Ver tours destacados" primaryHref="#catalogo" secondaryText="Hablar por WhatsApp" secondaryHref="/contacto" />
-  <section class="section" id="catalogo"><div class="container"><SectionHeading title="Encuentra tu tour ideal" subtitle="Experiencias cortas, claras y bien organizadas para aprovechar mejor tu tiempo." /><div class="filters"><button>Todos</button><button>Full Day</button><button>Cusco</button><button>Lima</button><button>Ica</button><button>Aventura</button><button>Cultural</button></div><div class="grid grid--3">{tours.map((product) => <ProductCard product={product} />)}</div></div></section>
+
+<BaseLayout
+  title="Tours por Perú | Nuna Terra Perú"
+  description="Experiencias de un día para descubrir los destinos más emblemáticos del Perú con guías, transporte y organización incluidos."
+>
+  <!-- HERO -->
+  <section class="tri-hero" aria-label="Tours y experiencias">
+    <div class="tri-hero__left">
+      <p class="tri-hero__eyebrow">
+        <span class="tri-hero__eyebrow-dot" aria-hidden="true"></span>
+        Tours y experiencias
+      </p>
+
+      <h1 class="tri-hero__title">
+        Vive el Perú<br /><em>en un día</em>
+      </h1>
+
+      <p class="tri-hero__subtitle">
+        Excursiones organizadas con transporte, guía y entrada incluidos.
+        Perfectas para aprovechar cada jornada con claridad y sin complicaciones.
+      </p>
+
+      <div class="tri-hero__actions">
+        <a href="#catalogo" class="tri-hero__btn tri-hero__btn--primary">
+          Ver todos los tours
+        </a>
+        <a
+          href={site.whatsappUrl}
+          class="tri-hero__btn tri-hero__btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Consultar por WhatsApp ↗
+        </a>
+      </div>
+    </div>
+
+    <div class="tri-hero__right" aria-hidden="true">
+      <img
+        src="/images/tours-hero.jpg"
+        alt="Tour en el Perú — paisaje de montaña con viajeros"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <div class="tri-stats" aria-label="Cifras del catálogo">
+    <div class="container tri-stats__inner">
+      <div class="tri-stat">
+        <strong>{tours.length}</strong>
+        <span>Tours disponibles</span>
+      </div>
+      <div class="tri-stat">
+        <strong>{uniqueDestinations.size}</strong>
+        <span>Destinos</span>
+      </div>
+      {activeCategories.length > 0 && (
+        <div class="tri-stat">
+          <strong>{activeCategories.length}</strong>
+          <span>Estilos de viaje</span>
+        </div>
+      )}
+      <div class="tri-stat">
+        <strong>1–3</strong>
+        <span>Días de duración</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATALOG -->
+  <section class="tri-catalog" id="catalogo" aria-labelledby="tri-catalog-title">
+    <div class="container">
+
+      <div class="tri-catalog__head">
+        <h2 class="tri-catalog__title" id="tri-catalog-title">
+          Encuentra tu tour ideal
+        </h2>
+        <p class="tri-catalog__subtitle">
+          Experiencias cortas y bien organizadas para aprovechar cada día de tu viaje por el Perú.
+        </p>
+      </div>
+
+      <!-- Filter pills -->
+      {activeCategories.length > 0 && (
+        <div class="tri-filter" role="navigation" aria-label="Filtrar por estilo">
+          <button class="tri-pill is-active" data-filter="all">Todos</button>
+          {activeCategories.map((cat) => (
+            <button class="tri-pill" data-filter={cat.slug}>
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <!-- Tour grid -->
+      <div class="tri-grid" id="tri-grid">
+        {tours.map((tour, i) => (
+          <div
+            class={`tri-card-wrap${i === 0 ? ' tri-card-wrap--featured' : ''}`}
+            data-categories={tour.categorySlugs?.join(' ') || ''}
+          >
+            <ProductCard product={tour} />
+          </div>
+        ))}
+
+        <!-- Empty state -->
+        <div class="tri-empty" id="tri-empty" aria-live="polite">
+          <div class="tri-empty__icon" aria-hidden="true">⌖</div>
+          <h3 class="tri-empty__title">Sin tours en esta categoría</h3>
+          <p class="tri-empty__text">
+            Prueba con otro estilo o contacta para un itinerario personalizado.
+          </p>
+        </div>
+      </div>
+
+      <!-- CTA strip -->
+      <div class="tri-cta">
+        <div>
+          <h3 class="tri-cta__title">¿No encuentras el tour que buscas?</h3>
+          <p class="tri-cta__text">
+            Diseñamos excursiones a medida según tus días disponibles, destinos de interés y número de personas.
+          </p>
+        </div>
+        <a href="/contacto" class="tri-cta__btn">
+          Diseñar mi tour →
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <script is:inline>
+    (() => {
+      const pills = document.querySelectorAll('.tri-pill');
+      const cards = document.querySelectorAll('.tri-card-wrap:not(.tri-empty)');
+      const emptyState = document.getElementById('tri-empty');
+      const grid = document.getElementById('tri-grid');
+
+      function applyFilter(filter) {
+        let visibleCount = 0;
+
+        cards.forEach((card) => {
+          const cats = card.dataset.categories?.split(' ').filter(Boolean) || [];
+          const show = filter === 'all' || cats.includes(filter);
+
+          if (show) {
+            card.classList.remove('is-hidden');
+            visibleCount++;
+          } else {
+            card.classList.add('is-hidden');
+          }
+        });
+
+        // Featured class: only the first *visible* card should be featured
+        let firstVisible = true;
+        cards.forEach((card) => {
+          if (!card.classList.contains('is-hidden')) {
+            if (firstVisible && filter === 'all') {
+              card.classList.add('tri-card-wrap--featured');
+              firstVisible = false;
+            } else {
+              card.classList.remove('tri-card-wrap--featured');
+            }
+          }
+        });
+
+        if (grid) {
+          grid.classList.toggle('no-featured', filter !== 'all');
+        }
+
+        if (emptyState) {
+          emptyState.classList.toggle('is-visible', visibleCount === 0);
+        }
+      }
+
+      pills.forEach((pill) => {
+        pill.addEventListener('click', () => {
+          const filter = pill.dataset.filter;
+          pills.forEach((p) => p.classList.remove('is-active'));
+          pill.classList.add('is-active');
+          applyFilter(filter);
+        });
+      });
+    })();
+  </script>
 </BaseLayout>
-<style lang="scss">.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}.filters button{border:1px solid rgba(90,62,43,.18);background:rgba(255,255,255,.45);border-radius:999px;padding:10px 16px;color:var(--color-earth);font-weight:700}.filters button:first-child{background:var(--color-green);color:var(--color-ivory)}</style>

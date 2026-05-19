@@ -76,8 +76,8 @@ $ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(circle at 24% 16%, rgba(216, 185, 130, 0.22), transparent 34%),
-    linear-gradient(180deg, rgba(37, 37, 37, 0.06) 0%, rgba(37, 37, 37, 0.38) 48%, rgba(37, 37, 37, 0.88) 100%);
+    radial-gradient(circle at 24% 16%, rgba(216, 185, 130, 0.24), transparent 34%),
+    linear-gradient(180deg, rgba(37, 37, 37, 0.04) 0%, rgba(37, 37, 37, 0.32) 44%, rgba(37, 37, 37, 0.90) 100%);
 }
 
 .travel-style-card__shine {
@@ -165,7 +165,7 @@ $ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 .travel-style-card__desc {
   max-width: 260px;
   margin: 0;
-  color: rgba(247, 241, 231, 0.76);
+  color: rgba(247, 241, 231, 0.82);
   font-size: 0.86rem;
   line-height: 1.62;
   display: -webkit-box;

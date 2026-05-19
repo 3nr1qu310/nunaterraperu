@@ -2,10 +2,12 @@
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
+import PlaceCard from '@/components/cards/PlaceCard.astro';
 
 import {
   getDestinationBySlug,
   getProductsByDestinationSlug,
+  getPlacesByDestinationSlug,
 } from '@/lib/content';
 
 import './DetalleDestino.scss';
@@ -18,7 +20,10 @@ if (!destination) {
   return Astro.redirect('/destinos');
 }
 
-const relatedProducts = await getProductsByDestinationSlug(slug);
+const [relatedProducts, places] = await Promise.all([
+  getProductsByDestinationSlug(slug),
+  getPlacesByDestinationSlug(slug),
+]);
 
 const heroImage =
   destination.heroImage ||
@@ -27,6 +32,30 @@ const heroImage =
 
 const packages = relatedProducts.filter((p) => p.type === 'package');
 const tours = relatedProducts.filter((p) => p.type === 'tour');
+
+const regionLabel =
+  destination.region === 'costa'
+    ? 'Costa'
+    : destination.region === 'sierra'
+      ? 'Sierra'
+      : destination.region === 'selva'
+        ? 'Selva'
+        : destination.region;
+
+const factItems = [
+  { label: 'Región', value: regionLabel },
+  ...(destination.altitude ? [{ label: 'Altitud', value: destination.altitude }] : []),
+  ...(destination.bestTime ? [{ label: 'Mejor época', value: destination.bestTime }] : []),
+  ...(destination.recommendedDays ? [{ label: 'Estadía sugerida', value: destination.recommendedDays }] : []),
+];
+
+const sectionLinks = [
+  { href: '#overview', label: 'Resumen' },
+  ...(places.length > 0 ? [{ href: '#lugares', label: 'Lugares' }] : []),
+  ...(packages.length > 0 ? [{ href: '#paquetes', label: 'Paquetes' }] : []),
+  ...(tours.length > 0 ? [{ href: '#tours', label: 'Tours' }] : []),
+  { href: '#faqs', label: 'FAQ' },
+];
 ---
 
 <BaseLayout
@@ -43,65 +72,184 @@ const tours = relatedProducts.filter((p) => p.type === 'tour');
     />
 
     <div class="destination-hero__overlay"></div>
+    <div class="destination-hero__grain" aria-hidden="true"></div>
 
-    <div class="container destination-hero__content">
-      <p class="destination-hero__eyebrow">
-        Destino en la {destination.region} del Perú
-      </p>
+    <div class="container destination-hero__grid">
+      <div class="destination-hero__copy" data-reveal>
+        <div class="destination-hero__topline">
+          <span class="destination-hero__eyebrow">Destino del Perú</span>
+          <span class="destination-hero__region">{regionLabel}</span>
+        </div>
 
-      <h1>{destination.name}</h1>
+        <h1>{destination.name}</h1>
 
-      <p>{destination.subtitle || destination.description}</p>
+        <p class="destination-hero__lead">
+          {destination.subtitle || destination.shortDescription || destination.description}
+        </p>
 
-      <div class="destination-hero__actions">
-        <a href="#experiencias" class="destination-btn destination-btn--primary">
-          Ver experiencias
-        </a>
+        {destination.idealFor && destination.idealFor.length > 0 && (
+          <div class="destination-hero__tags">
+            {destination.idealFor.slice(0, 4).map((tag: string) => (
+              <span>{tag}</span>
+            ))}
+          </div>
+        )}
 
-        <a href="/contacto" class="destination-btn destination-btn--ghost">
-          Diseñar mi viaje
-        </a>
+        <div class="destination-hero__actions">
+          <a href="#experiencias" class="destination-btn destination-btn--primary">
+            Ver experiencias
+          </a>
+
+          <a href="/contacto" class="destination-btn destination-btn--ghost">
+            Diseñar mi viaje
+          </a>
+        </div>
       </div>
+
+      <aside class="destination-hero__panel" data-reveal>
+        <div class="destination-hero__panel-head">
+          <span class="destination-hero__panel-kicker">Información esencial</span>
+          <h2>{destination.name}</h2>
+        </div>
+
+        <div class="destination-hero__facts">
+          {factItems.map((item) => (
+            <div class="destination-hero__fact">
+              <span class="destination-hero__fact-label">{item.label}</span>
+              <span class="destination-hero__fact-value">{item.value}</span>
+            </div>
+          ))}
+        </div>
+
+        <p class="destination-hero__panel-text">
+          Un destino pensado para viajeros que buscan contexto, autenticidad y una experiencia mejor organizada.
+        </p>
+
+        <a href="/contacto" class="destination-hero__panel-cta">
+          Hablar con un asesor
+        </a>
+      </aside>
+    </div>
+
+    <div class="destination-hero__scroll" aria-hidden="true">
+      <span></span>
+      <small>Scroll</small>
     </div>
   </section>
 
-  <section class="destination-section destination-info">
-    <div class="container destination-info__grid">
-      <div>
+  <nav class="destination-anchor-nav">
+    <div class="container destination-anchor-nav__inner">
+      {sectionLinks.map((item) => (
+        <a href={item.href} class="destination-anchor-nav__link">{item.label}</a>
+      ))}
+    </div>
+  </nav>
+
+  <section class="destination-section destination-overview" id="overview">
+    <div class="container destination-overview__grid">
+      <div class="destination-overview__content" data-reveal>
         <SectionHeading
-          eyebrow="Destino destacado"
+          eyebrow="Sobre este destino"
           title={`Descubre ${destination.name}`}
-          subtitle={destination.description}
           align="left"
         />
 
-        <p class="destination-info__lead">
-          Cada destino tiene una historia. En Nuna Terra Perú lo convertimos en una experiencia organizada,
-          clara y memorable.
-        </p>
+        <div class="destination-overview__text">
+          {destination.description
+            ? destination.description.split('\n').filter(Boolean).map((para: string) => (
+                <p>{para}</p>
+              ))
+            : (
+                <p>{destination.shortDescription || destination.subtitle}</p>
+              )}
+        </div>
       </div>
 
-      <aside class="destination-info-card">
-        <h3>Información útil</h3>
+      <aside class="destination-overview__card" data-reveal>
+        <span class="destination-overview__card-eyebrow">Visión Nuna Terra</span>
+        <h3>Una forma más cuidada de vivir {destination.name}</h3>
+        <p>
+          No se trata solo de visitar el destino, sino de entenderlo mejor, vivirlo con calma
+          y conectarlo con una ruta coherente dentro del viaje.
+        </p>
 
-        <p><b>Región:</b> {destination.region}</p>
-        {destination.altitude && <p><b>Altitud:</b> {destination.altitude}</p>}
-        {destination.bestTime && <p><b>Mejor época:</b> {destination.bestTime}</p>}
-        {destination.recommendedDays && <p><b>Duración sugerida:</b> {destination.recommendedDays}</p>}
+        {destination.idealFor && destination.idealFor.length > 0 && (
+          <div class="destination-overview__chips">
+            {destination.idealFor.map((tag: string) => (
+              <span>{tag}</span>
+            ))}
+          </div>
+        )}
       </aside>
     </div>
   </section>
 
-  {packages.length > 0 && (
-    <section class="destination-section destination-products" id="experiencias">
+  {(destination.altitude || destination.bestTime || destination.recommendedDays) && (
+    <section class="destination-section destination-highlights">
       <div class="container">
-        <SectionHeading
-          eyebrow="Paquetes"
-          title={`Paquetes en ${destination.name}`}
-          subtitle="Rutas completas diseñadas para vivir este destino con calma y organización."
-          align="left"
-        />
-        <div class="dest-scroll">
+        <div class="destination-highlights__grid" data-reveal-stagger>
+          {destination.altitude && (
+            <article class="destination-highlight-card">
+              <span class="destination-highlight-card__label">Altitud</span>
+              <strong>{destination.altitude}</strong>
+              <p>Información útil para planificar mejor tu experiencia y ritmo de viaje.</p>
+            </article>
+          )}
+
+          {destination.bestTime && (
+            <article class="destination-highlight-card">
+              <span class="destination-highlight-card__label">Mejor época</span>
+              <strong>{destination.bestTime}</strong>
+              <p>Una referencia clave para elegir el momento ideal según clima y experiencia.</p>
+            </article>
+          )}
+
+          {destination.recommendedDays && (
+            <article class="destination-highlight-card">
+              <span class="destination-highlight-card__label">Tiempo sugerido</span>
+              <strong>{destination.recommendedDays}</strong>
+              <p>El tiempo recomendado para conocer el destino con mayor comodidad.</p>
+            </article>
+          )}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {places.length > 0 && (
+    <section class="destination-section destination-places" id="lugares">
+      <div class="container">
+        <div class="destination-section__head" data-reveal>
+          <SectionHeading
+            eyebrow="Lugares de interés"
+            title={`Qué visitar en ${destination.name}`}
+            subtitle="Espacios emblemáticos que ayudan a entender el valor cultural, natural o paisajístico de este destino."
+            align="left"
+          />
+        </div>
+
+        <div class="dest-places-bento" data-reveal-stagger>
+          {places.map((place) => (
+            <PlaceCard place={place} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {packages.length > 0 && (
+    <section class="destination-section destination-products destination-products--soft" id="paquetes">
+      <div class="container">
+        <div class="destination-section__head" data-reveal>
+          <SectionHeading
+            eyebrow="Paquetes"
+            title={`Paquetes en ${destination.name}`}
+            subtitle="Rutas completas para vivir este destino dentro de un viaje mejor estructurado."
+            align="left"
+          />
+        </div>
+
+        <div class="dest-scroll" data-reveal-stagger id="experiencias">
           {packages.map((product) => (
             <div class="dest-scroll__item">
               <ProductCard product={product} />
@@ -113,15 +261,18 @@ const tours = relatedProducts.filter((p) => p.type === 'tour');
   )}
 
   {tours.length > 0 && (
-    <section class="destination-section destination-products--alt">
+    <section class="destination-section destination-products destination-products--plain" id="tours">
       <div class="container">
-        <SectionHeading
-          eyebrow="Tours"
-          title={`Tours en ${destination.name}`}
-          subtitle="Experiencias de uno o dos días para descubrir este destino con guía y acompañamiento."
-          align="left"
-        />
-        <div class="dest-scroll">
+        <div class="destination-section__head" data-reveal>
+          <SectionHeading
+            eyebrow="Tours"
+            title={`Tours en ${destination.name}`}
+            subtitle="Experiencias más puntuales para descubrir este destino en menos tiempo."
+            align="left"
+          />
+        </div>
+
+        <div class="dest-scroll" data-reveal-stagger>
           {tours.map((product) => (
             <div class="dest-scroll__item">
               <ProductCard product={product} />
@@ -132,41 +283,133 @@ const tours = relatedProducts.filter((p) => p.type === 'tour');
     </section>
   )}
 
-  <section class="destination-section destination-faqs">
-    <div class="container">
-      <SectionHeading
-        title={`Preguntas frecuentes sobre ${destination.name}`}
-        centered
-      />
+  <section class="destination-section destination-faqs" id="faqs">
+    <div class="container destination-faqs__grid">
+      <div class="destination-faqs__intro" data-reveal>
+        <SectionHeading
+          eyebrow="Preguntas frecuentes"
+          title={`Lo que debes saber sobre ${destination.name}`}
+          subtitle="Respuestas rápidas para ayudarte a tomar mejores decisiones antes de viajar."
+          align="left"
+        />
+      </div>
 
-      <div class="destination-faqs__list">
-        <details>
-          <summary>¿Cuántos días se recomienda?</summary>
-          <p>Depende de tu ruta, pero podemos adaptar la experiencia a tus fechas e intereses.</p>
+      <div class="destination-faqs__list" data-reveal>
+        <details open>
+          <summary>¿Cuántos días se recomienda para visitar {destination.name}?</summary>
+          <div class="faq-body"><div>
+            <p>
+              Depende del tipo de experiencia que quieras vivir. Si buscas algo más completo,
+              lo ideal es integrarlo dentro de una ruta más amplia para disfrutarlo con mejor ritmo.
+            </p>
+          </div></div>
         </details>
 
         <details>
-          <summary>¿Puedo incluir este destino en una ruta personalizada?</summary>
-          <p>Sí. Diseñamos rutas a medida por costa, sierra y selva del Perú.</p>
+          <summary>¿Se puede combinar este destino con otros lugares del Perú?</summary>
+          <div class="faq-body"><div>
+            <p>
+              Sí. Podemos integrarlo con otros destinos de costa, sierra o selva para diseñar
+              una ruta coherente, cómoda y alineada a tus intereses.
+            </p>
+          </div></div>
+        </details>
+
+        <details>
+          <summary>¿Es posible personalizar la experiencia?</summary>
+          <div class="faq-body"><div>
+            <p>
+              Claro. En Nuna Terra Perú diseñamos experiencias a medida según tiempo disponible,
+              estilo de viaje, nivel de confort y tipo de actividades que deseas priorizar.
+            </p>
+          </div></div>
         </details>
       </div>
     </div>
   </section>
 
   <section class="destination-final-cta">
-    <div class="container destination-final-cta__inner">
+    <div class="container destination-final-cta__inner" data-reveal>
+      <span class="destination-final-cta__eyebrow">Diseña tu experiencia</span>
       <h2>¿Quieres incluir {destination.name} en tu próxima ruta por Perú?</h2>
-      <p>Creamos una experiencia a medida para integrar este destino en una ruta clara, cómoda y memorable.</p>
+      <p>
+        Creamos una experiencia a medida para integrar este destino dentro de una ruta clara,
+        elegante y memorable.
+      </p>
 
-      <div>
+      <div class="destination-final-cta__actions">
         <a href="/contacto" class="destination-btn destination-btn--primary">
           Comenzar a planear
         </a>
-
-        <a href="/contacto" class="destination-btn destination-btn--ghost">
+        <a href="/contacto" class="destination-btn destination-btn--ghost-dark">
           Hablar con un asesor
         </a>
       </div>
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  const prefersMotion = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+
+  const revealObs = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObs.unobserve(entry.target);
+        }
+      }
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+  );
+
+  document.querySelectorAll('[data-reveal]').forEach((el) => revealObs.observe(el));
+
+  const staggerObs = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          const children = Array.from(entry.target.children);
+          children.forEach((child, i) => child.style.setProperty('--si', String(i)));
+          entry.target.classList.add('is-visible');
+          staggerObs.unobserve(entry.target);
+        }
+      }
+    },
+    { threshold: 0.08, rootMargin: '0px 0px -36px 0px' }
+  );
+
+  document.querySelectorAll('[data-reveal-stagger]').forEach((el) => staggerObs.observe(el));
+
+  const heroImg = document.querySelector('.destination-hero__image');
+
+  if (heroImg && prefersMotion) {
+    let raf = 0;
+
+    window.addEventListener(
+      'scroll',
+      () => {
+        cancelAnimationFrame(raf);
+
+        raf = requestAnimationFrame(() => {
+          const y = window.scrollY;
+          if (y < window.innerHeight * 1.3) {
+            heroImg.style.transform = `scale(1.06) translateY(${y * 0.12}px)`;
+          }
+        });
+      },
+      { passive: true }
+    );
+  }
+
+  document.querySelectorAll('.destination-faqs details').forEach((det) => {
+    const summary = det.querySelector('summary');
+    if (!summary) return;
+
+    summary.addEventListener('click', (e) => {
+      e.preventDefault();
+      det.open = !det.open;
+    });
+  });
+</script>

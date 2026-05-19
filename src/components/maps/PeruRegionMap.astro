@@ -1,16 +1,19 @@
 ---
-import type { Destination } from '@/types/content';
+import type { Destination, RegionSlug } from '@/types/content';
 import { getLocaleFromUrl } from '@/lib/i18n';
+import PeruDepartmentsMap from '@/components/maps/PeruDepartmentsMap.astro';
 import './PeruRegionMap.scss';
 
 interface Props {
   destinations: Destination[];
+  region?: RegionSlug;
   title?: string;
   subtitle?: string;
 }
 
 const {
   destinations = [],
+  region,
   title = 'Mapa del Perú',
   subtitle = 'Explora los destinos disponibles.',
 } = Astro.props;
@@ -21,41 +24,47 @@ const destinationBase =
   currentLocale === 'es' ? '/destinos' : `/${currentLocale}/destinations`;
 
 const pins = destinations.filter(
-  (d) => typeof d.mapX === 'number' && typeof d.mapY === 'number'
+  (destination) =>
+    typeof destination.mapX === 'number' &&
+    typeof destination.mapY === 'number'
 );
+
+const activeRegion = region || 'all';
 ---
 
 <section class="peru-map-section">
   <div class="peru-map-section__intro">
     <p class="peru-map-section__eyebrow">Mapa interactivo</p>
+
     <h2 class="peru-map-section__title">{title}</h2>
+
     <p class="peru-map-section__subtitle">{subtitle}</p>
 
-    <div class="peru-map-section__legend">
-      <span class="legend-pill legend-pill--coast">Costa</span>
-      <span class="legend-pill legend-pill--sierra">Sierra</span>
-      <span class="legend-pill legend-pill--selva">Selva</span>
+    <div class="peru-map-section__legend" aria-label="Regiones del Perú">
+      <span class={`legend-pill legend-pill--coast ${region === 'costa' ? 'is-active' : ''}`}>
+        Costa
+      </span>
+
+      <span class={`legend-pill legend-pill--sierra ${region === 'sierra' ? 'is-active' : ''}`}>
+        Sierra
+      </span>
+
+      <span class={`legend-pill legend-pill--selva ${region === 'selva' ? 'is-active' : ''}`}>
+        Selva
+      </span>
     </div>
   </div>
 
-  <div class="peru-map">
-    <div class="peru-map__wrapper">
-      <!-- Capa de colores por región, recortada con la silueta del SVG -->
-      <div class="peru-map__region-fill" aria-hidden="true"></div>
-      <!-- SVG encima: aporta los bordes de departamentos -->
-      <img
-        src="/images/peru.svg"
-        alt="Mapa del Perú"
-        class="peru-map__img"
-        draggable="false"
-      />
+  <div class={`peru-map peru-map--${activeRegion}`}>
+    <div class="peru-map__wrapper" data-active-region={activeRegion}>
+      <PeruDepartmentsMap activeRegion={region} />
 
       <div class="peru-map__pins">
         {pins.map((destination) => (
           <a
             href={`${destinationBase}/${destination.slug}`}
             class="peru-map__pin"
-            style={`--x:${destination.mapX}%;--y:${destination.mapY}%`}
+            style={`--x:${destination.mapX}%; --y:${destination.mapY}%`}
             aria-label={`Ver ${destination.name}`}
             data-region={destination.region}
           >
@@ -71,6 +80,7 @@ const pins = destinations.filter(
                   draggable="false"
                 />
               </div>
+
               <span class="peru-map__pin-name">{destination.name}</span>
             </div>
           </a>

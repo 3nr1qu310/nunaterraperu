@@ -2,6 +2,12 @@
    REGION DETAIL — editorial premium Nuna Terra
 ========================================================= */
 
+/* ---- Ken Burns hero ---- */
+@keyframes heroKenBurns {
+  from { transform: scale(1.03); }
+  to   { transform: scale(1.1);  }
+}
+
 .region-hero {
   position: relative;
   min-height: 68vh;
@@ -18,7 +24,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.03);
+  animation: heroKenBurns 14s ease-out both;
   filter: saturate(0.9) contrast(1.02);
 }
 
@@ -344,7 +350,94 @@
 }
 
 /* =========================================================
-   PRODUCTS / PACKAGES
+   CAROUSEL — shared
+========================================================= */
+
+.region-carousel {
+  position: relative;
+  overflow: hidden;
+  margin-top: 44px;
+}
+
+.region-carousel__track {
+  display: flex;
+  gap: 24px;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.region-carousel__slide {
+  flex: 0 0 calc((100% - 48px) / 3);
+  min-width: 0;
+}
+
+.region-carousel__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 36px;
+}
+
+/* Arrow buttons */
+.region-carousel__arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(90, 62, 43, 0.22);
+  background: var(--color-ivory);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-earth);
+  flex-shrink: 0;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.2s ease;
+}
+
+.region-carousel__arrow:hover:not(:disabled) {
+  background: var(--color-green);
+  border-color: var(--color-green);
+  color: var(--color-ivory);
+  transform: scale(1.06);
+}
+
+.region-carousel__arrow:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+/* Dots */
+.region-carousel__dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.region-carousel__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(90, 62, 43, 0.2);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 0.3s ease,
+    width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.region-carousel__dot.is-active {
+  width: 26px;
+  background: var(--color-earth);
+}
+
+/* =========================================================
+   PRODUCTS / PACKAGES carousel
 ========================================================= */
 
 .region-products {
@@ -356,10 +449,6 @@
   display: grid;
   justify-items: center;
   text-align: center;
-}
-
-.region-products .grid {
-  margin-top: 40px;
 }
 
 .region-products :global(.product-card) {
@@ -376,16 +465,17 @@
   border-radius: 0;
 }
 
+/* inside the products carousel the arrow bg matches section bg */
+.region-products .region-carousel__arrow {
+  background: #eee7dc;
+}
+
 /* =========================================================
-   TOURS
+   TOURS carousel
 ========================================================= */
 
 .region-tours {
   background: var(--color-ivory);
-}
-
-.region-tours .grid {
-  margin-top: 40px;
 }
 
 .region-tours :global(.product-card) {
@@ -418,16 +508,6 @@
 .region-tours :global(.product-card__meta),
 .region-tours :global(.product-card__tag) {
   display: none;
-}
-
-/* =========================================================
-   VALUES STRIP
-========================================================= */
-
-.region-story::before {
-  content: '';
-  display: block;
-  height: 0;
 }
 
 /* =========================================================
@@ -538,6 +618,66 @@
 }
 
 /* =========================================================
+   MAP SECTION
+========================================================= */
+
+.region-map-section {
+  padding: clamp(34px, 5vw, 58px) 0;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(216, 185, 130, 0.1), transparent 30%),
+    var(--color-ivory);
+}
+
+.region-map-section + .region-section {
+  padding-top: clamp(34px, 5vw, 56px);
+}
+
+/* =========================================================
+   SCROLL ANIMATIONS
+========================================================= */
+
+[data-animate] {
+  transition-property: opacity, transform;
+  transition-duration: 0.75s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-animate="fade-up"]    { opacity: 0; transform: translateY(38px); }
+[data-animate="slide-left"] { opacity: 0; transform: translateX(-52px); }
+[data-animate="slide-right"]{ opacity: 0; transform: translateX(52px);  }
+
+[data-animate].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger children inside destinations layout when visible */
+.region-destinations__layout[data-animate] {
+  opacity: 1;
+  transform: none;
+}
+
+.region-destinations__layout[data-animate] > * {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.region-destinations__layout.is-visible > *:nth-child(1) {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.08s;
+}
+
+.region-destinations__layout.is-visible > *:nth-child(2) {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.22s;
+}
+
+/* =========================================================
    RESPONSIVE
 ========================================================= */
 
@@ -559,6 +699,16 @@
 
   .region-story__image img {
     height: 420px;
+  }
+
+  .region-carousel__slide {
+    flex: 0 0 calc((100% - 24px) / 2);
+  }
+}
+
+@media (max-width: 760px) {
+  .region-map-section {
+    padding: 32px 0;
   }
 }
 
@@ -598,21 +748,8 @@
     width: calc(100% - 36px);
     margin-left: 18px;
   }
-}
 
-.region-map-section {
-  padding: clamp(34px, 5vw, 58px) 0;
-  background:
-    radial-gradient(circle at 88% 12%, rgba(216, 185, 130, 0.1), transparent 30%),
-    var(--color-ivory);
-}
-
-.region-map-section + .region-section {
-  padding-top: clamp(34px, 5vw, 56px);
-}
-
-@media (max-width: 760px) {
-  .region-map-section {
-    padding: 32px 0;
+  .region-carousel__slide {
+    flex: 0 0 100%;
   }
 }

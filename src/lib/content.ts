@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import type {
   Destination,
+  DestinationPlace,
   Product,
   ProductExtended,
   ProductType,
@@ -316,21 +317,30 @@ const placeSlugs = placeRows.length
     .map((item: any) => {
       const promotion = item.promotions || item.promotion;
 
-      if (!promotion) return null;
+      if (!promotion || promotion.is_active === false) return null;
 
       return {
         slug: promotion.slug,
         title: promotion.title,
         subtitle: promotion.subtitle || '',
+        description: promotion.description || '',
+        promotionType: promotion.promotion_type || '',
         badgeText: promotion.badge_text || '',
         discountType: promotion.discount_type || '',
-        discountValue: promotion.discount_value
-          ? Number(promotion.discount_value)
-          : undefined,
+        discountValue: promotion.discount_value ? Number(promotion.discount_value) : undefined,
+        currency: promotion.currency || 'USD',
+        terms: promotion.terms || '',
         startDate: promotion.start_date || undefined,
         endDate: promotion.end_date || undefined,
+        minPeople: promotion.min_people || undefined,
+        maxPeople: promotion.max_people || undefined,
+        isFeatured: Boolean(promotion.is_featured),
+        bannerImageUrl: promotion.banner_image_url || undefined,
+        cardImageUrl: promotion.card_image_url || undefined,
         notes: item.notes || '',
         customBadge: item.custom_badge || '',
+        promotionalPrice: item.promotional_price ? Number(item.promotional_price) : undefined,
+        originalPrice: item.original_price ? Number(item.original_price) : undefined,
       };
     })
     .filter(Boolean);
@@ -740,6 +750,105 @@ export async function getToursWithPromotions(
   return getProductsWithPromotions(locale, 'tour');
 }
 
+export async function getProductPromotions(
+  productSlug: string,
+): Promise<NonNullable<ProductExtended['promotions']>> {
+  if (!supabase) {
+    const product =
+      mockProducts.find((p) => p.slug === productSlug) ||
+      mockPackages.find((p) => p.slug === productSlug) ||
+      mockTours.find((p) => p.slug === productSlug);
+    return product?.promotions ?? [];
+  }
+
+  // Paso 1: obtener el id del producto por slug
+  const { data: productRow, error: productError } = await supabase
+    .from('products')
+    .select('id')
+    .eq('slug', productSlug)
+    .maybeSingle();
+
+  if (productError) {
+    console.error('[getProductPromotions] error al buscar producto:', productError.message);
+    return [];
+  }
+  if (!productRow?.id) return [];
+
+  // Paso 2: obtener promotion_products + promotions via FK promotion_id → promotions.id
+  // No filtramos is_active a nivel DB para evitar problemas con valores NULL (default true)
+  const { data, error } = await supabase
+    .from('promotion_products')
+    .select(`
+      is_active,
+      promotional_price,
+      original_price,
+      custom_badge,
+      notes,
+      sort_order,
+      promotions(
+        title,
+        slug,
+        subtitle,
+        description,
+        promotion_type,
+        discount_type,
+        discount_value,
+        currency,
+        badge_text,
+        terms,
+        start_date,
+        end_date,
+        min_people,
+        max_people,
+        is_featured,
+        banner_image_url,
+        card_image_url,
+        is_active
+      )
+    `)
+    .eq('product_id', productRow.id)
+    .order('sort_order', { ascending: true });
+
+  if (error) {
+    console.error('[getProductPromotions] error al obtener promociones:', error.message);
+    return [];
+  }
+
+  if (!Array.isArray(data) || !data.length) return [];
+
+  return data
+    .filter((item: any) => item.is_active !== false)
+    .map((item: any) => {
+      const promo = item.promotions;
+      if (!promo || promo.is_active === false) return null;
+
+      return {
+        slug: promo.slug,
+        title: promo.title,
+        subtitle: promo.subtitle || '',
+        description: promo.description || '',
+        promotionType: promo.promotion_type || '',
+        badgeText: promo.badge_text || '',
+        discountType: promo.discount_type || '',
+        discountValue: promo.discount_value ? Number(promo.discount_value) : undefined,
+        currency: promo.currency || 'USD',
+        terms: promo.terms || '',
+        startDate: promo.start_date || undefined,
+        endDate: promo.end_date || undefined,
+        minPeople: promo.min_people || undefined,
+        maxPeople: promo.max_people || undefined,
+        isFeatured: Boolean(promo.is_featured),
+        bannerImageUrl: promo.banner_image_url || undefined,
+        cardImageUrl: promo.card_image_url || undefined,
+        notes: item.notes || '',
+        customBadge: item.custom_badge || '',
+        promotionalPrice: item.promotional_price ? Number(item.promotional_price) : undefined,
+        originalPrice: item.original_price ? Number(item.original_price) : undefined,
+      };
+    })
+    .filter(Boolean) as NonNullable<ProductExtended['promotions']>;
+}
+
 export async function getProductsByRegionAndCategory(
   regionSlug: RegionSlug,
   categorySlug: string,
@@ -837,7 +946,7 @@ export async function getTravelCategories(): Promise<TravelCategory[]> {
   const data = await safeQuery(
     supabase
       .from('travel_categories')
-      .select('id, name, slug, description, icon')
+      .select('id, name, slug, description, icon, cardImage, heroImage')
       .eq('is_active', true)
       .order('name'),
     null
@@ -851,7 +960,92 @@ export async function getTravelCategories(): Promise<TravelCategory[]> {
     slug: row.slug,
     description: row.description || '',
     icon: row.icon || '',
+    cardImage: row.cardImage || '',
+    heroImage: row.heroImage || '',
   }));
+}
+
+function mapPlace(row: any): DestinationPlace {
+  return {
+    id: row.id,
+    destinationId: row.destination_id,
+    destinationSlug: row.destinations?.slug || undefined,
+    destinationName: row.destinations?.name || undefined,
+    name: row.name || '',
+    slug: row.slug,
+    subtitle: row.subtitle || undefined,
+    shortDescription: row.short_description || undefined,
+    description: row.description || undefined,
+    heroImage: row.hero_image_url || undefined,
+    cardImage: row.card_image_url || row.hero_image_url || undefined,
+    altitude: row.altitude || undefined,
+    bestTime: row.best_time_to_visit || undefined,
+    recommendedDays: row.recommended_days || undefined,
+    idealFor: Array.isArray(row.ideal_for) ? row.ideal_for : [],
+    latitude: row.latitude != null ? Number(row.latitude) : undefined,
+    longitude: row.longitude != null ? Number(row.longitude) : undefined,
+    mapX: row.map_x != null ? Number(row.map_x) : undefined,
+    mapY: row.map_y != null ? Number(row.map_y) : undefined,
+    showOnMap: row.show_on_map !== false,
+    seoTitle: row.seo_title || undefined,
+    seoDescription: row.seo_description || undefined,
+  };
+}
+
+export async function getPlacesByDestinationId(
+  destinationId: string
+): Promise<DestinationPlace[]> {
+  if (!supabase) return [];
+
+  const data = await safeQuery(
+    supabase
+      .from('destination_places')
+      .select('*')
+      .eq('destination_id', destinationId)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true }),
+    null
+  );
+
+  return Array.isArray(data) ? data.map(mapPlace) : [];
+}
+
+export async function getPlacesByDestinationSlug(
+  destinationSlug: string
+): Promise<DestinationPlace[]> {
+  if (!supabase) return [];
+
+  const { data: destRow } = await supabase
+    .from('destinations')
+    .select('id')
+    .eq('slug', destinationSlug)
+    .maybeSingle();
+
+  if (!destRow?.id) return [];
+
+  return getPlacesByDestinationId(destRow.id);
+}
+
+export async function getPlaceBySlug(
+  slug: string
+): Promise<DestinationPlace | null> {
+  if (!supabase) return null;
+
+  const data = await safeQuery(
+    supabase
+      .from('destination_places')
+      .select(`
+        *,
+        destinations(id, slug, name)
+      `)
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle(),
+    null
+  );
+
+  return data ? mapPlace(data) : null;
 }
 
 export async function getProductsByFilters({

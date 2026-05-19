@@ -286,6 +286,10 @@
   text-align: center;
   position: relative;
   z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
 .footer-bottom p {
@@ -295,6 +299,26 @@
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+.footer-legal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(247, 241, 231, 0.28);
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.footer-legal a {
+  color: rgba(247, 241, 231, 0.36);
+  text-decoration: none;
+  transition: color 0.22s ease;
+}
+
+.footer-legal a:hover {
+  color: var(--color-sand);
 }
 
 /* ===============================
