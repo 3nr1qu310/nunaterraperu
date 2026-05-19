@@ -30,9 +30,9 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
         adminSupabase.from('products').select('id', { count: 'exact', head: true }).eq('product_type', 'tour').eq('status', 'published'),
         adminSupabase.from('destinations').select('id', { count: 'exact', head: true }).eq('is_active', true),
       ]);
-      document.querySelector('[data-count-packages]').textContent = packages.count ?? 0;
-      document.querySelector('[data-count-tours]').textContent = tours.count ?? 0;
-      document.querySelector('[data-count-destinations]').textContent = destinations.count ?? 0;
+      document.querySelector('[data-count-packages]').textContent = String(packages.count ?? 0);
+      document.querySelector('[data-count-tours]').textContent = String(tours.count ?? 0);
+      document.querySelector('[data-count-destinations]').textContent = String(destinations.count ?? 0);
     }
     window.setTimeout(loadCounts, 250);
   </script>

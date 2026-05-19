@@ -4,11 +4,17 @@ import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
 
 import {
+  getAllPlaces,
   getPlaceBySlug,
   getProductsByPlaceSlug,
 } from '@/lib/content';
 
 import './LugarDetail.scss';
+
+export async function getStaticPaths() {
+  const places = await getAllPlaces();
+  return places.map((p) => ({ params: { slug: p.slug } }));
+}
 
 const slug = Astro.params.slug || '';
 

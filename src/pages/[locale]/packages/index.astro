@@ -6,6 +6,14 @@ import ProductCard from '@/components/cards/ProductCard.astro';
 import { getPackages } from '@/lib/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 
+export function getStaticPaths() {
+  return [
+    { params: { locale: 'en' } },
+    { params: { locale: 'pt' } },
+    { params: { locale: 'fr' } },
+  ];
+}
+
 const localeParam = Astro.params.locale;
 
 if (!isLocale(localeParam)) {

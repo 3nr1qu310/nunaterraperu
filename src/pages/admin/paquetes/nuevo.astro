@@ -264,14 +264,14 @@ import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
   <script>
     import { adminSupabase, notify, slugify, lines, csv, toNumber } from '@/lib/admin-client';
 
-    const form = document.querySelector('#productForm');
+    const form = document.querySelector('#productForm') as HTMLFormElement | null;
     const defaultType = new URLSearchParams(window.location.search).get('type') || 'package';
 
     let destinations = [];
     let categories = [];
 
-    function setValue(name, value) {
-      const field = form.elements[name];
+    function setValue(name: string, value: any) {
+      const field = (form!.elements as any)[name] as HTMLInputElement | null;
 
       if (!field) return;
 
@@ -288,13 +288,13 @@ import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
       }
     }
 
-    function getFieldValue(name) {
-      const field = form.querySelector(`[name="${name}"]`);
+    function getFieldValue(name: string) {
+      const field = form?.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
       return field?.value || field?.textContent || '';
     }
 
-    function getChecked(name) {
-      return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((item) => item.value);
+    function getChecked(name: string) {
+      return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((item) => (item as HTMLInputElement).value);
     }
 
     function renderChecks() {
@@ -317,7 +317,7 @@ import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
         .join('');
     }
 
-    function renderSelects(regions) {
+    function renderSelects(regions: any[]) {
       document.querySelector('#regionSelect').innerHTML =
         '<option value="">Seleccionar</option>' +
         regions.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
@@ -351,13 +351,14 @@ import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
       setValue('product_type', defaultType);
     }
 
-    form.elements.title?.addEventListener('input', () => {
-      if (!form.elements.slug.value) {
-        form.elements.slug.value = slugify(form.elements.title.value);
+    const formEls = form!.elements as any;
+    formEls.title?.addEventListener('input', () => {
+      if (!formEls.slug.value) {
+        formEls.slug.value = slugify(formEls.title.value);
       }
     });
 
-    async function replaceChildren(table, product_id, rows) {
+    async function replaceChildren(table: any, product_id: any, rows: any[]) {
       await adminSupabase.from(table).delete().eq('product_id', product_id);
 
       if (!rows.length) return { error: null };
@@ -368,7 +369,7 @@ import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
     form?.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      const data = new FormData(form);
+      const data = new FormData(form as HTMLFormElement);
 
       const cardImageUrl = getFieldValue('card_image_url');
       const heroImageUrl = getFieldValue('hero_image_url');

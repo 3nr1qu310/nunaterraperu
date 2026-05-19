@@ -349,28 +349,28 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
     import { listMedia, uploadMedia, updateMediaMeta, deactivateMedia } from '@/lib/media-upload';
     import { notify } from '@/lib/admin-client';
 
-    const fileInput = document.querySelector('#fileInput');
+    const fileInput = document.querySelector('#fileInput') as HTMLInputElement | null;
     const uploadTrigger = document.querySelector('#uploadTrigger');
     const dropZone = document.querySelector('#dropZone');
     const uploadStatus = document.querySelector('#uploadStatus');
-    const mediaSearch = document.querySelector('#mediaSearch');
+    const mediaSearch = document.querySelector('#mediaSearch') as HTMLInputElement | null;
     const mediaGallery = document.querySelector('#mediaGallery');
-    const mediaEmpty = document.querySelector('#mediaEmpty');
+    const mediaEmpty = document.querySelector('#mediaEmpty') as HTMLElement | null;
 
-    const mediaSidebarEmpty = document.querySelector('#mediaSidebarEmpty');
-    const mediaSidebarContent = document.querySelector('#mediaSidebarContent');
-    const selectedPreview = document.querySelector('#selectedPreview');
+    const mediaSidebarEmpty = document.querySelector('#mediaSidebarEmpty') as HTMLElement | null;
+    const mediaSidebarContent = document.querySelector('#mediaSidebarContent') as HTMLElement | null;
+    const selectedPreview = document.querySelector('#selectedPreview') as HTMLImageElement | null;
     const selectedName = document.querySelector('#selectedName');
     const selectedFileName = document.querySelector('#selectedFileName');
 
     const metaForm = document.querySelector('#mediaMetaForm');
-    const metaTitle = document.querySelector('#metaTitle');
-    const metaAlt = document.querySelector('#metaAlt');
-    const metaCaption = document.querySelector('#metaCaption');
-    const metaUrl = document.querySelector('#metaUrl');
+    const metaTitle = document.querySelector('#metaTitle') as HTMLInputElement | null;
+    const metaAlt = document.querySelector('#metaAlt') as HTMLInputElement | null;
+    const metaCaption = document.querySelector('#metaCaption') as HTMLInputElement | null;
+    const metaUrl = document.querySelector('#metaUrl') as HTMLInputElement | null;
     const copyUrlBtn = document.querySelector('#copyUrlBtn');
     const deactivateBtn = document.querySelector('#deactivateBtn');
-    const replaceInput = document.querySelector('#replaceInput');
+    const replaceInput = document.querySelector('#replaceInput') as HTMLInputElement | null;
 
     let mediaItems = [];
     let selectedMediaId = null;
@@ -379,7 +379,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
       return mediaItems.find((item) => item.id === selectedMediaId) || null;
     }
 
-    function showStatus(message, type = 'info') {
+    function showStatus(message: string, type = 'info') {
       const div = document.createElement('div');
       div.className = 'upload-status__item';
       div.textContent = message;
@@ -437,7 +437,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
         </button>
       `).join('');
 
-      mediaGallery.querySelectorAll('[data-media-id]').forEach((button) => {
+      mediaGallery.querySelectorAll<HTMLButtonElement>('[data-media-id]').forEach((button) => {
         button.addEventListener('click', () => {
           selectedMediaId = button.dataset.mediaId;
           renderGallery();
@@ -469,7 +469,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
       replaceInput.value = '';
     }
 
-    async function handleFiles(files) {
+    async function handleFiles(files: FileList | null) {
       const validFiles = [...files].filter((file) => file.type.startsWith('image/'));
 
       if (!validFiles.length) {
@@ -500,12 +500,12 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
     });
 
     dropZone?.addEventListener('click', (event) => {
-      if (event.target.closest('button')) return;
-      fileInput.click();
+      if ((event.target as HTMLElement).closest('button')) return;
+      fileInput?.click();
     });
 
     fileInput?.addEventListener('change', async (event) => {
-      const files = event.target.files;
+      const files = (event.target as HTMLInputElement).files;
       if (files?.length) {
         await handleFiles(files);
         fileInput.value = '';
@@ -527,13 +527,13 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
     });
 
     dropZone?.addEventListener('drop', async (event) => {
-      const files = event.dataTransfer?.files;
+      const files = (event as DragEvent).dataTransfer?.files;
       if (files?.length) {
         await handleFiles(files);
       }
     });
 
-    let searchTimeout;
+    let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
     mediaSearch?.addEventListener('input', () => {
       clearTimeout(searchTimeout);
@@ -599,7 +599,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
 
     replaceInput?.addEventListener('change', async (event) => {
       const selected = getSelectedMedia();
-      const file = event.target.files?.[0];
+      const file = (event.target as HTMLInputElement).files?.[0];
 
       if (!selected || !file) return;
 

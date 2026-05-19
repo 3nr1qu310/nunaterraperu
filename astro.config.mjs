@@ -1,13 +1,13 @@
 import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
 import sitemap from '@astrojs/sitemap';
-
 
 export default defineConfig({
   site: 'https://nunaterraperu.com',
-  output: 'server',
-  adapter: node({ mode: 'standalone' }),
+
+  output: 'static',
+
   integrations: [sitemap()],
+
   vite: {
     resolve: {
       alias: {

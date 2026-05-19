@@ -251,12 +251,12 @@ const pickerId = `media-picker-${fieldName}`;
 <script>
   import { adminSupabase, notify } from '@/lib/admin-client';
 
-  if (!window.__nunaMediaPickerInitialized) {
-    window.__nunaMediaPickerInitialized = true;
+  if (!(window as any).__nunaMediaPickerInitialized) {
+    (window as any).__nunaMediaPickerInitialized = true;
 
     const state = new Map();
 
-    function getPickerParts(fieldName) {
+    function getPickerParts(fieldName: string) {
       return {
         input: document.querySelector(`[data-media-input="${fieldName}"]`),
         preview: document.querySelector(`[data-media-preview="${fieldName}"]`),
@@ -267,13 +267,13 @@ const pickerId = `media-picker-${fieldName}`;
       };
     }
 
-    function setValue(fieldName, url) {
+    function setValue(fieldName: string, url: string) {
       const { input, preview } = getPickerParts(fieldName);
       const finalUrl = url || '';
 
       if (!input || !preview) return;
 
-      input.value = finalUrl;
+      (input as HTMLInputElement).value = finalUrl;
       input.setAttribute('value', finalUrl);
 
       input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -308,7 +308,7 @@ const pickerId = `media-picker-${fieldName}`;
       return data || [];
     }
 
-    function renderSide(fieldName, item) {
+    function renderSide(fieldName: string, item: any) {
       const { side } = getPickerParts(fieldName);
 
       if (!side) return;
@@ -345,7 +345,7 @@ const pickerId = `media-picker-${fieldName}`;
 
       side.querySelector(`[data-use-media="${fieldName}"]`)?.addEventListener('click', () => {
         setValue(fieldName, item.public_url);
-        getPickerParts(fieldName).dialog?.close();
+        (getPickerParts(fieldName) as any).dialog?.close();
       });
 
       side.querySelector(`[data-copy-media-url="${fieldName}"]`)?.addEventListener('click', async () => {
@@ -354,7 +354,7 @@ const pickerId = `media-picker-${fieldName}`;
       });
     }
 
-    function renderGrid(fieldName, items) {
+    function renderGrid(fieldName: string, items: any[]) {
       const { grid } = getPickerParts(fieldName);
       const selectedId = state.get(fieldName)?.selectedId || '';
 
@@ -382,7 +382,7 @@ const pickerId = `media-picker-${fieldName}`;
 
       grid.querySelectorAll('[data-media-item]').forEach((button) => {
         button.addEventListener('click', () => {
-          const item = items.find((media) => media.id === button.dataset.mediaItem);
+          const item = items.find((media) => media.id === (button as HTMLElement).dataset.mediaItem);
 
           state.set(fieldName, {
             items,
@@ -395,7 +395,7 @@ const pickerId = `media-picker-${fieldName}`;
       });
     }
 
-    async function loadPicker(fieldName, search = '') {
+    async function loadPicker(fieldName: string, search = '') {
       const { grid } = getPickerParts(fieldName);
 
       if (!grid) return;
@@ -414,54 +414,54 @@ const pickerId = `media-picker-${fieldName}`;
         renderSide(fieldName, null);
       } catch (error) {
         console.error(error);
-        grid.innerHTML = `<p class="admin-muted">${error.message || 'No se pudieron cargar las imágenes.'}</p>`;
+        grid.innerHTML = `<p class="admin-muted">${(error as any).message || 'No se pudieron cargar las imágenes.'}</p>`;
       }
     }
 
     document.addEventListener('click', async (event) => {
-      const openBtn = event.target.closest('[data-open-media]');
-      const closeBtn = event.target.closest('[data-close-media]');
-      const clearBtn = event.target.closest('[data-clear-media]');
+      const openBtn = (event.target as HTMLElement).closest('[data-open-media]') as HTMLElement | null;
+      const closeBtn = (event.target as HTMLElement).closest('[data-close-media]') as HTMLElement | null;
+      const clearBtn = (event.target as HTMLElement).closest('[data-clear-media]') as HTMLElement | null;
 
       if (openBtn) {
-        const fieldName = openBtn.dataset.openMedia;
+        const fieldName = openBtn.dataset.openMedia as string;
         const { dialog, search } = getPickerParts(fieldName);
 
-        dialog?.showModal();
+        (dialog as HTMLDialogElement | null)?.showModal();
 
-        if (search) search.value = '';
+        if (search) (search as HTMLInputElement).value = '';
 
         await loadPicker(fieldName);
       }
 
       if (closeBtn) {
-        const fieldName = closeBtn.dataset.closeMedia;
-        getPickerParts(fieldName).dialog?.close();
+        const fieldName = closeBtn.dataset.closeMedia as string;
+        (getPickerParts(fieldName).dialog as HTMLDialogElement | null)?.close();
       }
 
       if (clearBtn) {
-        const fieldName = clearBtn.dataset.clearMedia;
+        const fieldName = clearBtn.dataset.clearMedia as string;
         setValue(fieldName, '');
       }
     });
 
     document.addEventListener('input', (event) => {
-      const search = event.target.closest('[data-media-search]');
+      const search = (event.target as HTMLElement).closest('[data-media-search]') as HTMLElement | null;
       if (!search) return;
 
-      const fieldName = search.dataset.mediaSearch;
+      const fieldName = (search as any).dataset.mediaSearch as string;
 
-      clearTimeout(search.__timeout);
-      search.__timeout = setTimeout(() => {
-        loadPicker(fieldName, search.value || '');
+      clearTimeout((search as any).__timeout);
+      (search as any).__timeout = setTimeout(() => {
+        loadPicker(fieldName, (search as HTMLInputElement).value || '');
       }, 250);
     });
 
     document.addEventListener('media-picker:update', (event) => {
-      const fields = event.detail?.fields || {};
+      const fields = (event as CustomEvent).detail?.fields || {};
 
       Object.entries(fields).forEach(([fieldName, value]) => {
-        setValue(fieldName, value || '');
+        setValue(fieldName, (value as string) || '');
       });
     });
   }

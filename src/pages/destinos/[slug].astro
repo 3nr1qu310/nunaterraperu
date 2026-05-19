@@ -5,12 +5,18 @@ import ProductCard from '@/components/cards/ProductCard.astro';
 import PlaceCard from '@/components/cards/PlaceCard.astro';
 
 import {
+  getDestinations,
   getDestinationBySlug,
   getProductsByDestinationSlug,
   getPlacesByDestinationSlug,
 } from '@/lib/content';
 
 import './DetalleDestino.scss';
+
+export async function getStaticPaths() {
+  const destinations = await getDestinations();
+  return destinations.map((d) => ({ params: { slug: d.slug } }));
+}
 
 const slug = Astro.params.slug || '';
 
@@ -32,6 +38,15 @@ const heroImage =
 
 const packages = relatedProducts.filter((p) => p.type === 'package');
 const tours = relatedProducts.filter((p) => p.type === 'tour');
+
+const featuredPlace = places[0];
+const secondaryPlaces = places.slice(1);
+
+const featuredPackage = packages[0];
+const secondaryPackages = packages.slice(1);
+
+const featuredTour = tours[0];
+const secondaryTours = tours.slice(1);
 
 const regionLabel =
   destination.region === 'costa'
@@ -96,7 +111,7 @@ const sectionLinks = [
         )}
 
         <div class="destination-hero__actions">
-          <a href="#experiencias" class="destination-btn destination-btn--primary">
+          <a href="#paquetes" class="destination-btn destination-btn--primary">
             Ver experiencias
           </a>
 
@@ -217,67 +232,108 @@ const sectionLinks = [
   )}
 
   {places.length > 0 && (
-    <section class="destination-section destination-places" id="lugares">
+    <section class="destination-section destination-showcase destination-showcase--places" id="lugares">
       <div class="container">
-        <div class="destination-section__head" data-reveal>
-          <SectionHeading
-            eyebrow="Lugares de interés"
-            title={`Qué visitar en ${destination.name}`}
-            subtitle="Espacios emblemáticos que ayudan a entender el valor cultural, natural o paisajístico de este destino."
-            align="left"
-          />
+        <div class="destination-showcase__header" data-reveal>
+          <div>
+            <span class="destination-showcase__eyebrow">Lugares de interés</span>
+            <h2>Qué visitar en {destination.name}</h2>
+          </div>
+
+          <p>
+            Lugares emblemáticos dentro de este destino, cada uno con una historia,
+            un paisaje y una forma distinta de vivir la experiencia.
+          </p>
         </div>
 
-        <div class="dest-places-bento" data-reveal-stagger>
-          {places.map((place) => (
-            <PlaceCard place={place} />
-          ))}
+        <div class="destination-showcase__layout destination-showcase__layout--places" data-reveal-stagger>
+          {featuredPlace && (
+            <div class="destination-showcase__featured">
+              <PlaceCard place={featuredPlace} />
+            </div>
+          )}
+
+          {secondaryPlaces.length > 0 && (
+            <div class="destination-showcase__grid">
+              {secondaryPlaces.map((place) => (
+                <div class="destination-showcase__item">
+                  <PlaceCard place={place} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
   )}
 
   {packages.length > 0 && (
-    <section class="destination-section destination-products destination-products--soft" id="paquetes">
+    <section class="destination-section destination-showcase destination-showcase--packages" id="paquetes">
       <div class="container">
-        <div class="destination-section__head" data-reveal>
-          <SectionHeading
-            eyebrow="Paquetes"
-            title={`Paquetes en ${destination.name}`}
-            subtitle="Rutas completas para vivir este destino dentro de un viaje mejor estructurado."
-            align="left"
-          />
+        <div class="destination-showcase__header" data-reveal>
+          <div>
+            <span class="destination-showcase__eyebrow">Paquetes</span>
+            <h2>Paquetes en {destination.name}</h2>
+          </div>
+
+          <p>
+            Rutas completas diseñadas para vivir este destino con calma,
+            buena organización y una experiencia mejor conectada.
+          </p>
         </div>
 
-        <div class="dest-scroll" data-reveal-stagger id="experiencias">
-          {packages.map((product) => (
-            <div class="dest-scroll__item">
-              <ProductCard product={product} />
+        <div class="destination-showcase__layout destination-showcase__layout--products" data-reveal-stagger>
+          {featuredPackage && (
+            <div class="destination-showcase__featured destination-showcase__featured--product">
+              <ProductCard product={featuredPackage} />
             </div>
-          ))}
+          )}
+
+          {secondaryPackages.length > 0 && (
+            <div class="destination-showcase__grid destination-showcase__grid--products">
+              {secondaryPackages.map((product) => (
+                <div class="destination-showcase__item">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
   )}
 
   {tours.length > 0 && (
-    <section class="destination-section destination-products destination-products--plain" id="tours">
+    <section class="destination-section destination-showcase destination-showcase--tours" id="tours">
       <div class="container">
-        <div class="destination-section__head" data-reveal>
-          <SectionHeading
-            eyebrow="Tours"
-            title={`Tours en ${destination.name}`}
-            subtitle="Experiencias más puntuales para descubrir este destino en menos tiempo."
-            align="left"
-          />
+        <div class="destination-showcase__header" data-reveal>
+          <div>
+            <span class="destination-showcase__eyebrow">Tours</span>
+            <h2>Tours en {destination.name}</h2>
+          </div>
+
+          <p>
+            Experiencias de uno o dos días para conocer lo esencial del destino
+            con guía, logística y acompañamiento.
+          </p>
         </div>
 
-        <div class="dest-scroll" data-reveal-stagger>
-          {tours.map((product) => (
-            <div class="dest-scroll__item">
-              <ProductCard product={product} />
+        <div class="destination-showcase__layout destination-showcase__layout--products destination-showcase__layout--reverse" data-reveal-stagger>
+          {featuredTour && (
+            <div class="destination-showcase__featured destination-showcase__featured--product">
+              <ProductCard product={featuredTour} />
             </div>
-          ))}
+          )}
+
+          {secondaryTours.length > 0 && (
+            <div class="destination-showcase__grid destination-showcase__grid--products">
+              {secondaryTours.map((product) => (
+                <div class="destination-showcase__item">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -371,7 +427,7 @@ const sectionLinks = [
       for (const entry of entries) {
         if (entry.isIntersecting) {
           const children = Array.from(entry.target.children);
-          children.forEach((child, i) => child.style.setProperty('--si', String(i)));
+          children.forEach((child, i) => (child as HTMLElement).style.setProperty('--si', String(i)));
           entry.target.classList.add('is-visible');
           staggerObs.unobserve(entry.target);
         }
@@ -382,7 +438,7 @@ const sectionLinks = [
 
   document.querySelectorAll('[data-reveal-stagger]').forEach((el) => staggerObs.observe(el));
 
-  const heroImg = document.querySelector('.destination-hero__image');
+  const heroImg = document.querySelector('.destination-hero__image') as HTMLElement | null;
 
   if (heroImg && prefersMotion) {
     let raf = 0;
@@ -409,7 +465,7 @@ const sectionLinks = [
 
     summary.addEventListener('click', (e) => {
       e.preventDefault();
-      det.open = !det.open;
+      (det as HTMLDetailsElement).open = !(det as HTMLDetailsElement).open;
     });
   });
 </script>

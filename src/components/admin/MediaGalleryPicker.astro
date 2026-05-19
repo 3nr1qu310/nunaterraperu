@@ -277,19 +277,19 @@ const pickerId = `media-gallery-picker-${fieldName}`;
 <script>
   import { adminSupabase } from '@/lib/admin-client';
 
-  if (!window.__nunaMediaGalleryPickerInitialized) {
-    window.__nunaMediaGalleryPickerInitialized = true;
+  if (!(window as any).__nunaMediaGalleryPickerInitialized) {
+    (window as any).__nunaMediaGalleryPickerInitialized = true;
 
     const galleryState = new Map();
 
-    function getParts(fieldName) {
+    function getParts(fieldName: string) {
       return {
-        input: document.querySelector(`[data-gallery-input="${fieldName}"]`),
+        input: document.querySelector(`[data-gallery-input="${fieldName}"]`) as HTMLTextAreaElement | null,
         selected: document.querySelector(`[data-gallery-selected="${fieldName}"]`),
-        dialog: document.querySelector(`[data-gallery-dialog="${fieldName}"]`),
+        dialog: document.querySelector(`[data-gallery-dialog="${fieldName}"]`) as HTMLDialogElement | null,
         grid: document.querySelector(`[data-gallery-grid="${fieldName}"]`),
         side: document.querySelector(`[data-gallery-side="${fieldName}"]`),
-        search: document.querySelector(`[data-gallery-search="${fieldName}"]`),
+        search: document.querySelector(`[data-gallery-search="${fieldName}"]`) as HTMLInputElement | null,
       };
     }
 
@@ -299,19 +299,19 @@ const pickerId = `media-gallery-picker-${fieldName}`;
         .map((line) => line.trim())
         .filter(Boolean)
         .map((line) => {
-          const [url, alt = '', caption = ''] = line.split('|').map((item) => item.trim());
+          const [url, alt = '', caption = ''] = line.split('|').map((item: string) => item.trim());
           return { public_url: url, alt_text: alt, caption, title: alt || caption || 'Imagen' };
         })
-        .filter((item) => item.public_url);
+        .filter((item: any) => item.public_url);
     }
 
-    function toGalleryText(items = []) {
+    function toGalleryText(items: any[] = []) {
       return items
-        .map((item) => `${item.public_url} | ${item.alt_text || item.title || ''} | ${item.caption || ''}`)
+        .map((item: any) => `${item.public_url} | ${item.alt_text || item.title || ''} | ${item.caption || ''}`)
         .join('\n');
     }
 
-    function setSelected(fieldName, items = []) {
+    function setSelected(fieldName: string, items: any[] = []) {
       const { input, selected } = getParts(fieldName);
 
       if (!input || !selected) return;
@@ -325,7 +325,7 @@ const pickerId = `media-gallery-picker-${fieldName}`;
       selected.innerHTML = items.length
         ? `
           <div class="gallery-selected-grid">
-            ${items.map((item, index) => `
+            ${items.map((item: any, index: number) => `
               <div class="gallery-selected-card">
                 <img src="${item.public_url}" alt="${item.alt_text || item.title || 'Imagen'}" />
                 <span>${index + 1}</span>
@@ -363,7 +363,7 @@ const pickerId = `media-gallery-picker-${fieldName}`;
       return data || [];
     }
 
-    function renderSide(fieldName) {
+    function renderSide(fieldName: string) {
       const { side } = getParts(fieldName);
       const state = galleryState.get(fieldName) || {};
       const selectedItems = state.selectedItems || [];
@@ -379,7 +379,7 @@ const pickerId = `media-gallery-picker-${fieldName}`;
         <div>
           <h4 style="margin:0 0 12px;color:#5A3E2B">${selectedItems.length} imagen(es) seleccionada(s)</h4>
           <div class="gallery-side-list">
-            ${selectedItems.map((item, index) => `
+            ${selectedItems.map((item: any, index: number) => `
               <div class="gallery-side-item">
                 <img src="${item.public_url}" alt="${item.alt_text || item.title || 'Imagen'}" />
                 <p>${index + 1}. ${item.title || item.file_name || item.alt_text || 'Imagen'}</p>
@@ -390,11 +390,11 @@ const pickerId = `media-gallery-picker-${fieldName}`;
       `;
     }
 
-    function renderGrid(fieldName, items) {
+    function renderGrid(fieldName: string, items: any[]) {
       const { grid } = getParts(fieldName);
       const state = galleryState.get(fieldName) || {};
       const selectedItems = state.selectedItems || [];
-      const selectedUrls = new Set(selectedItems.map((item) => item.public_url));
+      const selectedUrls = new Set(selectedItems.map((item: any) => item.public_url));
 
       if (!grid) return;
 
@@ -404,7 +404,7 @@ const pickerId = `media-gallery-picker-${fieldName}`;
         return;
       }
 
-      grid.innerHTML = items.map((item) => `
+      grid.innerHTML = items.map((item: any) => `
         <button
           type="button"
           class="gallery-card ${selectedUrls.has(item.public_url) ? 'is-selected' : ''}"
@@ -420,15 +420,15 @@ const pickerId = `media-gallery-picker-${fieldName}`;
 
       grid.querySelectorAll('[data-gallery-item]').forEach((button) => {
         button.addEventListener('click', () => {
-          const item = items.find((media) => media.id === button.dataset.galleryItem);
+          const item = items.find((media: any) => media.id === (button as HTMLElement).dataset.galleryItem);
           if (!item) return;
 
           const currentState = galleryState.get(fieldName) || {};
           const currentSelected = currentState.selectedItems || [];
-          const exists = currentSelected.some((selected) => selected.public_url === item.public_url);
+          const exists = currentSelected.some((selected: any) => selected.public_url === item.public_url);
 
           const nextSelected = exists
-            ? currentSelected.filter((selected) => selected.public_url !== item.public_url)
+            ? currentSelected.filter((selected: any) => selected.public_url !== item.public_url)
             : [...currentSelected, item];
 
           galleryState.set(fieldName, {
@@ -443,7 +443,7 @@ const pickerId = `media-gallery-picker-${fieldName}`;
       });
     }
 
-    async function loadGallery(fieldName, search = '') {
+    async function loadGallery(fieldName: string, search = '') {
       const { grid } = getParts(fieldName);
 
       if (!grid) return;
@@ -463,18 +463,18 @@ const pickerId = `media-gallery-picker-${fieldName}`;
         renderSide(fieldName);
       } catch (error) {
         console.error(error);
-        grid.innerHTML = `<p class="admin-muted">${error.message || 'No se pudieron cargar las imágenes.'}</p>`;
+        grid.innerHTML = `<p class="admin-muted">${(error as any).message || 'No se pudieron cargar las imágenes.'}</p>`;
       }
     }
 
     document.addEventListener('click', async (event) => {
-      const openBtn = event.target.closest('[data-open-gallery]');
-      const closeBtn = event.target.closest('[data-close-gallery]');
-      const clearBtn = event.target.closest('[data-clear-gallery]');
-      const applyBtn = event.target.closest('[data-apply-gallery]');
+      const openBtn = (event.target as HTMLElement).closest('[data-open-gallery]') as HTMLElement | null;
+      const closeBtn = (event.target as HTMLElement).closest('[data-close-gallery]') as HTMLElement | null;
+      const clearBtn = (event.target as HTMLElement).closest('[data-clear-gallery]') as HTMLElement | null;
+      const applyBtn = (event.target as HTMLElement).closest('[data-apply-gallery]') as HTMLElement | null;
 
       if (openBtn) {
-        const fieldName = openBtn.dataset.openGallery;
+        const fieldName = openBtn.dataset.openGallery as string;
         const { dialog, input, search } = getParts(fieldName);
 
         const selectedItems = parseGalleryText(input?.value || input?.textContent || '');
@@ -490,16 +490,16 @@ const pickerId = `media-gallery-picker-${fieldName}`;
       }
 
       if (closeBtn) {
-        getParts(closeBtn.dataset.closeGallery).dialog?.close();
+        getParts(closeBtn.dataset.closeGallery as string).dialog?.close();
       }
 
       if (clearBtn) {
-        const fieldName = clearBtn.dataset.clearGallery;
+        const fieldName = clearBtn.dataset.clearGallery as string;
         setSelected(fieldName, []);
       }
 
       if (applyBtn) {
-        const fieldName = applyBtn.dataset.applyGallery;
+        const fieldName = applyBtn.dataset.applyGallery as string;
         const selectedItems = galleryState.get(fieldName)?.selectedItems || [];
 
         setSelected(fieldName, selectedItems);
@@ -508,27 +508,27 @@ const pickerId = `media-gallery-picker-${fieldName}`;
     });
 
     document.addEventListener('input', (event) => {
-      const search = event.target.closest('[data-gallery-search]');
+      const search = (event.target as HTMLElement).closest('[data-gallery-search]') as HTMLElement | null;
       if (!search) return;
 
-      const fieldName = search.dataset.gallerySearch;
+      const fieldName = (search as any).dataset.gallerySearch as string;
 
-      clearTimeout(search.__timeout);
-      search.__timeout = setTimeout(() => {
-        loadGallery(fieldName, search.value || '');
+      clearTimeout((search as any).__timeout);
+      (search as any).__timeout = setTimeout(() => {
+        loadGallery(fieldName, (search as HTMLInputElement).value || '');
       }, 250);
     });
 
     document.addEventListener('gallery-picker:update', (event) => {
-      const fields = event.detail?.fields || {};
+      const fields = (event as CustomEvent).detail?.fields || {};
 
       Object.entries(fields).forEach(([fieldName, value]) => {
-        setSelected(fieldName, parseGalleryText(value || ''));
+        setSelected(fieldName, parseGalleryText((value as string) || ''));
       });
     });
 
     document.querySelectorAll('[data-media-gallery-picker]').forEach((picker) => {
-      const fieldName = picker.dataset.mediaGalleryPicker;
+      const fieldName = (picker as HTMLElement).dataset.mediaGalleryPicker as string;
       const { input } = getParts(fieldName);
 
       setSelected(fieldName, parseGalleryText(input?.value || input?.textContent || ''));

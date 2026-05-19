@@ -2,7 +2,6 @@ import { supabase } from './supabase';
 import type {
   Destination,
   DestinationPlace,
-  Product,
   ProductExtended,
   ProductType,
   Region,
@@ -610,7 +609,7 @@ export async function getProductsByRegion(
   return products.filter((product) => {
     return (
       product.region === regionSlug ||
-      product.destinationRegions?.includes(regionSlug)
+      product.destinationRegions?.includes(regionSlug as RegionSlug)
     );
   });
 }
@@ -1025,6 +1024,21 @@ export async function getPlacesByDestinationSlug(
   if (!destRow?.id) return [];
 
   return getPlacesByDestinationId(destRow.id);
+}
+
+export async function getAllPlaces(): Promise<DestinationPlace[]> {
+  if (!supabase) return [];
+
+  const data = await safeQuery(
+    supabase
+      .from('destination_places')
+      .select('*')
+      .eq('is_active', true)
+      .order('name', { ascending: true }),
+    null
+  );
+
+  return Array.isArray(data) ? data.map(mapPlace) : [];
 }
 
 export async function getPlaceBySlug(

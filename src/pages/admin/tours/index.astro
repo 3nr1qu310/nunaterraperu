@@ -92,7 +92,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
     let products = [];
 
     const rows = document.querySelector('#rows');
-    const search = document.querySelector('#search');
+    const search = document.querySelector('#search') as HTMLInputElement | null;
 
     function escapeHtml(value = '') {
       return String(value)
@@ -103,7 +103,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
         .replaceAll("'", '&#039;');
     }
 
-    function imageCell(product) {
+    function imageCell(product: Record<string, string>) {
       const imageUrl = product.card_image_url || product.hero_image_url || '';
 
       if (!imageUrl) {
@@ -214,9 +214,10 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
       render();
     }
 
-    async function toggleStatus(event) {
-      const id = event.currentTarget.dataset.toggle;
-      const currentStatus = event.currentTarget.dataset.status;
+    async function toggleStatus(event: Event) {
+      const target = event.currentTarget as HTMLElement;
+      const id = target.dataset.toggle;
+      const currentStatus = target.dataset.status;
       const status = currentStatus === 'published' ? 'draft' : 'published';
 
       const { error } = await adminSupabase
@@ -236,9 +237,10 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
       await load();
     }
 
-    async function archiveProduct(event) {
+    async function archiveProduct(event: Event) {
       if (!confirm('¿Archivar este tour?')) return;
 
+      const target = event.currentTarget as HTMLElement;
       const { error } = await adminSupabase
         .from('products')
         .update({
@@ -246,7 +248,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
           is_active: false,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', event.currentTarget.dataset.delete);
+        .eq('id', target.dataset.delete);
 
       if (error) {
         return notify(error.message, 'error');

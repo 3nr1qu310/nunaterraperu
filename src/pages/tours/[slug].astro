@@ -2,9 +2,14 @@
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
 import LucideIcon from '@/components/cards/LucideIcon.astro';
-import { getProductBySlug, getRelatedProducts, getTravelCategories, getProductPromotions } from '@/lib/content';
+import { getTours, getProductBySlug, getRelatedProducts, getTravelCategories, getProductPromotions } from '@/lib/content';
 import { site } from '@/lib/site';
 import './TourDetail.scss';
+
+export async function getStaticPaths() {
+  const tours = await getTours();
+  return tours.map((t) => ({ params: { slug: t.slug } }));
+}
 
 const slug = Astro.params.slug || '';
 const product = await getProductBySlug(slug, 'tour');

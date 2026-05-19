@@ -90,19 +90,19 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
   <script>
     import { adminSupabase, notify } from '@/lib/admin-client';
 
-    const form = document.querySelector('#settingsForm');
+    const form = document.querySelector('#settingsForm') as HTMLFormElement | null;
 
-    const keys = [...form.elements]
-      .filter((el) => el.name)
-      .map((el) => el.name);
+    const keys = [...(form as HTMLFormElement).elements]
+      .filter((el: any) => el.name)
+      .map((el: any) => el.name);
 
-    function getFieldValue(name) {
-      const field = form.querySelector(`[name="${name}"]`);
+    function getFieldValue(name: string) {
+      const field = form?.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
       return field?.value || field?.textContent || '';
     }
 
-    function setFieldValue(name, value = '') {
-      const field = form.querySelector(`[name="${name}"]`);
+    function setFieldValue(name: string, value = '') {
+      const field = form?.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
 
       if (!field) return;
 
@@ -117,7 +117,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       field.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    function updateMediaPickers(fields) {
+    function updateMediaPickers(fields: any) {
       document.dispatchEvent(new CustomEvent('media-picker:update', {
         detail: { fields },
       }));
@@ -133,7 +133,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
         return notify(error.message, 'error');
       }
 
-      const mediaFields = {};
+      const mediaFields: Record<string, string> = {};
 
       for (const row of data || []) {
         setFieldValue(row.setting_key, row.setting_value || '');

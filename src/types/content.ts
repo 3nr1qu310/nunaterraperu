@@ -37,7 +37,7 @@ export interface Destination {
   region: RegionSlug;
   subtitle: string;
   description: string;
-  shortDescription: string;
+  shortDescription?: string;
   heroImage: string;
   cardImage: string;
   altitude?: string;
@@ -102,7 +102,7 @@ export interface Product {
   slug: string;
   subtitle: string;
   description: string;
-  shortDescription: string;
+  shortDescription?: string;
   durationText: string;
 
   destinations: string[];

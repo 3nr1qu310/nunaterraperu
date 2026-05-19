@@ -14,6 +14,11 @@ import {
 
 import './Categoria.scss';
 
+export async function getStaticPaths() {
+  const categories = await getTravelCategories();
+  return categories.map((c) => ({ params: { slug: c.slug } }));
+}
+
 const { slug = '' } = Astro.params;
 
 const categories = await getTravelCategories();

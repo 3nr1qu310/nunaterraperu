@@ -27,7 +27,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
         <td style="max-width:340px">${l.message || '—'}</td>
         <td><select data-status="${l.id}">${statuses.map((s)=>`<option value="${s}" ${l.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
       </tr>`).join('') : '<tr><td colspan="6">Aún no hay consultas.</td></tr>';
-      document.querySelectorAll('[data-status]').forEach((select)=>select.addEventListener('change', async ()=>{
+      (document.querySelectorAll('[data-status]') as NodeListOf<HTMLSelectElement>).forEach((select)=>select.addEventListener('change', async ()=>{
         const { error } = await adminSupabase.from('leads').update({ status: select.value, updated_at: new Date().toISOString() }).eq('id', select.dataset.status);
         if (error) return notify(error.message, 'error');
         notify('Estado actualizado.', 'success');

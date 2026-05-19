@@ -42,7 +42,7 @@ import { site } from '@/lib/site';
 <style lang="scss">.contact-card{padding:24px}.contact-card h3{font-family:var(--font-display);font-size:1.8rem;color:var(--color-earth);margin:0}.contact-layout{display:grid;grid-template-columns:1fr 350px;gap:34px;align-items:start}.form{display:grid;gap:14px}.form-message{font-weight:700;color:var(--color-green);margin:4px 0 0}.form input,.form select,.form textarea{width:100%;border:1px solid rgba(90,62,43,.18);border-radius:16px;background:white;padding:14px 16px}.form input:focus,.form textarea:focus,.form select:focus{outline:2px solid rgba(47,93,80,.25);border-color:var(--color-green)}.side{position:sticky;top:130px;background:var(--color-earth);color:var(--color-ivory);padding:28px;border-radius:var(--radius-md)}.side h3{font-family:var(--font-display);font-size:2rem;margin:0 0 10px;color:var(--color-ivory)}@media(max-width:900px){.contact-layout{grid-template-columns:1fr}.side{position:static}}</style>
 
 <script>
-  const form = document.querySelector('#lead-form');
+  const form = document.querySelector('#lead-form') as HTMLFormElement | null;
   const message = document.querySelector('#form-message');
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();

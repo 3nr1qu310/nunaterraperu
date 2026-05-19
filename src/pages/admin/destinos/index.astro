@@ -140,18 +140,18 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
   <script>
     import { adminSupabase, notify, slugify, csv, toNumber } from '@/lib/admin-client';
 
-    const form = document.querySelector('#destinationForm');
+    const form = document.querySelector('#destinationForm') as HTMLFormElement | null;
     const rows = document.querySelector('#rows');
 
     let destinations = [];
     let regions = [];
 
-    function getImageValue(fieldName) {
-      return form.querySelector(`input[name="${fieldName}"]`)?.value || '';
+    function getImageValue(fieldName: string) {
+      return (form?.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement | null)?.value || '';
     }
 
-    function setImageValue(fieldName, value = '') {
-      const input = form.querySelector(`input[name="${fieldName}"]`);
+    function setImageValue(fieldName: string, value = '') {
+      const input = form?.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement | null;
 
       if (input) {
         input.value = value || '';
@@ -161,14 +161,15 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       }
     }
 
-    function setForm(dest = {}) {
-      form.elements.id.value = dest.id || '';
-      form.elements.name.value = dest.name || '';
-      form.elements.slug.value = dest.slug || '';
-      form.elements.region_id.value = dest.region_id || '';
-      form.elements.subtitle.value = dest.subtitle || '';
-      form.elements.short_description.value = dest.short_description || '';
-      form.elements.description.value = dest.description || '';
+    function setForm(dest: Record<string, any> = {}) {
+      const els = form!.elements as any;
+      els.id.value = dest.id || '';
+      els.name.value = dest.name || '';
+      els.slug.value = dest.slug || '';
+      els.region_id.value = dest.region_id || '';
+      els.subtitle.value = dest.subtitle || '';
+      els.short_description.value = dest.short_description || '';
+      els.description.value = dest.description || '';
 
       setImageValue('card_image_url', dest.card_image_url || '');
       setImageValue('hero_image_url', dest.hero_image_url || '');
@@ -182,14 +183,14 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
         },
       }));
 
-      form.elements.altitude.value = dest.altitude || '';
-      form.elements.best_time_to_visit.value = dest.best_time_to_visit || '';
-      form.elements.recommended_days.value = dest.recommended_days || '';
-      form.elements.ideal_for.value = (dest.ideal_for || []).join(', ');
-      form.elements.sort_order.value = dest.sort_order ?? 0;
-      form.elements.seo_title.value = dest.seo_title || '';
-      form.elements.seo_description.value = dest.seo_description || '';
-      form.elements.is_active.checked = dest.is_active ?? true;
+      els.altitude.value = dest.altitude || '';
+      els.best_time_to_visit.value = dest.best_time_to_visit || '';
+      els.recommended_days.value = dest.recommended_days || '';
+      els.ideal_for.value = (dest.ideal_for || []).join(', ');
+      els.sort_order.value = dest.sort_order ?? 0;
+      els.seo_title.value = dest.seo_title || '';
+      els.seo_description.value = dest.seo_description || '';
+      els.is_active.checked = dest.is_active ?? true;
 
       document.querySelector('#formTitle').textContent = dest.id ? 'Editar destino' : 'Nuevo destino';
 
@@ -238,14 +239,14 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
 
       document.querySelectorAll('[data-edit]').forEach((btn) => {
         btn.addEventListener('click', () => {
-          const destination = destinations.find((d) => d.id === btn.dataset.edit);
+          const destination = destinations.find((d) => d.id === (btn as HTMLElement).dataset.edit);
           setForm(destination);
         });
       });
 
       document.querySelectorAll('[data-toggle]').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          const d = destinations.find((item) => item.id === btn.dataset.toggle);
+          const d = destinations.find((item) => item.id === (btn as HTMLElement).dataset.toggle);
 
           if (!d) return;
 
@@ -290,9 +291,10 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       render();
     }
 
-    form.elements.name.addEventListener('input', () => {
-      if (!form.elements.slug.value) {
-        form.elements.slug.value = slugify(form.elements.name.value);
+    const formEls = form!.elements as any;
+    formEls.name.addEventListener('input', () => {
+      if (!formEls.slug.value) {
+        formEls.slug.value = slugify(formEls.name.value);
       }
     });
 
@@ -335,7 +337,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
     updated_at: new Date().toISOString(),
   };
 
-  let result;
+  let result: any;
 
   if (id) {
     result = await adminSupabase

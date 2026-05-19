@@ -5,12 +5,18 @@ import ProductCard from '@/components/cards/ProductCard.astro';
 import PeruRegionMap from '@/components/maps/PeruRegionMap.astro';
 
 import {
+  getRegions,
   getRegionBySlug,
   getDestinations,
   getProductsByRegion,
 } from '@/lib/content';
 
 import './RegionDetail.scss';
+
+export async function getStaticPaths() {
+  const regions = await getRegions();
+  return regions.map((r) => ({ params: { slug: r.slug } }));
+}
 
 const slug = Astro.params.slug || '';
 

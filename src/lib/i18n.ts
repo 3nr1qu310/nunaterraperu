@@ -97,7 +97,6 @@ export function localizePath(path: string, locale: Locale) {
 }
 
 export function getLanguageSwitchUrl(pathname: string, targetLocale: Locale) {
-  const currentLocale = getLocaleFromUrl(pathname);
   const cleanPath = removeLocaleFromPath(pathname);
   const segments = cleanPath.split('/').filter(Boolean);
 

@@ -24,8 +24,8 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
     import { adminSupabase, notify } from '@/lib/admin-client';
     let products = [];
     const rows = document.querySelector('#rows');
-    const search = document.querySelector('#search');
-    function statusPill(status) {
+    const search = document.querySelector('#search') as HTMLInputElement | null;
+    function statusPill(status: string) {
       return `<span class="admin-pill ${status !== 'published' ? 'admin-pill--draft' : ''}">${status}</span>`;
     }
     function render() {
@@ -53,17 +53,18 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
       products = data || [];
       render();
     }
-    async function toggleStatus(event) {
-      const id = event.currentTarget.dataset.toggle;
-      const status = event.currentTarget.dataset.status === 'published' ? 'draft' : 'published';
+    async function toggleStatus(event: Event) {
+      const target = event.currentTarget as HTMLElement;
+      const id = target.dataset.toggle;
+      const status = target.dataset.status === 'published' ? 'draft' : 'published';
       const { error } = await adminSupabase.from('products').update({ status }).eq('id', id);
       if (error) return notify(error.message, 'error');
       notify('Estado actualizado.', 'success');
       load();
     }
-    async function archiveProduct(event) {
+    async function archiveProduct(event: Event) {
       if (!confirm('¿Archivar este paquete?')) return;
-      const { error } = await adminSupabase.from('products').update({ status: 'archived', is_active: false }).eq('id', event.currentTarget.dataset.delete);
+      const { error } = await adminSupabase.from('products').update({ status: 'archived', is_active: false }).eq('id', (event.currentTarget as HTMLElement).dataset.delete);
       if (error) return notify(error.message, 'error');
       notify('Paquete archivado.', 'success');
       load();

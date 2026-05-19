@@ -127,18 +127,18 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
   <script>
     import { adminSupabase, notify, slugify } from '@/lib/admin-client';
 
-    const form = document.querySelector('#regionForm');
+    const form = document.querySelector('#regionForm') as HTMLFormElement | null;
     const rows = document.querySelector('#rows');
 
     let regions = [];
 
-    function getFieldValue(name) {
-      const field = form.querySelector(`[name="${name}"]`);
+    function getFieldValue(name: string) {
+      const field = form?.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
       return field?.value || field?.textContent || '';
     }
 
-    function setFieldValue(name, value = '') {
-      const field = form.querySelector(`[name="${name}"]`);
+    function setFieldValue(name: string, value = '') {
+      const field = form?.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
 
       if (!field) return;
 
@@ -153,13 +153,13 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       field.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    function updateMediaPickers(fields) {
+    function updateMediaPickers(fields: Record<string, unknown>) {
       document.dispatchEvent(new CustomEvent('media-picker:update', {
         detail: { fields },
       }));
     }
 
-    function imageCell(region) {
+    function imageCell(region: Record<string, string>) {
       const imageUrl = region.card_image_url || region.hero_image_url || '';
 
       if (!imageUrl) {
@@ -182,7 +182,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       `;
     }
 
-    function setForm(region = {}) {
+    function setForm(region: Record<string, any> = {}) {
       setFieldValue('id', region.id || '');
       setFieldValue('name', region.name || '');
       setFieldValue('slug', region.slug || '');
@@ -199,7 +199,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
         hero_image_url: region.hero_image_url || '',
       });
 
-      form.elements.is_active.checked = region.is_active ?? true;
+      (form!.elements as any).is_active.checked = region.is_active ?? true;
 
       document.querySelector('#formTitle').textContent = region.id
         ? 'Editar región'
@@ -245,14 +245,14 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
 
       document.querySelectorAll('[data-edit]').forEach((btn) => {
         btn.addEventListener('click', () => {
-          const region = regions.find((r) => r.id === btn.dataset.edit);
+          const region = regions.find((r) => r.id === (btn as HTMLElement).dataset.edit);
           setForm(region);
         });
       });
 
       document.querySelectorAll('[data-toggle]').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          const region = regions.find((r) => r.id === btn.dataset.toggle);
+          const region = regions.find((r) => r.id === (btn as HTMLElement).dataset.toggle);
 
           if (!region) return;
 
@@ -288,9 +288,10 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       render();
     }
 
-    form.elements.name.addEventListener('input', () => {
-      if (!form.elements.slug.value) {
-        form.elements.slug.value = slugify(form.elements.name.value);
+    const formEls = form!.elements as any;
+    formEls.name.addEventListener('input', () => {
+      if (!formEls.slug.value) {
+        formEls.slug.value = slugify(formEls.name.value);
       }
     });
 
@@ -301,7 +302,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      const data = new FormData(form);
+      const data = new FormData(form as HTMLFormElement);
       const id = data.get('id');
 
       const cardImageUrl = getFieldValue('card_image_url');

@@ -215,14 +215,14 @@ const groupedRegions = regionOrder
     const region = regions.find((item) => item.slug === slug);
 
     const places = destinations
-      .filter((item) => item.region === slug || item.regionSlug === slug)
+      .filter((item) => item.region === slug || (item as any).regionSlug === slug)
       .slice(0, 5);
 
     const productsByRegion = allProducts
       .filter((product) => {
         return (
           product.region === slug ||
-          product.destinationRegions?.includes(slug) ||
+          product.destinationRegions?.includes(slug as any) ||
           places.some((place) => product.destinationSlugs?.includes(place.slug)) ||
           places.some((place) => product.destinations?.includes(place.name))
         );
@@ -679,8 +679,8 @@ const groupedRegions = regionOrder
       mega.addEventListener('click', (event) => event.stopPropagation());
     });
 
-    const destinationTabs = document.querySelectorAll('.destination-tab');
-    const destinationRegions = document.querySelectorAll('.destination-region');
+    const destinationTabs = document.querySelectorAll<HTMLButtonElement>('.destination-tab');
+    const destinationRegions = document.querySelectorAll<HTMLElement>('.destination-region');
 
     function activateDestinationTab(key) {
       destinationTabs.forEach((tab) => {
@@ -750,3 +750,6 @@ const groupedRegions = regionOrder
     );
   </script>
 </header>
+
+
+

@@ -1,12 +1,37 @@
 ---
-export const prerender = false;
+export const prerender = true;
+
+import { supabase } from '@/lib/supabase';
 
 import AdminLayout from '@/components/admin/AdminLayout.astro';
 import MediaPicker from '@/components/admin/MediaPicker.astro';
 import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
 import './ProductEditor.scss';
 
+export async function getStaticPaths() {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('products')
+    .select('id')
+    .order('created_at', { ascending: false });
+
+  if (error || !data) {
+    console.error(error);
+    return [];
+  }
+
+  return data.map((product) => ({
+    params: {
+      id: String(product.id),
+    },
+  }));
+}
+
 const { id } = Astro.params;
+
 const translationLocales = ['en', 'pt', 'fr'];
 
 const translationLabels = {
@@ -414,17 +439,17 @@ const translationLabels = {
   <script>
     import { adminSupabase, notify, slugify, lines, csv, toNumber } from '@/lib/admin-client';
 
-    const form = document.querySelector('#productForm');
-    const productId = document.querySelector('[data-product-id]')?.dataset.productId || '';
+    const form = document.querySelector('#productForm') as HTMLFormElement | null;
+    const productId = (document.querySelector('[data-product-id]') as HTMLElement | null)?.dataset.productId || '';
     const defaultType = new URLSearchParams(window.location.search).get('type') || 'package';
     const translationLocales = ['en', 'pt', 'fr'];
 
     let destinations = [];
     let categories = [];
-    let current = null;
+    let current: any = null;
 
-    function setValue(name, value) {
-      const field = form.elements[name];
+    function setValue(name: string, value: any) {
+      const field = (form!.elements as any)[name] as HTMLInputElement | null;
 
       if (!field) return;
 
@@ -444,25 +469,25 @@ const translationLabels = {
       field.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    function getFieldValue(name) {
-      const field = form.querySelector(`[name="${name}"]`);
+    function getFieldValue(name: string) {
+      const field = form?.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
       return field?.value || field?.textContent || '';
     }
 
-    function updateMediaPickers(fields) {
+    function updateMediaPickers(fields: Record<string, string>) {
       document.dispatchEvent(new CustomEvent('media-picker:update', {
         detail: { fields },
       }));
     }
 
-    function updateGalleryPickers(fields) {
+    function updateGalleryPickers(fields: Record<string, string>) {
       document.dispatchEvent(new CustomEvent('gallery-picker:update', {
         detail: { fields },
       }));
     }
 
-    function getChecked(name) {
-      return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((item) => item.value);
+    function getChecked(name: string) {
+      return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((item) => (item as HTMLInputElement).value);
     }
 
     function renderChecks() {
@@ -485,7 +510,7 @@ const translationLabels = {
         .join('');
     }
 
-    function renderSelects(regions) {
+    function renderSelects(regions: any[]) {
       document.querySelector('#regionSelect').innerHTML =
         '<option value="">Seleccionar</option>' +
         regions.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
@@ -495,7 +520,7 @@ const translationLabels = {
         destinations.map((d) => `<option value="${d.id}">${d.name}</option>`).join('');
     }
 
-    function setTranslationValues(product) {
+    function setTranslationValues(product: any) {
       const translations = product.product_translations || [];
 
       translationLocales.forEach((lang) => {
@@ -514,7 +539,7 @@ const translationLabels = {
       });
     }
 
-    function setChildTranslationValues(product) {
+    function setChildTranslationValues(product: any) {
       const itinerary = product.product_itinerary_days || [];
       const inclusions = product.product_inclusions || [];
       const faqs = product.product_faqs || [];
@@ -542,7 +567,7 @@ const translationLabels = {
 
         setValue(`translation_${lang}_itinerary_text`, itineraryText);
 
-        const setInclusionTranslationText = (type, fieldName) => {
+        const setInclusionTranslationText = (type: string, fieldName: string) => {
           const text = inclusions
             .filter((item) => item.item_type === type)
             .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
@@ -580,7 +605,7 @@ const translationLabels = {
       });
     }
 
-    function productToForm(product) {
+    function productToForm(product: any) {
       current = product;
 
       for (const [key, value] of Object.entries(product)) {
@@ -598,11 +623,11 @@ const translationLabels = {
       const destIds = (product.product_destinations || []).map((item) => item.destination_id);
       const catIds = (product.product_categories || []).map((item) => item.category_id);
 
-      document.querySelectorAll('input[name="destinations"]').forEach((item) => {
+      (document.querySelectorAll('input[name="destinations"]') as NodeListOf<HTMLInputElement>).forEach((item) => {
         item.checked = destIds.includes(item.value);
       });
 
-      document.querySelectorAll('input[name="categories"]').forEach((item) => {
+      (document.querySelectorAll('input[name="categories"]') as NodeListOf<HTMLInputElement>).forEach((item) => {
         item.checked = catIds.includes(item.value);
       });
 
@@ -710,13 +735,14 @@ const translationLabels = {
       }
     }
 
-    form.elements.title?.addEventListener('input', () => {
-      if (!productId && !form.elements.slug.value) {
-        form.elements.slug.value = slugify(form.elements.title.value);
+    const formEls = form!.elements as any;
+    formEls.title?.addEventListener('input', () => {
+      if (!productId && !formEls.slug.value) {
+        formEls.slug.value = slugify(formEls.title.value);
       }
     });
 
-    async function replaceChildren(table, product_id, rows) {
+    async function replaceChildren(table: any, product_id: any, rows: any[]) {
       await adminSupabase.from(table).delete().eq('product_id', product_id);
 
       if (!rows.length) return { error: null };
@@ -724,7 +750,7 @@ const translationLabels = {
       return adminSupabase.from(table).insert(rows);
     }
 
-    async function replaceChildrenReturning(table, product_id, rows) {
+    async function replaceChildrenReturning(table: any, product_id: any, rows: any[]) {
       await adminSupabase.from(table).delete().eq('product_id', product_id);
 
       if (!rows.length) return { data: [], error: null };
@@ -737,7 +763,7 @@ const translationLabels = {
       return { data, error };
     }
 
-    function buildTranslationRows(productId, formData) {
+    function buildTranslationRows(productId: any, formData: any) {
       return translationLocales
         .map((locale) => {
           const fields = {
@@ -776,7 +802,7 @@ const translationLabels = {
         .filter(Boolean);
     }
 
-    async function saveProductTranslations(productId, formData) {
+    async function saveProductTranslations(productId: any, formData: any) {
       const rows = buildTranslationRows(productId, formData);
 
       const { error: deleteError } = await adminSupabase
@@ -796,7 +822,7 @@ const translationLabels = {
         });
     }
 
-    function buildTranslatedItineraryRows(formData, itineraryRows) {
+    function buildTranslatedItineraryRows(formData: any, itineraryRows: any[]) {
       const rows = [];
 
       translationLocales.forEach((locale) => {
@@ -806,7 +832,7 @@ const translationLabels = {
           const baseDay = itineraryRows[index];
           if (!baseDay) return;
 
-          const [day, title, description, meals, accommodation, activities] = line
+          const [_day, title, description, meals, accommodation, activities] = line
             .split('|')
             .map((value) => value?.trim() || '');
 
@@ -829,7 +855,7 @@ const translationLabels = {
       return rows;
     }
 
-    function buildTranslatedInclusionRows(formData, inclusionRows) {
+    function buildTranslatedInclusionRows(formData: any, inclusionRows: any[]) {
       const rows = [];
 
       const configs = [
@@ -864,7 +890,7 @@ const translationLabels = {
       return rows;
     }
 
-    function buildTranslatedFaqRows(formData, faqRows) {
+    function buildTranslatedFaqRows(formData: any, faqRows: any[]) {
       const rows = [];
 
       translationLocales.forEach((locale) => {
@@ -890,7 +916,7 @@ const translationLabels = {
       return rows;
     }
 
-    async function saveChildTranslations(formData, itineraryRows, inclusionRows, faqRows) {
+    async function saveChildTranslations(formData: any, itineraryRows: any[], inclusionRows: any[], faqRows: any[]) {
       const itineraryTranslations = buildTranslatedItineraryRows(formData, itineraryRows);
       const inclusionTranslations = buildTranslatedInclusionRows(formData, inclusionRows);
       const faqTranslations = buildTranslatedFaqRows(formData, faqRows);
@@ -961,7 +987,7 @@ const translationLabels = {
     form?.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      const data = new FormData(form);
+      const data = new FormData(form as HTMLFormElement);
 
       const cardImageUrl = getFieldValue('card_image_url');
       const heroImageUrl = getFieldValue('hero_image_url');
@@ -1001,7 +1027,7 @@ const translationLabels = {
         updated_at: new Date().toISOString(),
       };
 
-      let saved;
+      let saved: any;
 
       if (productId) {
         const { data: updated, error } = await adminSupabase
@@ -1164,14 +1190,14 @@ const translationLabels = {
 
     document.querySelectorAll('[data-lang-tab]').forEach((tab) => {
       tab.addEventListener('click', () => {
-        const lang = tab.dataset.langTab;
+        const lang = (tab as HTMLElement).dataset.langTab;
 
         document.querySelectorAll('[data-lang-tab]').forEach((item) => {
-          item.classList.toggle('is-active', item.dataset.langTab === lang);
+          item.classList.toggle('is-active', (item as HTMLElement).dataset.langTab === lang);
         });
 
         document.querySelectorAll('[data-lang-panel]').forEach((panel) => {
-          panel.classList.toggle('is-active', panel.dataset.langPanel === lang);
+          panel.classList.toggle('is-active', (panel as HTMLElement).dataset.langPanel === lang);
         });
       });
     });
