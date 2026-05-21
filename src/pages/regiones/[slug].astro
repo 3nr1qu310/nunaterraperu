@@ -13,10 +13,7 @@ import {
 
 import './RegionDetail.scss';
 
-export async function getStaticPaths() {
-  const regions = await getRegions();
-  return regions.map((r) => ({ params: { slug: r.slug } }));
-}
+export const prerender = false;
 
 const slug = Astro.params.slug || '';
 

@@ -6,6 +6,8 @@ import DestinationCard from '@/components/cards/DestinationCard.astro';
 import { getRegions, getDestinations } from '@/lib/content';
 import './Destinos.scss';
 
+export const prerender = false;
+
 const regions = await getRegions();
 const destinations = await getDestinations();
 

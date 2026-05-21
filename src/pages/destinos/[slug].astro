@@ -14,15 +14,7 @@ import {
 
 import './DetalleDestino.scss';
 
-export async function getStaticPaths() {
-  const destinations = await getDestinations();
-
-  return destinations.map((destination) => ({
-    params: {
-      slug: destination.slug,
-    },
-  }));
-}
+export const prerender = false;
 
 const slug = Astro.params.slug || '';
 

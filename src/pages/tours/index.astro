@@ -5,6 +5,8 @@ import { getTours, getTravelCategories } from '@/lib/content';
 import { site } from '@/lib/site';
 import './TourIndex.scss';
 
+export const prerender = false;
+
 const tours = await getTours();
 const allCategories = await getTravelCategories();
 

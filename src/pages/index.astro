@@ -12,6 +12,8 @@ import HomeReveal from '@/components/home/HomeReveal.astro';
 import { getRegions, getDestinations, getPackages, getTours, getTravelCategories } from '@/lib/content';
 import { site } from '@/lib/site';
 
+export const prerender = false;
+
 const [regions, destinations, packages, tours, travelCategories] = await Promise.all([
   getRegions(),
   getDestinations(),

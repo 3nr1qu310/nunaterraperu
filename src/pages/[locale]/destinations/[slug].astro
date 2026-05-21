@@ -13,13 +13,7 @@ import {
 } from '@/lib/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 
-export async function getStaticPaths() {
-  const locales = ['en', 'pt', 'fr'];
-  const destinations = await getDestinations();
-  return locales.flatMap((locale) =>
-    destinations.map((d) => ({ params: { locale, slug: d.slug } }))
-  );
-}
+export const prerender = false;
 
 const localeParam = Astro.params.locale;
 const slug = Astro.params.slug || '';

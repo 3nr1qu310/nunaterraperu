@@ -15,15 +15,7 @@ import {
 
 import './Categoria.scss';
 
-export async function getStaticPaths() {
-  const categories = await getTravelCategories();
-
-  return categories.map((category) => ({
-    params: {
-      slug: category.slug,
-    },
-  }));
-}
+export const prerender = false;
 
 const { slug = '' } = Astro.params;
 

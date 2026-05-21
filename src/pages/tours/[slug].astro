@@ -6,10 +6,7 @@ import { getTours, getProductBySlug, getRelatedProducts, getTravelCategories, ge
 import { site } from '@/lib/site';
 import './TourDetail.scss';
 
-export async function getStaticPaths() {
-  const tours = await getTours();
-  return tours.map((t) => ({ params: { slug: t.slug } }));
-}
+export const prerender = false;
 
 const slug = Astro.params.slug || '';
 const product = await getProductBySlug(slug, 'tour');

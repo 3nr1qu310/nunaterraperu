@@ -6,13 +6,7 @@ import ProductCard from '@/components/cards/ProductCard.astro';
 import { getProductBySlug, getPackages } from '@/lib/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 
-export async function getStaticPaths() {
-  const locales = ['en', 'pt', 'fr'];
-  const packages = await getPackages();
-  return locales.flatMap((locale) =>
-    packages.map((p) => ({ params: { locale, slug: p.slug } }))
-  );
-}
+export const prerender = false;
 
 const localeParam = Astro.params.locale;
 const slug = Astro.params.slug || '';

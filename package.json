@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@astrojs/check": "latest",
+    "@astrojs/cloudflare": "13.5.4",
     "@astrojs/node": "latest",
     "@astrojs/sitemap": "latest",
     "@inlang/paraglide-js": "^2.18.0",

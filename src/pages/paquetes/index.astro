@@ -5,6 +5,8 @@ import { getPackages, getTravelCategories } from '@/lib/content';
 import { travelCategories as mockCategories } from '@/data/categories';
 import type { TravelCategory, ProductExtended } from '@/types/content';
 
+export const prerender = false;
+
 const allPackages = await getPackages();
 const dbCategories = await getTravelCategories();
 const categories: TravelCategory[] = dbCategories.length ? dbCategories : mockCategories;

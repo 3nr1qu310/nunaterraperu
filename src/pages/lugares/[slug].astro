@@ -11,10 +11,7 @@ import {
 
 import './LugarDetail.scss';
 
-export async function getStaticPaths() {
-  const places = await getAllPlaces();
-  return places.map((p) => ({ params: { slug: p.slug } }));
-}
+export const prerender = false;
 
 const slug = Astro.params.slug || '';
 

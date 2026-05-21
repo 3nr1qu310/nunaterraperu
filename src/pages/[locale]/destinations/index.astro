@@ -7,13 +7,7 @@ import { getRegions, getDestinations } from '@/lib/content';
 import { isLocale, type Locale } from '@/lib/i18n';
 import '../../destinos/Destinos.scss';
 
-export function getStaticPaths() {
-  return [
-    { params: { locale: 'en' } },
-    { params: { locale: 'pt' } },
-    { params: { locale: 'fr' } },
-  ];
-}
+export const prerender = false;
 
 const localeParam = Astro.params.locale;
 
