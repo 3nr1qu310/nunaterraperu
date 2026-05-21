@@ -1,4 +1,9 @@
 ---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import { isLocale, type Locale } from '@/lib/i18n';
+
 export function getStaticPaths() {
   return [
     { params: { locale: 'en' } },
@@ -6,4 +11,144 @@ export function getStaticPaths() {
     { params: { locale: 'fr' } },
   ];
 }
+
+const localeParam = Astro.params.locale;
+
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/nosotros');
+}
+
+const locale = localeParam as Locale;
+
+const copy = {
+  en: {
+    pageTitle: 'About us | Nuna Terra Perú',
+    heroEyebrow: 'About Nuna Terra Perú',
+    heroTitle: 'Soulful journeys throughout Peru',
+    heroSubtitle: 'At Nuna Terra Perú we design travel experiences that connect culture, nature and territory, accompanying every traveler before, during and after their journey.',
+    heroPrimary: 'Design my trip',
+    heroSecondary: 'Explore packages',
+    essenceTitle: 'Our essence',
+    essenceSubtitle: 'Nuna Terra Perú was born with the idea of showing the country from a deeper, closer and more authentic perspective.',
+    essenceP1: 'We believe that traveling through Peru is not just about visiting destinations, but connecting with its history, landscapes, living culture and the people who give meaning to every experience.',
+    essenceP2: '<b>Nuna</b> is associated with the soul or essence, and <b>Terra</b> represents the land, the territory and the routes that cross the coast, highlands and jungle.',
+    servicesTitle: 'We design travel experiences across Peru',
+    services: ['Travel packages', 'Tours', 'Tailor-made trips', 'Pre-trip advice'],
+    serviceDesc: 'Clear organization, personalized attention and experiences with meaning.',
+    commitTitle: 'Our commitment',
+    commitSubtitle: 'To provide clear information, personalized guidance and responsibly organized experiences.',
+    commitCta: 'Design my trip',
+    contactHref: '/en/contact',
+    packagesHref: '/en/packages',
+  },
+  pt: {
+    pageTitle: 'Sobre nós | Nuna Terra Perú',
+    heroEyebrow: 'Sobre a Nuna Terra Perú',
+    heroTitle: 'Viagens com alma por todo o Peru',
+    heroSubtitle: 'Na Nuna Terra Perú desenhamos experiências de viagem que conectam cultura, natureza e território, acompanhando cada viajante antes, durante e depois da sua jornada.',
+    heroPrimary: 'Desenhar minha viagem',
+    heroSecondary: 'Explorar pacotes',
+    essenceTitle: 'Nossa essência',
+    essenceSubtitle: 'A Nuna Terra Perú nasceu com a ideia de mostrar o país a partir de uma perspectiva mais profunda, próxima e autêntica.',
+    essenceP1: 'Acreditamos que viajar pelo Peru não é apenas visitar destinos, mas conectar-se com sua história, suas paisagens, sua cultura viva e as pessoas que dão sentido a cada experiência.',
+    essenceP2: '<b>Nuna</b> está associado à alma ou essência, e <b>Terra</b> representa a terra, o território e os caminhos que percorrem a costa, a serra e a selva.',
+    servicesTitle: 'Desenhamos experiências de viagem pelo Peru',
+    services: ['Pacotes turísticos', 'Tours', 'Viagens sob medida', 'Assessoria pré-viagem'],
+    serviceDesc: 'Organização clara, atenção personalizada e experiências com sentido.',
+    commitTitle: 'Nosso compromisso',
+    commitSubtitle: 'Oferecer informação clara, orientação personalizada e experiências organizadas com responsabilidade.',
+    commitCta: 'Desenhar minha viagem',
+    contactHref: '/pt/contact',
+    packagesHref: '/pt/packages',
+  },
+  fr: {
+    pageTitle: 'À propos | Nuna Terra Perú',
+    heroEyebrow: 'À propos de Nuna Terra Perú',
+    heroTitle: 'Des voyages avec âme à travers tout le Pérou',
+    heroSubtitle: 'Chez Nuna Terra Perú nous créons des expériences de voyage qui connectent culture, nature et territoire, en accompagnant chaque voyageur avant, pendant et après son périple.',
+    heroPrimary: 'Créer mon voyage',
+    heroSecondary: 'Explorer les forfaits',
+    essenceTitle: 'Notre essence',
+    essenceSubtitle: 'Nuna Terra Perú est née avec l\'idée de montrer le pays sous un regard plus profond, plus proche et plus authentique.',
+    essenceP1: 'Nous croyons que voyager au Pérou ne consiste pas seulement à visiter des destinations, mais à se connecter à son histoire, ses paysages, sa culture vivante et les personnes qui donnent un sens à chaque expérience.',
+    essenceP2: '<b>Nuna</b> est associé à l\'âme ou l\'essence, et <b>Terra</b> représente la terre, le territoire et les chemins qui traversent la côte, les Andes et l\'Amazonie.',
+    servicesTitle: 'Nous créons des expériences de voyage à travers le Pérou',
+    services: ['Forfaits touristiques', 'Tours', 'Voyages sur mesure', 'Conseil avant le voyage'],
+    serviceDesc: 'Organisation claire, attention personnalisée et expériences avec du sens.',
+    commitTitle: 'Notre engagement',
+    commitSubtitle: 'Fournir des informations claires, des conseils personnalisés et des expériences organisées de manière responsable.',
+    commitCta: 'Créer mon voyage',
+    contactHref: '/fr/contact',
+    packagesHref: '/fr/packages',
+  },
+}[locale];
 ---
+
+<BaseLayout title={copy.pageTitle} description={copy.heroSubtitle}>
+  <Hero
+    eyebrow={copy.heroEyebrow}
+    title={copy.heroTitle}
+    subtitle={copy.heroSubtitle}
+    image="/images/about-hero.jpg"
+    primaryText={copy.heroPrimary}
+    primaryHref={copy.contactHref}
+    secondaryText={copy.heroSecondary}
+    secondaryHref={copy.packagesHref}
+  />
+
+  <section class="section">
+    <div class="container two">
+      <div>
+        <SectionHeading title={copy.essenceTitle} subtitle={copy.essenceSubtitle} />
+        <p>{copy.essenceP1}</p>
+        <p set:html={copy.essenceP2} />
+      </div>
+      <img src="/images/about-essence.jpg" alt="Cultura peruana" />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionHeading title={copy.servicesTitle} centered />
+      <div class="grid grid--4">
+        {copy.services.map((item) => (
+          <div class="card" style="padding:24px">
+            <h3 class="h3" style="font-size:1.5rem">{item}</h3>
+            <p>{copy.serviceDesc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="container">
+      <SectionHeading title={copy.commitTitle} subtitle={copy.commitSubtitle} />
+      <a class="btn btn--gold" href={copy.contactHref}>{copy.commitCta}</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style lang="scss">
+  .two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .two img {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+  }
+  .dark {
+    background: var(--color-earth);
+    color: var(--color-ivory);
+  }
+  .dark .h2,
+  .dark .lead {
+    color: var(--color-ivory);
+  }
+  @media (max-width: 800px) {
+    .two { grid-template-columns: 1fr; }
+  }
+</style>

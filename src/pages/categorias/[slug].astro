@@ -4,6 +4,7 @@ import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
 import DestinationCard from '@/components/cards/DestinationCard.astro';
 import HomeReveal from '@/components/home/HomeReveal.astro';
+import LucideIcon from '@/components/cards/LucideIcon.astro';
 
 import {
   getTravelCategories,
@@ -16,13 +17,18 @@ import './Categoria.scss';
 
 export async function getStaticPaths() {
   const categories = await getTravelCategories();
-  return categories.map((c) => ({ params: { slug: c.slug } }));
+
+  return categories.map((category) => ({
+    params: {
+      slug: category.slug,
+    },
+  }));
 }
 
 const { slug = '' } = Astro.params;
 
 const categories = await getTravelCategories();
-const category = categories.find((c) => c.slug === slug);
+const category = categories.find((item) => item.slug === slug);
 
 if (!category) {
   return Astro.redirect('/');
@@ -34,106 +40,319 @@ const [packages, tours, allDestinations] = await Promise.all([
   getDestinations(),
 ]);
 
-// Destinations that appear in at least one product of this category
+const relatedProducts = [...packages, ...tours];
+
 const relevantSlugs = new Set([
-  ...packages.flatMap((p) => p.destinationSlugs ?? []),
-  ...tours.flatMap((p) => p.destinationSlugs ?? []),
+  ...packages.flatMap((product) => product.destinationSlugs ?? []),
+  ...tours.flatMap((product) => product.destinationSlugs ?? []),
 ]);
 
-const relatedDestinations = allDestinations.filter((d) =>
-  relevantSlugs.has(d.slug)
+const relatedDestinations = allDestinations.filter((destination) =>
+  relevantSlugs.has(destination.slug)
 );
+
+const heroImage =
+  category.heroImage ||
+  category.cardImage ||
+  relatedProducts[0]?.heroImage ||
+  relatedProducts[0]?.cardImage ||
+  relatedDestinations[0]?.heroImage ||
+  relatedDestinations[0]?.cardImage ||
+  '/images/placeholders/destination-placeholder.jpg';
+
+const cardImage =
+  category.cardImage ||
+  category.heroImage ||
+  relatedProducts[0]?.cardImage ||
+  heroImage;
+
+const featuredPackages = packages.slice(0, 6);
+const featuredTours = tours.slice(0, 8);
+const featuredDestinations = relatedDestinations.slice(0, 8);
+
+const stats = [
+  { label: 'Paquetes', value: packages.length },
+  { label: 'Tours', value: tours.length },
+  { label: 'Destinos', value: relatedDestinations.length },
+].filter((item) => item.value > 0);
+
+const galleryRaw = [
+  {
+    imageUrl: heroImage,
+    title: category.name,
+    label: 'Estilo de viaje',
+  },
+  {
+    imageUrl: cardImage,
+    title: category.description || category.name,
+    label: 'Inspiración',
+  },
+  ...relatedDestinations.flatMap((destination) => [
+    {
+      imageUrl: destination.heroImage,
+      title: destination.name,
+      label: 'Destino',
+    },
+    {
+      imageUrl: destination.cardImage,
+      title: destination.subtitle || destination.name,
+      label: 'Destino',
+    },
+  ]),
+  ...relatedProducts.flatMap((product) => [
+    {
+      imageUrl: product.heroImage,
+      title: product.title,
+      label: product.type === 'package' ? 'Paquete' : 'Tour',
+    },
+    {
+      imageUrl: product.cardImage,
+      title: product.subtitle || product.title,
+      label: product.type === 'package' ? 'Paquete' : 'Tour',
+    },
+    ...((product.gallery || []).map((image) => ({
+      imageUrl: image.imageUrl,
+      title: image.caption || product.title,
+      label: product.type === 'package' ? 'Paquete' : 'Tour',
+    }))),
+  ]),
+];
+
+const seenImages = new Set<string>();
+
+const gallery = galleryRaw
+  .filter((item) => {
+    if (!item.imageUrl) return false;
+    if (seenImages.has(item.imageUrl)) return false;
+
+    seenImages.add(item.imageUrl);
+    return true;
+  })
+  .slice(0, 8);
+
+const hasContent =
+  packages.length > 0 ||
+  tours.length > 0 ||
+  relatedDestinations.length > 0;
+
+const iconName = category.icon || '';
+const isEmojiIcon = iconName && !/^[a-zA-Z0-9-]+$/.test(iconName);
 ---
 
 <BaseLayout
   title={`${category.name} | Estilos de viaje | Nuna Terra Perú`}
   description={category.description || `Paquetes, tours y destinos de viaje ${category.name.toLowerCase()} en el Perú.`}
 >
-  <!-- HERO -->
   <section class="cat-hero">
+    <img
+      src={heroImage}
+      alt={category.name}
+      class="cat-hero__bg"
+      loading="eager"
+      fetchpriority="high"
+    />
+
+    <div class="cat-hero__overlay"></div>
+    <div class="cat-hero__grain" aria-hidden="true"></div>
+
     <div class="container cat-hero__inner">
-      {category.icon && (
-        <span class="cat-hero__icon" aria-hidden="true">{category.icon}</span>
-      )}
-      <p class="cat-hero__eyebrow">Estilo de viaje</p>
-      <h1 class="cat-hero__title">{category.name}</h1>
-      {category.description && (
-        <p class="cat-hero__desc">{category.description}</p>
-      )}
+      <div class="cat-hero__content reveal">
+        <div class="cat-hero__badge">
+          {category.icon && (
+            <span class="cat-hero__icon" aria-hidden="true">
+              {isEmojiIcon ? category.icon : <LucideIcon name={category.icon} />}
+            </span>
+          )}
+          <span>Estilo de viaje</span>
+        </div>
+
+        <h1 class="cat-hero__title">{category.name}</h1>
+
+        {category.description && (
+          <p class="cat-hero__desc">{category.description}</p>
+        )}
+
+        <div class="cat-hero__actions">
+          {packages.length > 0 && (
+            <a href="#paquetes" class="cat-btn cat-btn--primary">
+              Ver paquetes
+            </a>
+          )}
+
+          {tours.length > 0 && (
+            <a href="#tours" class="cat-btn cat-btn--ghost">
+              Ver tours
+            </a>
+          )}
+        </div>
+      </div>
+
+      <aside class="cat-hero__visual reveal">
+        <div class="cat-hero__image-card">
+          <img src={cardImage} alt={category.name} loading="eager" />
+          <div class="cat-hero__image-caption">
+            <span>Nuna Terra Perú</span>
+            <strong>{category.name}</strong>
+          </div>
+        </div>
+
+        {stats.length > 0 && (
+          <div class="cat-hero__stats">
+            {stats.map((item) => (
+              <div class="cat-hero__stat">
+                <strong>{item.value}</strong>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </aside>
     </div>
   </section>
 
-  <!-- PACKAGES -->
+  {hasContent && (
+    <section class="cat-intro">
+      <div class="container cat-intro__grid">
+        <div class="cat-intro__copy reveal">
+          <span class="cat-kicker">Experiencias relacionadas</span>
+          <h2>Viajes diseñados desde este estilo</h2>
+          <p>
+            Esta selección reúne paquetes, tours y destinos que conectan con el tipo
+            de experiencia que buscas. La idea no es solo elegir un lugar, sino vivir
+            el Perú con una intención clara.
+          </p>
+        </div>
+
+        <div class="cat-intro__panel reveal">
+          <span>Disponible en</span>
+          <div class="cat-intro__chips">
+            {packages.length > 0 && <a href="#paquetes">Paquetes</a>}
+            {tours.length > 0 && <a href="#tours">Tours</a>}
+            {relatedDestinations.length > 0 && <a href="#destinos">Destinos</a>}
+            {gallery.length > 2 && <a href="#galeria">Galería</a>}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
   {packages.length > 0 && (
-    <section class="cat-section cat-section--alt">
+    <section class="cat-section cat-section--packages" id="paquetes">
       <div class="container">
-        <div class="reveal">
+        <div class="cat-section__head reveal">
           <SectionHeading
             eyebrow="Paquetes"
             title={`Paquetes ${category.name}`}
             subtitle={`Rutas completas pensadas para vivir el Perú en clave ${category.name.toLowerCase()}.`}
             align="left"
           />
+
+          <div class="cat-section__controls">
+            <button type="button" class="cat-arrow" data-cat-prev="packages" aria-label="Ver paquetes anteriores">←</button>
+            <button type="button" class="cat-arrow" data-cat-next="packages" aria-label="Ver más paquetes">→</button>
+          </div>
         </div>
-        <div class="cat-scroll reveal" style="transition-delay:0.1s">
-          {packages.map((product) => (
-            <div class="cat-scroll__item">
-              <ProductCard product={product} />
-            </div>
-          ))}
+
+        <div class="cat-carousel reveal" data-cat-carousel="packages">
+          <div class="cat-carousel__track" data-cat-track>
+            {featuredPackages.map((product, index) => (
+              <article class={`cat-carousel__slide ${index === 0 ? 'is-featured' : ''}`}>
+                <ProductCard product={product} />
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
   )}
 
-  <!-- TOURS -->
   {tours.length > 0 && (
-    <section class="cat-section">
+    <section class="cat-section cat-section--tours" id="tours">
       <div class="container">
-        <div class="reveal">
+        <div class="cat-section__head cat-section__head--dark reveal">
           <SectionHeading
             eyebrow="Tours"
             title={`Tours ${category.name}`}
             subtitle={`Experiencias de uno o dos días para descubrir el Perú en su versión más ${category.name.toLowerCase()}.`}
             align="left"
+            theme="dark"
           />
+
+          <div class="cat-section__controls">
+            <button type="button" class="cat-arrow cat-arrow--dark" data-cat-prev="tours" aria-label="Ver tours anteriores">←</button>
+            <button type="button" class="cat-arrow cat-arrow--dark" data-cat-next="tours" aria-label="Ver más tours">→</button>
+          </div>
         </div>
-        <div class="cat-scroll reveal" style="transition-delay:0.1s">
-          {tours.map((product) => (
-            <div class="cat-scroll__item">
-              <ProductCard product={product} />
-            </div>
-          ))}
+
+        <div class="cat-carousel cat-carousel--dark reveal" data-cat-carousel="tours">
+          <div class="cat-carousel__track" data-cat-track>
+            {featuredTours.map((product, index) => (
+              <article class={`cat-carousel__slide ${index === 0 ? 'is-featured' : ''}`}>
+                <ProductCard product={product} />
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
   )}
 
-  <!-- DESTINATIONS -->
   {relatedDestinations.length > 0 && (
-    <section class="cat-section cat-section--dark">
+    <section class="cat-section cat-section--destinations" id="destinos">
       <div class="container">
-        <div class="reveal">
+        <div class="cat-section__head reveal">
           <SectionHeading
             eyebrow="Destinos"
             title={`Destinos para viajes ${category.name}`}
             subtitle="Los lugares del Perú donde viven las experiencias de este estilo de viaje."
             align="left"
-            theme="dark"
           />
+
+          <div class="cat-section__controls">
+            <button type="button" class="cat-arrow" data-cat-prev="destinations" aria-label="Ver destinos anteriores">←</button>
+            <button type="button" class="cat-arrow" data-cat-next="destinations" aria-label="Ver más destinos">→</button>
+          </div>
         </div>
-        <div class="cat-scroll reveal" style="transition-delay:0.1s">
-          {relatedDestinations.map((destination) => (
-            <div class="cat-scroll__item cat-scroll__item--dest">
-              <DestinationCard destination={destination} size="compact" />
-            </div>
+
+        <div class="cat-carousel cat-carousel--destinations reveal" data-cat-carousel="destinations">
+          <div class="cat-carousel__track" data-cat-track>
+            {featuredDestinations.map((destination, index) => (
+              <article class={`cat-carousel__slide cat-carousel__slide--destination ${index === 0 ? 'is-featured' : ''}`}>
+                <DestinationCard destination={destination} size="compact" />
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {gallery.length > 2 && (
+    <section class="cat-gallery" id="galeria">
+      <div class="container">
+        <div class="cat-gallery__head reveal">
+          <span class="cat-kicker">Galería</span>
+          <h2>Una mirada visual a {category.name}</h2>
+          <p>
+            Imágenes relacionadas con los destinos, paquetes y tours conectados a este estilo de viaje.
+          </p>
+        </div>
+
+        <div class="cat-gallery__grid reveal">
+          {gallery.map((item, index) => (
+            <figure class={`cat-gallery__item ${index === 0 ? 'is-large' : ''} ${index === 3 ? 'is-wide' : ''}`}>
+              <img src={item.imageUrl} alt={item.title || category.name} loading="lazy" />
+              <figcaption>
+                <span>{item.label}</span>
+                <strong>{item.title}</strong>
+              </figcaption>
+            </figure>
           ))}
         </div>
       </div>
     </section>
   )}
 
-  <!-- EMPTY STATE -->
   {packages.length === 0 && tours.length === 0 && (
     <section class="cat-section">
       <div class="container cat-empty reveal">
@@ -142,24 +361,85 @@ const relatedDestinations = allDestinations.filter((d) =>
           <br />
           Pronto agregaremos más opciones.
         </p>
-        <a href="/paquetes" class="cat-btn">Ver todos los paquetes →</a>
+        <a href="/paquetes" class="cat-btn cat-btn--primary">
+          Ver todos los paquetes
+        </a>
       </div>
     </section>
   )}
 
-  <!-- CTA -->
   <section class="cat-cta">
     <div class="container cat-cta__inner reveal">
-      <h2 class="cat-cta__title">¿Buscas algo diferente o a medida?</h2>
-      <p class="cat-cta__text">
-        Cuéntanos qué tipo de experiencia buscas y diseñamos una ruta personalizada para ti.
-      </p>
-      <div class="cat-cta__actions">
-        <a href="/contacto" class="cat-btn cat-btn--primary">Diseñar mi viaje</a>
-        <a href="/paquetes" class="cat-btn cat-btn--ghost">Ver todos los paquetes</a>
+      <div class="cat-cta__copy">
+        <span class="cat-kicker">Viaje a medida</span>
+        <h2 class="cat-cta__title">¿Buscas algo diferente o personalizado?</h2>
+      </div>
+
+      <div class="cat-cta__content">
+        <p class="cat-cta__text">
+          Cuéntanos qué tipo de experiencia buscas y diseñamos una ruta personalizada
+          según tus tiempos, intereses y forma de viajar.
+        </p>
+
+        <div class="cat-cta__actions">
+          <a href="/contacto" class="cat-btn cat-btn--primary">Diseñar mi viaje</a>
+          <a href="/paquetes" class="cat-btn cat-btn--ghost">Ver todos los paquetes</a>
+        </div>
       </div>
     </div>
   </section>
 
   <HomeReveal />
 </BaseLayout>
+
+<script>
+  const carousels = document.querySelectorAll<HTMLElement>('[data-cat-carousel]');
+
+  carousels.forEach((carousel) => {
+    const name = carousel.dataset.catCarousel;
+    const track = carousel.querySelector<HTMLElement>('[data-cat-track]');
+    const prev = document.querySelector<HTMLButtonElement>(`[data-cat-prev="${name}"]`);
+    const next = document.querySelector<HTMLButtonElement>(`[data-cat-next="${name}"]`);
+
+    if (!name || !track) return;
+
+    const getStep = () => {
+      const firstSlide = track.querySelector<HTMLElement>('.cat-carousel__slide');
+      if (!firstSlide) return 320;
+
+      const styles = window.getComputedStyle(track);
+      const gap = Number.parseFloat(styles.columnGap || styles.gap || '20');
+
+      return firstSlide.offsetWidth + gap;
+    };
+
+    const update = () => {
+      if (!prev || !next) return;
+
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const current = track.scrollLeft;
+
+      prev.disabled = current <= 4;
+      next.disabled = current >= maxScroll - 4;
+    };
+
+    prev?.addEventListener('click', () => {
+      track.scrollBy({
+        left: -getStep(),
+        behavior: 'smooth',
+      });
+    });
+
+    next?.addEventListener('click', () => {
+      track.scrollBy({
+        left: getStep(),
+        behavior: 'smooth',
+      });
+    });
+
+    track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+
+    update();
+  });
+</script>

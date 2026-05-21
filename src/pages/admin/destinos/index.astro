@@ -93,6 +93,35 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
         </div>
       </div>
 
+      <!-- Ubicación y mapa -->
+      <div class="admin-form-grid admin-form-grid--3" style="margin-top:14px">
+        <div class="admin-field">
+          <label>Latitud</label>
+          <input name="latitude" type="number" step="any" placeholder="-13.531950" />
+        </div>
+        <div class="admin-field">
+          <label>Longitud</label>
+          <input name="longitude" type="number" step="any" placeholder="-71.967463" />
+        </div>
+        <div class="admin-field"><!-- spacing --></div>
+      </div>
+      <div class="admin-form-grid" style="margin-top:14px">
+        <div class="admin-field">
+          <label>Posición X en mapa (px)</label>
+          <input name="map_x" type="number" step="any" placeholder="0" />
+        </div>
+        <div class="admin-field">
+          <label>Posición Y en mapa (px)</label>
+          <input name="map_y" type="number" step="any" placeholder="0" />
+        </div>
+      </div>
+      <div style="margin-top:14px;margin-bottom:14px">
+        <label class="check-item">
+          <input name="show_on_map" type="checkbox" checked />
+          Mostrar en el mapa interactivo
+        </label>
+      </div>
+
       <div class="admin-form-grid">
         <div class="admin-field">
           <label>SEO title</label>
@@ -163,6 +192,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
 
     function setForm(dest: Record<string, any> = {}) {
       const els = form!.elements as any;
+      slugManuallyEdited = !!dest.id;
       els.id.value = dest.id || '';
       els.name.value = dest.name || '';
       els.slug.value = dest.slug || '';
@@ -187,6 +217,11 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       els.best_time_to_visit.value = dest.best_time_to_visit || '';
       els.recommended_days.value = dest.recommended_days || '';
       els.ideal_for.value = (dest.ideal_for || []).join(', ');
+      els.latitude.value = dest.latitude ?? '';
+      els.longitude.value = dest.longitude ?? '';
+      els.map_x.value = dest.map_x ?? '';
+      els.map_y.value = dest.map_y ?? '';
+      els.show_on_map.checked = dest.show_on_map ?? true;
       els.sort_order.value = dest.sort_order ?? 0;
       els.seo_title.value = dest.seo_title || '';
       els.seo_description.value = dest.seo_description || '';
@@ -291,14 +326,22 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       render();
     }
 
+    let slugManuallyEdited = false;
+
     const formEls = form!.elements as any;
+
     formEls.name.addEventListener('input', () => {
-      if (!formEls.slug.value) {
+      if (!slugManuallyEdited) {
         formEls.slug.value = slugify(formEls.name.value);
       }
     });
 
+    formEls.slug.addEventListener('input', () => {
+      slugManuallyEdited = true;
+    });
+
     document.querySelector('#resetForm').addEventListener('click', () => {
+      slugManuallyEdited = false;
       setForm();
     });
 
@@ -310,10 +353,6 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
 
   const cardImageUrl = getImageValue('card_image_url');
   const heroImageUrl = getImageValue('hero_image_url');
-
-  console.log('CARD A GUARDAR:', cardImageUrl);
-  console.log('HERO A GUARDAR:', heroImageUrl);
-  console.log('ID A EDITAR:', id);
 
   const payload = {
     name: data.get('name'),
@@ -330,6 +369,11 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
     best_time_to_visit: data.get('best_time_to_visit') || null,
     recommended_days: data.get('recommended_days') || null,
     ideal_for: csv(String(data.get('ideal_for') || '')),
+    latitude: data.get('latitude') ? Number(data.get('latitude')) : null,
+    longitude: data.get('longitude') ? Number(data.get('longitude')) : null,
+    map_x: data.get('map_x') ? Number(data.get('map_x')) : null,
+    map_y: data.get('map_y') ? Number(data.get('map_y')) : null,
+    show_on_map: data.get('show_on_map') === 'on',
     sort_order: toNumber(data.get('sort_order')) || 0,
     seo_title: data.get('seo_title') || null,
     seo_description: data.get('seo_description') || null,
@@ -354,17 +398,8 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       .maybeSingle();
   }
 
-  if (result.error) {
-    console.error('ERROR SUPABASE:', result.error);
-    return notify(result.error.message, 'error');
-  }
-
-  if (!result.data) {
-    console.warn('No se actualizó ninguna fila. Revisa RLS, sesión de admin o el ID:', id);
-    return notify('No se actualizó el destino. Revisa permisos RLS o vuelve a iniciar sesión.', 'error');
-  }
-
-  console.log('DESTINO GUARDADO:', result.data);
+  if (result.error) return notify(result.error.message, 'error');
+  if (!result.data) return notify('No se actualizó el destino. Verifica permisos RLS.', 'error');
 
   notify('Destino guardado.', 'success');
 

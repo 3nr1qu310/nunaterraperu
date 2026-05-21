@@ -1,0 +1,435 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+import MediaPicker from '@/components/admin/MediaPicker.astro';
+---
+
+<AdminLayout title="Promociones | Admin">
+
+  <div class="admin-page-header">
+    <p class="eyebrow">Comercial</p>
+    <h1 class="h2">Promociones y ofertas</h1>
+    <p class="lead">Crea descuentos y ofertas especiales para tus paquetes y tours.</p>
+  </div>
+
+  <!-- Formulario -->
+  <div class="admin-panel">
+    <h2 class="admin-panel-title" id="formTitle">Nueva promoción</h2>
+
+    <form id="promoForm" class="admin-form">
+      <input type="hidden" name="id" />
+
+      <!-- Información principal -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Información principal</p>
+        <div class="admin-form-grid">
+          <div class="admin-field">
+            <label>Título de la promoción</label>
+            <input name="title" required placeholder="Oferta de temporada baja – Cusco" />
+          </div>
+          <div class="admin-field">
+            <label>Slug (URL)</label>
+            <input name="slug" required placeholder="oferta-temporada-baja-cusco" />
+            <span class="admin-field__hint">Se completa automáticamente desde el título.</span>
+          </div>
+        </div>
+        <div class="admin-form-grid" style="margin-top:14px">
+          <div class="admin-field">
+            <label>Subtítulo</label>
+            <input name="subtitle" placeholder="Hasta 20% de descuento en paquetes seleccionados" />
+          </div>
+          <div class="admin-field">
+            <label>Texto badge (etiqueta)</label>
+            <input name="badge_text" placeholder="15% OFF · Solo este mes" />
+            <span class="admin-field__hint">Se muestra como etiqueta en las tarjetas.</span>
+          </div>
+        </div>
+        <div class="admin-field" style="margin-top:14px">
+          <label>Descripción</label>
+          <textarea name="description" placeholder="Describe los detalles y beneficios de esta promoción..."></textarea>
+        </div>
+        <div class="admin-field" style="margin-top:14px">
+          <label>Términos y condiciones</label>
+          <textarea name="terms" style="min-height:80px" placeholder="Condiciones aplicables, restricciones y detalles legales..."></textarea>
+        </div>
+      </div>
+
+      <!-- Descuento -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Descuento</p>
+        <div class="admin-form-grid admin-form-grid--3">
+          <div class="admin-field">
+            <label>Tipo de promoción</label>
+            <select name="promotion_type">
+              <option value="seasonal">Temporada</option>
+              <option value="flash">Flash / Relámpago</option>
+              <option value="early_bird">Early Bird</option>
+              <option value="group">Grupos</option>
+              <option value="last_minute">Último Minuto</option>
+              <option value="special">Especial</option>
+            </select>
+          </div>
+          <div class="admin-field">
+            <label>Tipo de descuento</label>
+            <select name="discount_type" id="discountType">
+              <option value="percentage">Porcentaje (%)</option>
+              <option value="fixed">Monto fijo</option>
+              <option value="free_service">Servicio gratis</option>
+            </select>
+          </div>
+          <div class="admin-field" id="discountValueField">
+            <label>Valor del descuento</label>
+            <input name="discount_value" type="number" step="0.01" min="0" placeholder="15" />
+            <span class="admin-field__hint" id="discountHint">Porcentaje (ej: 15 para 15%)</span>
+          </div>
+        </div>
+        <div class="admin-form-grid" style="margin-top:14px">
+          <div class="admin-field">
+            <label>Moneda</label>
+            <select name="currency">
+              <option value="USD">USD – Dólar americano</option>
+              <option value="PEN">PEN – Sol peruano</option>
+              <option value="EUR">EUR – Euro</option>
+            </select>
+          </div>
+          <div class="admin-field"><!-- spacing --></div>
+        </div>
+      </div>
+
+      <!-- Vigencia y personas -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Vigencia y personas</p>
+        <div class="admin-form-grid admin-form-grid--3">
+          <div class="admin-field">
+            <label>Fecha de inicio</label>
+            <input name="start_date" type="date" />
+          </div>
+          <div class="admin-field">
+            <label>Fecha de fin</label>
+            <input name="end_date" type="date" />
+          </div>
+          <div class="admin-field"><!-- spacing --></div>
+        </div>
+        <div class="admin-form-grid" style="margin-top:14px">
+          <div class="admin-field">
+            <label>Mínimo de personas</label>
+            <input name="min_people" type="number" min="1" placeholder="2" />
+          </div>
+          <div class="admin-field">
+            <label>Máximo de personas</label>
+            <input name="max_people" type="number" min="1" placeholder="20" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Imágenes -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Imágenes</p>
+        <div class="admin-form-grid">
+          <MediaPicker
+            fieldName="banner_image_url"
+            label="Imagen banner"
+            helperText="Imagen ancha para banners y secciones destacadas."
+          />
+          <MediaPicker
+            fieldName="card_image_url"
+            label="Imagen de tarjeta"
+            helperText="Imagen para tarjetas de listado."
+          />
+        </div>
+      </div>
+
+      <!-- SEO -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">SEO</p>
+        <div class="admin-form-grid">
+          <div class="admin-field">
+            <label>SEO título</label>
+            <input name="seo_title" />
+          </div>
+          <div class="admin-field">
+            <label>SEO descripción</label>
+            <input name="seo_description" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Estado</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label class="check-item">
+            <input name="is_active" type="checkbox" checked />
+            Activa y visible en el sitio
+          </label>
+          <label class="check-item">
+            <input name="is_featured" type="checkbox" />
+            Destacada en la página principal
+          </label>
+        </div>
+      </div>
+
+      <div class="admin-actions" style="justify-content:flex-start;margin-top:8px">
+        <button class="btn btn--primary" type="submit">Guardar promoción</button>
+        <button class="admin-link" type="button" id="resetForm">Limpiar formulario</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla -->
+  <div class="admin-panel admin-table-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h2 class="admin-panel-title" style="margin:0;padding:0;border:none">Promociones registradas</h2>
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Promoción</th>
+          <th>Descuento</th>
+          <th>Vigencia</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="5" style="text-align:center;padding:28px;color:rgba(37,37,37,.4)">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    import { adminSupabase, notify, slugify } from '@/lib/admin-client';
+
+    const form = document.querySelector('#promoForm') as HTMLFormElement;
+    const rows = document.querySelector('#rows')!;
+
+    let promos: any[] = [];
+    let slugManuallyEdited = false;
+
+    const discountTypeEl = document.querySelector('#discountType') as HTMLSelectElement;
+    const discountHint = document.querySelector('#discountHint')!;
+
+    discountTypeEl.addEventListener('change', () => {
+      const hints: Record<string, string> = {
+        percentage: 'Porcentaje (ej: 15 para 15%)',
+        fixed: 'Monto fijo a descontar',
+        free_service: 'Describe el servicio gratuito en la descripción',
+      };
+      const valueField = document.querySelector('#discountValueField')!;
+      (valueField as HTMLElement).style.display = discountTypeEl.value === 'free_service' ? 'none' : 'grid';
+      discountHint.textContent = hints[discountTypeEl.value] || '';
+    });
+
+    function getImageValue(fieldName: string) {
+      return (form.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement | null)?.value || '';
+    }
+
+    function setImageValue(fieldName: string, value = '') {
+      const input = form.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement | null;
+      if (!input) return;
+      input.value = value;
+      input.setAttribute('value', value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function formatDate(d: string | null) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function isExpired(until: string | null) {
+      if (!until) return false;
+      return new Date(until) < new Date();
+    }
+
+    function discountLabel(p: any) {
+      if (p.discount_type === 'percentage') return `${p.discount_value}%`;
+      if (p.discount_type === 'fixed') return `${p.currency || 'USD'} ${p.discount_value}`;
+      return 'Servicio gratis';
+    }
+
+    function setForm(promo: Record<string, any> = {}) {
+      const els = form.elements as any;
+      slugManuallyEdited = !!promo.id;
+      els.id.value = promo.id || '';
+      els.title.value = promo.title || '';
+      els.slug.value = promo.slug || '';
+      els.subtitle.value = promo.subtitle || '';
+      els.badge_text.value = promo.badge_text || '';
+      els.description.value = promo.description || '';
+      els.terms.value = promo.terms || '';
+      els.promotion_type.value = promo.promotion_type || 'seasonal';
+      els.discount_type.value = promo.discount_type || 'percentage';
+      els.discount_value.value = promo.discount_value ?? '';
+      els.currency.value = promo.currency || 'USD';
+      els.start_date.value = promo.start_date || '';
+      els.end_date.value = promo.end_date || '';
+      els.min_people.value = promo.min_people ?? '';
+      els.max_people.value = promo.max_people ?? '';
+      els.seo_title.value = promo.seo_title || '';
+      els.seo_description.value = promo.seo_description || '';
+      els.is_active.checked = promo.is_active ?? true;
+      els.is_featured.checked = promo.is_featured ?? false;
+
+      setImageValue('banner_image_url', promo.banner_image_url || '');
+      setImageValue('card_image_url', promo.card_image_url || '');
+      document.dispatchEvent(new CustomEvent('media-picker:update', {
+        detail: {
+          fields: {
+            banner_image_url: promo.banner_image_url || '',
+            card_image_url: promo.card_image_url || '',
+          },
+        },
+      }));
+
+      discountTypeEl.dispatchEvent(new Event('change'));
+      document.querySelector('#formTitle')!.textContent = promo.id ? 'Editar promoción' : 'Nueva promoción';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function render() {
+      rows.innerHTML = promos.length
+        ? promos.map((p) => {
+            const expired = isExpired(p.end_date);
+            return `
+              <tr>
+                <td>
+                  <strong>${p.title}</strong>
+                  ${p.badge_text ? `<br/><span class="admin-pill admin-pill--promo" style="margin-top:4px">${p.badge_text}</span>` : ''}
+                  ${p.subtitle ? `<br/><span class="admin-muted">${p.subtitle}</span>` : ''}
+                </td>
+                <td><strong>${discountLabel(p)}</strong></td>
+                <td>
+                  ${p.start_date ? `<span class="admin-muted">Desde</span> ${formatDate(p.start_date)}<br/>` : ''}
+                  ${p.end_date
+                    ? `<span class="${expired ? 'admin-danger' : 'admin-muted'}">Hasta</span> ${formatDate(p.end_date)}`
+                    : '<span class="admin-muted">Sin límite</span>'}
+                </td>
+                <td>
+                  ${expired
+                    ? '<span class="admin-pill admin-pill--archived">Vencida</span>'
+                    : p.is_active
+                      ? '<span class="admin-pill">Activa</span>'
+                      : '<span class="admin-pill admin-pill--draft">Inactiva</span>'}
+                  ${p.is_featured ? '<br/><span class="admin-pill" style="margin-top:4px;background:rgba(216,185,130,.3)">Destacada</span>' : ''}
+                </td>
+                <td>
+                  <div class="admin-row-actions">
+                    <button class="admin-link" data-edit="${p.id}">Editar</button>
+                    <button class="admin-link" data-toggle="${p.id}">${p.is_active ? 'Desactivar' : 'Activar'}</button>
+                    <button class="admin-link admin-danger" data-delete="${p.id}">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')
+        : '<tr><td colspan="5" style="text-align:center;padding:40px;color:rgba(37,37,37,.4)">No hay promociones creadas.</td></tr>';
+
+      document.querySelectorAll('[data-edit]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const promo = promos.find((p) => p.id === (btn as HTMLElement).dataset.edit);
+          if (promo) setForm(promo);
+        });
+      });
+
+      document.querySelectorAll('[data-toggle]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const promo = promos.find((p) => p.id === (btn as HTMLElement).dataset.toggle);
+          if (!promo) return;
+          const { error } = await adminSupabase
+            .from('promotions')
+            .update({ is_active: !promo.is_active, updated_at: new Date().toISOString() })
+            .eq('id', promo.id);
+          if (error) return notify(error.message, 'error');
+          notify('Promoción actualizada.', 'success');
+          load();
+        });
+      });
+
+      document.querySelectorAll('[data-delete]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('¿Eliminar esta promoción?')) return;
+          const { error } = await adminSupabase
+            .from('promotions')
+            .delete()
+            .eq('id', (btn as HTMLElement).dataset.delete);
+          if (error) return notify(error.message, 'error');
+          notify('Promoción eliminada.', 'success');
+          load();
+        });
+      });
+    }
+
+    async function load() {
+      const { data, error } = await adminSupabase
+        .from('promotions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) return notify(error.message, 'error');
+      promos = data || [];
+      render();
+    }
+
+    const els = form.elements as any;
+
+    els.title.addEventListener('input', () => {
+      if (!slugManuallyEdited) {
+        els.slug.value = slugify(els.title.value);
+      }
+    });
+
+    els.slug.addEventListener('input', () => {
+      slugManuallyEdited = true;
+    });
+
+    document.querySelector('#resetForm')!.addEventListener('click', () => {
+      slugManuallyEdited = false;
+      setForm();
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const id = data.get('id');
+
+      const payload = {
+        title: data.get('title'),
+        slug: slugify(String(data.get('slug') || data.get('title'))),
+        subtitle: data.get('subtitle') || null,
+        badge_text: data.get('badge_text') || null,
+        description: data.get('description') || null,
+        terms: data.get('terms') || null,
+        promotion_type: data.get('promotion_type') || 'seasonal',
+        discount_type: data.get('discount_type') || 'percentage',
+        discount_value: data.get('discount_value') ? Number(data.get('discount_value')) : null,
+        currency: data.get('currency') || 'USD',
+        start_date: data.get('start_date') || null,
+        end_date: data.get('end_date') || null,
+        min_people: data.get('min_people') ? Number(data.get('min_people')) : null,
+        max_people: data.get('max_people') ? Number(data.get('max_people')) : null,
+        banner_image_url: getImageValue('banner_image_url') || null,
+        card_image_url: getImageValue('card_image_url') || null,
+        seo_title: data.get('seo_title') || null,
+        seo_description: data.get('seo_description') || null,
+        is_active: data.get('is_active') === 'on',
+        is_featured: data.get('is_featured') === 'on',
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = id
+        ? await adminSupabase.from('promotions').update(payload).eq('id', id).select('id').maybeSingle()
+        : await adminSupabase.from('promotions').insert(payload).select('id').maybeSingle();
+
+      if (result.error) return notify(result.error.message, 'error');
+      if (!result.data) return notify('No se pudo guardar. Verifica permisos RLS.', 'error');
+
+      notify('Promoción guardada.', 'success');
+      await load();
+      const updated = promos.find((p) => p.id === result.data!.id);
+      if (updated) setForm(updated);
+    });
+
+    window.setTimeout(load, 250);
+  </script>
+
+</AdminLayout>

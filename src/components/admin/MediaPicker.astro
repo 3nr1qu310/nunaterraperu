@@ -44,8 +44,8 @@ const pickerId = `media-picker-${fieldName}`;
   <div class="media-selector">
     <div class="media-selector__header">
       <div>
-        <h3>Seleccionar imagen</h3>
-        <p class="admin-muted">Elige una imagen de la biblioteca de medios.</p>
+        <h3>Seleccionar archivo</h3>
+        <p class="admin-muted">Elige un archivo de la biblioteca de medios.</p>
       </div>
 
       <button type="button" class="admin-link" data-close-media={fieldName}>
@@ -267,6 +267,10 @@ const pickerId = `media-picker-${fieldName}`;
       };
     }
 
+    function isVideoUrl(url: string) {
+      return /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(url);
+    }
+
     function setValue(fieldName: string, url: string) {
       const { input, preview } = getPickerParts(fieldName);
       const finalUrl = url || '';
@@ -279,11 +283,18 @@ const pickerId = `media-picker-${fieldName}`;
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
 
-      preview.innerHTML = finalUrl
-        ? `<img src="${finalUrl}" alt="Imagen seleccionada" />`
-        : '<span>Sin imagen seleccionada</span>';
-
-      console.log(`MediaPicker ${fieldName}:`, finalUrl);
+      if (!finalUrl) {
+        preview.innerHTML = '<span>Sin archivo seleccionado</span>';
+      } else if (isVideoUrl(finalUrl)) {
+        const filename = decodeURIComponent(finalUrl.split('/').pop()?.split('?')[0] || finalUrl);
+        preview.innerHTML = `
+          <div style="display:grid;place-items:center;gap:8px;padding:18px;text-align:center;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5A3E2B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <span style="font-size:12px;color:#5A3E2B;word-break:break-all;max-width:200px;">${filename}</span>
+          </div>`;
+      } else {
+        preview.innerHTML = `<img src="${finalUrl}" alt="Imagen seleccionada" />`;
+      }
     }
 
     async function fetchMedia(search = '') {

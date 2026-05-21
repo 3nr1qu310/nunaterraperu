@@ -2,38 +2,158 @@
 import AdminLayout from '@/components/admin/AdminLayout.astro';
 ---
 <AdminLayout title="Dashboard | Nuna Terra Perú">
-  <p class="eyebrow">Panel de administración</p>
-  <h1 class="h2">Dashboard general</h1>
-  <p class="lead">Administra paquetes, tours, destinos, regiones, consultas y configuración general de la web.</p>
 
-  <section class="admin-grid" style="margin-top:30px">
-    <div class="admin-stat"><strong data-count-packages>—</strong><span>Paquetes publicados</span></div>
-    <div class="admin-stat"><strong data-count-tours>—</strong><span>Tours publicados</span></div>
-    <div class="admin-stat"><strong data-count-destinations>—</strong><span>Destinos activos</span></div>
-  </section>
+  <div class="admin-page-header">
+    <p class="eyebrow">Panel de administración</p>
+    <h1 class="h2">Dashboard</h1>
+    <p class="lead">Resumen general del contenido publicado en el sitio web.</p>
+  </div>
 
-  <section class="admin-panel" style="margin-top:26px">
-    <h2 class="h3">Acciones rápidas</h2>
-    <div class="admin-actions" style="justify-content:flex-start">
-      <a class="btn btn--primary" href="/admin/paquetes/nuevo?type=package">Nuevo paquete</a>
-      <a class="btn btn--gold" href="/admin/paquetes/nuevo?type=tour">Nuevo tour</a>
-      <a class="btn btn--outline-dark" href="/admin/destinos">Administrar destinos</a>
-      <a class="btn btn--outline-dark" href="/admin/leads">Ver consultas</a>
+  <!-- Stats -->
+  <div class="admin-stats">
+    <div class="admin-stat">
+      <div class="admin-stat__icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      </div>
+      <span class="admin-stat__value" data-count-packages>—</span>
+      <span class="admin-stat__label">Paquetes publicados</span>
     </div>
-  </section>
+    <div class="admin-stat">
+      <div class="admin-stat__icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      </div>
+      <span class="admin-stat__value" data-count-tours>—</span>
+      <span class="admin-stat__label">Tours publicados</span>
+    </div>
+    <div class="admin-stat">
+      <div class="admin-stat__icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <span class="admin-stat__value" data-count-destinations>—</span>
+      <span class="admin-stat__label">Destinos activos</span>
+    </div>
+    <div class="admin-stat">
+      <div class="admin-stat__icon" style="background:rgba(216,185,130,.15);color:var(--color-earth)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+      </div>
+      <span class="admin-stat__value" data-count-promos>—</span>
+      <span class="admin-stat__label">Promociones activas</span>
+    </div>
+    <div class="admin-stat">
+      <div class="admin-stat__icon" style="background:rgba(138,47,32,.08);color:#8a2f20">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <span class="admin-stat__value" data-count-leads>—</span>
+      <span class="admin-stat__label">Consultas nuevas</span>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="admin-panel" style="margin-top:28px">
+    <h2 class="admin-panel-title">Acciones rápidas</h2>
+    <div class="admin-quick-actions" style="margin-top:0">
+      <a class="admin-quick-card" href="/admin/paquetes/nuevo?type=package">
+        <div class="admin-quick-card__icon" style="background:rgba(47,93,80,.1);color:var(--color-green)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <span class="admin-quick-card__label">Nuevo paquete</span>
+        <span class="admin-quick-card__desc">Crea un paquete turístico de varios días</span>
+      </a>
+      <a class="admin-quick-card" href="/admin/paquetes/nuevo?type=tour">
+        <div class="admin-quick-card__icon" style="background:rgba(216,185,130,.15);color:var(--color-earth)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+        </div>
+        <span class="admin-quick-card__label">Nuevo tour</span>
+        <span class="admin-quick-card__desc">Agrega un tour de día completo</span>
+      </a>
+      <a class="admin-quick-card" href="/admin/promociones">
+        <div class="admin-quick-card__icon" style="background:rgba(90,62,43,.08);color:var(--color-earth)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+        </div>
+        <span class="admin-quick-card__label">Promociones</span>
+        <span class="admin-quick-card__desc">Gestiona ofertas y descuentos activos</span>
+      </a>
+      <a class="admin-quick-card" href="/admin/leads">
+        <div class="admin-quick-card__icon" style="background:rgba(138,47,32,.08);color:#8a2f20">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <span class="admin-quick-card__label">Ver consultas</span>
+        <span class="admin-quick-card__desc">Revisa solicitudes de clientes nuevas</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Recent leads -->
+  <div class="admin-panel" style="margin-top:22px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h2 class="admin-panel-title" style="margin:0;padding:0;border:none">Consultas recientes</h2>
+      <a class="admin-link" href="/admin/leads">Ver todas</a>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Interés</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="recentLeads">
+          <tr><td colspan="4" style="text-align:center;padding:28px;color:rgba(37,37,37,.4)">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <script>
     import { adminSupabase } from '@/lib/admin-client';
-    async function loadCounts() {
-      const [packages, tours, destinations] = await Promise.all([
+
+    async function loadDashboard() {
+      const [packages, tours, destinations, promos, leads, recentLeadsRes] = await Promise.all([
         adminSupabase.from('products').select('id', { count: 'exact', head: true }).eq('product_type', 'package').eq('status', 'published'),
         adminSupabase.from('products').select('id', { count: 'exact', head: true }).eq('product_type', 'tour').eq('status', 'published'),
         adminSupabase.from('destinations').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        adminSupabase.from('promotions').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        adminSupabase.from('leads').select('id', { count: 'exact', head: true }).eq('status', 'new'),
+        adminSupabase.from('leads').select('full_name,country,interest_type,status,created_at').order('created_at', { ascending: false }).limit(6),
       ]);
-      document.querySelector('[data-count-packages]').textContent = String(packages.count ?? 0);
-      document.querySelector('[data-count-tours]').textContent = String(tours.count ?? 0);
-      document.querySelector('[data-count-destinations]').textContent = String(destinations.count ?? 0);
+
+      const set = (sel: string, val: number | string) => {
+        const el = document.querySelector(sel);
+        if (el) el.textContent = String(val);
+      };
+
+      set('[data-count-packages]', packages.count ?? 0);
+      set('[data-count-tours]', tours.count ?? 0);
+      set('[data-count-destinations]', destinations.count ?? 0);
+      set('[data-count-promos]', promos.count ?? 0);
+      set('[data-count-leads]', leads.count ?? 0);
+
+      const tbody = document.querySelector('#recentLeads');
+      if (!tbody) return;
+
+      const rows = recentLeadsRes.data || [];
+      const statusLabel: Record<string, string> = {
+        new: 'Nueva', contacted: 'Contactado', quoted: 'Cotizado', closed: 'Cerrada', lost: 'Perdida',
+      };
+      const statusClass: Record<string, string> = {
+        new: '', contacted: 'admin-pill--draft', quoted: 'admin-pill--draft', closed: '', lost: 'admin-pill--archived',
+      };
+
+      tbody.innerHTML = rows.length
+        ? rows.map((l) => `
+            <tr>
+              <td><strong>${l.full_name}</strong>${l.country ? `<br/><span class="admin-muted">${l.country}</span>` : ''}</td>
+              <td>${l.interest_type || '—'}</td>
+              <td>${new Date(l.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+              <td><span class="admin-pill ${statusClass[l.status] || ''}">${statusLabel[l.status] || l.status}</span></td>
+            </tr>
+          `).join('')
+        : '<tr><td colspan="4" style="text-align:center;padding:28px;color:rgba(37,37,37,.4)">No hay consultas aún.</td></tr>';
     }
-    window.setTimeout(loadCounts, 250);
+
+    window.setTimeout(loadDashboard, 200);
   </script>
+
 </AdminLayout>

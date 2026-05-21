@@ -1,4 +1,10 @@
 ---
+import BaseLayout from '@/components/layout/BaseLayout.astro';
+import Hero from '@/components/ui/Hero.astro';
+import SectionHeading from '@/components/sections/SectionHeading.astro';
+import { isLocale, type Locale } from '@/lib/i18n';
+import { site } from '@/lib/site';
+
 export function getStaticPaths() {
   return [
     { params: { locale: 'en' } },
@@ -6,4 +12,264 @@ export function getStaticPaths() {
     { params: { locale: 'fr' } },
   ];
 }
+
+const localeParam = Astro.params.locale;
+
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/contacto');
+}
+
+const locale = localeParam as Locale;
+
+const copy = {
+  en: {
+    pageTitle: 'Contact | Nuna Terra Perú',
+    heroEyebrow: 'Contact',
+    heroTitle: "Let's design your Peru trip together",
+    heroSubtitle: "Tell us which destinations you want to explore, how many days you have and what kind of experience you're looking for. We'll help you create a clear, organized itinerary tailored to you.",
+    heroPrimary: 'Write on WhatsApp',
+    heroSecondary: 'Send inquiry',
+    channels: ['WhatsApp', 'Email', 'Location', 'Social media'],
+    channelDesc: 'Direct channel for inquiries, quotes and travel guidance.',
+    formTitle: 'Tell us about your next trip',
+    formSubtitle: 'The more details you share, the better we can guide you.',
+    fullName: 'Full name',
+    email: 'Email address',
+    phone: 'WhatsApp',
+    country: 'Country of residence',
+    interestType: 'Type of interest',
+    interestGeneral: 'General question',
+    interestPackage: 'Travel package',
+    interestTour: 'Tour',
+    interestCustom: 'Tailor-made trip',
+    destinationLabel: 'Destination of interest',
+    destinationDefault: 'Select a destination',
+    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazon', "I'm not sure yet"],
+    travelDate: 'Estimated travel date',
+    travelers: 'Number of travelers',
+    duration: 'Approximate duration',
+    durationDefault: 'Select duration',
+    durations: ['1 day', '2 days', '3 to 5 days', '6 to 8 days', 'More than 9 days'],
+    travelStyle: 'Travel style',
+    styleDefault: 'Select style',
+    styles: ['Family', 'Couple', 'Friends', 'Premium', 'Adventure', 'Cultural', 'Relaxed'],
+    message: 'Tell us what you would like to experience in Peru',
+    consent: 'I agree to be contacted by Nuna Terra Perú.',
+    submit: 'Request a travel proposal',
+    sending: 'Sending inquiry...',
+    success: 'Your inquiry was sent successfully. We will contact you soon.',
+    error: 'Could not send the inquiry. Write to us on WhatsApp or try again.',
+    sideTitle: 'Personalized attention',
+    sideDesc: 'Our team will review your inquiry and guide you with a proposal based on your dates, destinations and interests.',
+  },
+  pt: {
+    pageTitle: 'Contato | Nuna Terra Perú',
+    heroEyebrow: 'Contato',
+    heroTitle: 'Vamos desenhar sua viagem pelo Peru juntos',
+    heroSubtitle: 'Conte-nos quais destinos você quer conhecer, quantos dias você tem e que tipo de experiência está buscando. Vamos ajudá-lo a criar um roteiro claro, organizado e adaptado a você.',
+    heroPrimary: 'Escrever pelo WhatsApp',
+    heroSecondary: 'Enviar consulta',
+    channels: ['WhatsApp', 'E-mail', 'Localização', 'Redes sociais'],
+    channelDesc: 'Canal direto para consultas, cotações e orientação de viagem.',
+    formTitle: 'Conte-nos sobre sua próxima viagem',
+    formSubtitle: 'Quanto mais detalhes você compartilhar, melhor poderemos orientá-lo.',
+    fullName: 'Nome completo',
+    email: 'Endereço de e-mail',
+    phone: 'WhatsApp',
+    country: 'País de residência',
+    interestType: 'Tipo de interesse',
+    interestGeneral: 'Pergunta geral',
+    interestPackage: 'Pacote turístico',
+    interestTour: 'Tour',
+    interestCustom: 'Viagem sob medida',
+    destinationLabel: 'Destino de interesse',
+    destinationDefault: 'Selecione um destino',
+    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazônia', 'Ainda não sei'],
+    travelDate: 'Data estimada de viagem',
+    travelers: 'Número de viajantes',
+    duration: 'Duração aproximada',
+    durationDefault: 'Selecione a duração',
+    durations: ['1 dia', '2 dias', '3 a 5 dias', '6 a 8 dias', 'Mais de 9 dias'],
+    travelStyle: 'Estilo de viagem',
+    styleDefault: 'Selecione o estilo',
+    styles: ['Familiar', 'Casal', 'Amigos', 'Premium', 'Aventura', 'Cultural', 'Relaxado'],
+    message: 'Conte-nos o que você gostaria de vivenciar no Peru',
+    consent: 'Concordo em ser contatado pela Nuna Terra Perú.',
+    submit: 'Solicitar proposta de viagem',
+    sending: 'Enviando consulta...',
+    success: 'Sua consulta foi enviada com sucesso. Entraremos em contato em breve.',
+    error: 'Não foi possível enviar a consulta. Escreva-nos pelo WhatsApp ou tente novamente.',
+    sideTitle: 'Atenção personalizada',
+    sideDesc: 'Nossa equipe analisará sua consulta e o orientará com uma proposta de acordo com suas datas, destinos e interesses.',
+  },
+  fr: {
+    pageTitle: 'Contact | Nuna Terra Perú',
+    heroEyebrow: 'Contact',
+    heroTitle: 'Créons ensemble votre voyage au Pérou',
+    heroSubtitle: "Dites-nous quelles destinations vous souhaitez découvrir, combien de jours vous avez et quel type d'expérience vous recherchez. Nous vous aiderons à créer un itinéraire clair, organisé et adapté à vous.",
+    heroPrimary: 'Écrire sur WhatsApp',
+    heroSecondary: 'Envoyer une demande',
+    channels: ['WhatsApp', 'E-mail', 'Localisation', 'Réseaux sociaux'],
+    channelDesc: 'Canal direct pour les demandes, devis et conseils de voyage.',
+    formTitle: 'Parlez-nous de votre prochain voyage',
+    formSubtitle: 'Plus vous nous donnez de détails, mieux nous pourrons vous guider.',
+    fullName: 'Nom complet',
+    email: 'Adresse e-mail',
+    phone: 'WhatsApp',
+    country: 'Pays de résidence',
+    interestType: "Type d'intérêt",
+    interestGeneral: 'Question générale',
+    interestPackage: 'Forfait touristique',
+    interestTour: 'Tour',
+    interestCustom: 'Voyage sur mesure',
+    destinationLabel: "Destination d'intérêt",
+    destinationDefault: 'Choisir une destination',
+    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazonie', 'Je ne sais pas encore'],
+    travelDate: 'Date de voyage estimée',
+    travelers: 'Nombre de voyageurs',
+    duration: 'Durée approximative',
+    durationDefault: 'Choisir la durée',
+    durations: ['1 jour', '2 jours', '3 à 5 jours', '6 à 8 jours', 'Plus de 9 jours'],
+    travelStyle: 'Style de voyage',
+    styleDefault: 'Choisir le style',
+    styles: ['Famille', 'Couple', 'Amis', 'Premium', 'Aventure', 'Culturel', 'Détendu'],
+    message: 'Dites-nous ce que vous aimeriez vivre au Pérou',
+    consent: 'J\'accepte d\'être contacté par Nuna Terra Perú.',
+    submit: 'Demander une proposition de voyage',
+    sending: 'Envoi de la demande...',
+    success: 'Votre demande a été envoyée avec succès. Nous vous contacterons bientôt.',
+    error: 'Impossible d\'envoyer la demande. Écrivez-nous sur WhatsApp ou réessayez.',
+    sideTitle: 'Attention personnalisée',
+    sideDesc: 'Notre équipe examinera votre demande et vous guidera avec une proposition selon vos dates, destinations et intérêts.',
+  },
+}[locale];
+
+const contactHref = `/${locale}/contact`;
 ---
+
+<BaseLayout title={copy.pageTitle} description={copy.heroSubtitle}>
+  <Hero
+    eyebrow={copy.heroEyebrow}
+    title={copy.heroTitle}
+    subtitle={copy.heroSubtitle}
+    image="/images/contact-hero.jpg"
+    primaryText={copy.heroPrimary}
+    primaryHref={site.whatsappUrl}
+    secondaryText={copy.heroSecondary}
+    secondaryHref="#formulario"
+  />
+
+  <section class="section section--tight">
+    <div class="container grid grid--4">
+      {copy.channels.map((item) => (
+        <div class="card contact-card">
+          <h3>{item}</h3>
+          <p>{copy.channelDesc}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="section" id="formulario">
+    <div class="container contact-layout">
+      <div>
+        <SectionHeading title={copy.formTitle} subtitle={copy.formSubtitle} />
+
+        <form class="form" id="lead-form">
+          <input name="full_name" placeholder={copy.fullName} required />
+          <input name="email" type="email" placeholder={copy.email} />
+          <input name="phone" placeholder={copy.phone} required />
+          <input name="country" placeholder={copy.country} />
+
+          <select name="interest_type">
+            <option value="general_question">{copy.interestType}</option>
+            <option value="package">{copy.interestPackage}</option>
+            <option value="tour">{copy.interestTour}</option>
+            <option value="custom_trip">{copy.interestCustom}</option>
+          </select>
+
+          <select name="destinations_interest">
+            <option value="">{copy.destinationDefault}</option>
+            {copy.destinations.map((d) => <option>{d}</option>)}
+          </select>
+
+          <input name="travel_date" type="date" placeholder={copy.travelDate} />
+          <input name="number_of_people" type="number" min="1" placeholder={copy.travelers} />
+
+          <select name="duration_range">
+            <option value="">{copy.durationDefault}</option>
+            {copy.durations.map((d) => <option>{d}</option>)}
+          </select>
+
+          <select name="travel_style">
+            <option value="">{copy.styleDefault}</option>
+            {copy.styles.map((s) => <option>{s}</option>)}
+          </select>
+
+          <textarea name="message" rows="5" placeholder={copy.message}></textarea>
+
+          <label>
+            <input name="consent" type="checkbox" required />
+            {copy.consent}
+          </label>
+
+          <input type="hidden" name="source" value="contact_page" />
+          <input type="hidden" name="locale" value={locale} />
+
+          <button class="btn btn--primary" type="submit">{copy.submit}</button>
+          <p class="form-message" id="form-message" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <aside class="side">
+        <h3>{copy.sideTitle}</h3>
+        <p>{copy.sideDesc}</p>
+        <p>{site.whatsapp}</p>
+        <p>{site.email}</p>
+        <p>{site.location}</p>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style lang="scss">
+  .contact-card { padding: 24px; }
+  .contact-card h3 { font-family: var(--font-display); font-size: 1.8rem; color: var(--color-earth); margin: 0; }
+  .contact-layout { display: grid; grid-template-columns: 1fr 350px; gap: 34px; align-items: start; }
+  .form { display: grid; gap: 14px; }
+  .form-message { font-weight: 700; color: var(--color-green); margin: 4px 0 0; }
+  .form input, .form select, .form textarea { width: 100%; border: 1px solid rgba(90,62,43,.18); border-radius: 16px; background: white; padding: 14px 16px; }
+  .form input:focus, .form textarea:focus, .form select:focus { outline: 2px solid rgba(47,93,80,.25); border-color: var(--color-green); }
+  .side { position: sticky; top: 130px; background: var(--color-earth); color: var(--color-ivory); padding: 28px; border-radius: var(--radius-md); }
+  .side h3 { font-family: var(--font-display); font-size: 2rem; margin: 0 0 10px; color: var(--color-ivory); }
+  @media (max-width: 900px) {
+    .contact-layout { grid-template-columns: 1fr; }
+    .side { position: static; }
+  }
+</style>
+
+<script is:inline define:vars={{ sending: copy.sending, success: copy.success, error: copy.error }}>
+  const form = document.querySelector('#lead-form');
+  const message = document.querySelector('#form-message');
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+    message.textContent = sending;
+
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.message || 'Error');
+      message.textContent = success;
+      form.reset();
+    } catch {
+      message.textContent = error;
+    }
+  });
+</script>

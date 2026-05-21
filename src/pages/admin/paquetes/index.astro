@@ -10,7 +10,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
     <div>
       <input id="search" placeholder="Buscar paquete..." style="border:1px solid rgba(90,62,43,.18);border-radius:999px;padding:11px 16px;min-width:260px" />
     </div>
-    <a class="btn btn--primary" href="/admin/paquetes/nuevo?type=package">Crear paquete</a>
+    <a class="btn btn--primary" href="/admin/paquetes/editar?type=package">Crear paquete</a>
   </div>
 
   <div class="admin-panel admin-table-wrap">
@@ -39,7 +39,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
           <td>${p.currency || 'USD'} ${p.price_from ?? '—'}</td>
           <td>${p.is_featured ? 'Sí' : 'No'}</td>
           <td><div class="admin-row-actions">
-            <a class="admin-link" href="/admin/paquetes/${p.id}">Editar</a>
+            <a class="admin-link" href="/admin/paquetes/editar?id=${p.id}">Editar</a>
             <button class="admin-link" data-toggle="${p.id}" data-status="${p.status}">${p.status === 'published' ? 'Pasar a borrador' : 'Publicar'}</button>
             <button class="admin-link admin-danger" data-delete="${p.id}">Archivar</button>
           </div></td>

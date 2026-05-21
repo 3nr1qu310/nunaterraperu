@@ -23,19 +23,7 @@ const [regions, destinations, packages, tours, travelCategories] = await Promise
 
 const allProducts = [...packages, ...tours];
 
-const destinationsWithProducts = destinations
-  .filter((destination) => {
-    return allProducts.some((product) => {
-      const destinationNames = product.destinations || [];
-      const destinationSlugs = product.destinationSlugs || [];
-
-      return (
-        destinationNames.includes(destination.name) ||
-        destinationSlugs.includes(destination.slug)
-      );
-    });
-  })
-  .slice(0, 5);
+const destinationsWithProducts = destinations.slice(0, 5);
 
 const heroImages = [
   ...regions.map((item) => item.heroImage || item.cardImage),

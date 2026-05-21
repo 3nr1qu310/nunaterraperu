@@ -2,6 +2,7 @@
 import Header from './Header.astro';
 import Footer from './Footer.astro';
 import '@/styles/global.scss';
+import { getLocaleFromUrl } from '@/lib/i18n';
 
 interface Props {
   title?: string;
@@ -12,10 +13,19 @@ const {
   title = 'Nuna Terra Perú',
   description = 'El alma del Perú en cada destino.'
 } = Astro.props;
+
+const locale = getLocaleFromUrl(Astro.url.pathname);
+
+const skipLink = {
+  es: 'Ir al contenido principal',
+  en: 'Skip to main content',
+  pt: 'Ir para o conteúdo principal',
+  fr: 'Aller au contenu principal',
+}[locale];
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -34,7 +44,7 @@ const {
   </head>
 
   <body>
-    <a class="skip-link" href="#main-content">Ir al contenido principal</a>
+    <a class="skip-link" href="#main-content">{skipLink}</a>
     <Header />
     <main id="main-content">
       <slot />

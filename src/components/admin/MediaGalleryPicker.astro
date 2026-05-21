@@ -9,7 +9,7 @@ const {
 const pickerId = `media-gallery-picker-${fieldName}`;
 ---
 
-<div class="admin-field media-gallery-picker" data-media-gallery-picker={fieldName}>
+<div class="admin-field mgp-picker" data-media-gallery-picker={fieldName}>
   <label>{label}</label>
 
   <textarea
@@ -18,11 +18,11 @@ const pickerId = `media-gallery-picker-${fieldName}`;
     hidden
   >{initialValue}</textarea>
 
-  <div class="gallery-selected" data-gallery-selected={fieldName}>
+  <div class="mgp-preview" data-gallery-selected={fieldName}>
     <p class="admin-muted">Sin imágenes seleccionadas.</p>
   </div>
 
-  <div class="media-picker-actions">
+  <div class="mgp-actions">
     <button type="button" class="admin-link" data-open-gallery={fieldName}>
       Seleccionar imágenes
     </button>
@@ -35,174 +35,313 @@ const pickerId = `media-gallery-picker-${fieldName}`;
   {helperText && <small class="admin-muted">{helperText}</small>}
 </div>
 
-<dialog id={pickerId} class="gallery-selector-dialog" data-gallery-dialog={fieldName}>
-  <div class="gallery-selector">
-    <div class="gallery-selector__header">
+<dialog id={pickerId} class="mgp-dialog" data-gallery-dialog={fieldName}>
+  <div class="mgp-modal">
+    <header class="mgp-header">
       <div>
         <h3>Seleccionar imágenes</h3>
-        <p class="admin-muted">Haz clic en las imágenes para agregarlas o quitarlas de la galería.</p>
+        <p>Haz clic en las imágenes para agregarlas o quitarlas de la galería.</p>
       </div>
 
-      <button type="button" class="admin-link" data-close-gallery={fieldName}>
+      <button type="button" class="mgp-close" data-close-gallery={fieldName}>
         Cerrar
       </button>
-    </div>
+    </header>
 
-    <div class="gallery-selector__toolbar">
+    <div class="mgp-toolbar">
       <input
         type="search"
         placeholder="Buscar por nombre, título o alt text..."
         data-gallery-search={fieldName}
       />
 
-      <button type="button" class="btn btn--primary" data-apply-gallery={fieldName}>
+      <button type="button" class="mgp-apply" data-apply-gallery={fieldName}>
         Usar selección
       </button>
     </div>
 
-    <div class="gallery-selector__body">
-      <div class="gallery-selector__grid" data-gallery-grid={fieldName}>
+    <div class="mgp-body">
+      <section class="mgp-library" data-gallery-grid={fieldName}>
         <p class="admin-muted">Cargando imágenes...</p>
-      </div>
+      </section>
 
-      <aside class="gallery-selector__side" data-gallery-side={fieldName}>
+      <aside class="mgp-sidebar" data-gallery-side={fieldName}>
         <p class="admin-muted">Selecciona imágenes para la galería.</p>
       </aside>
     </div>
   </div>
 </dialog>
 
-<style>
-  .gallery-selected {
-    min-height: 120px;
-    border: 1px dashed rgba(90, 62, 43, .25);
-    border-radius: 18px;
-    background: rgba(247, 241, 231, .65);
-    padding: 12px;
+<style is:global>
+  .mgp-picker {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
   }
 
-  .gallery-selected-grid {
+  .mgp-picker label {
+    color: #5a3e2b;
+    font-size: 0.74rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mgp-preview {
+    width: 100%;
+    min-height: 108px;
+    max-height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+    border-radius: 18px;
+    border: 1px dashed rgba(90, 62, 43, 0.22);
+    background: rgba(247, 241, 231, 0.68);
+    box-sizing: border-box;
+  }
+
+  .mgp-preview-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    grid-template-columns: repeat(auto-fill, 78px);
+    grid-auto-rows: 78px;
+    gap: 10px;
+    align-content: start;
+    justify-content: start;
+  }
+
+  .mgp-preview-card {
+    position: relative;
+    width: 78px !important;
+    height: 78px !important;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #f3eee5;
+    border: 1px solid rgba(90, 62, 43, 0.12);
+    box-shadow: 0 5px 12px rgba(37, 37, 37, 0.06);
+    flex-shrink: 0;
+  }
+
+  .mgp-preview-card img {
+    width: 78px !important;
+    height: 78px !important;
+    display: block !important;
+    object-fit: cover !important;
+  }
+
+  .mgp-preview-index {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    min-width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    padding: 0 6px;
+    background: rgba(37, 37, 37, 0.74);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+    pointer-events: none;
+  }
+
+  .mgp-preview-remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 999px;
+    background: rgba(20, 20, 20, 0.76);
+    color: #fff;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 14px;
+  }
+
+  .mgp-preview-remove:hover {
+    background: #b42323;
+  }
+
+  .mgp-actions {
+    display: flex;
+    flex-wrap: wrap;
     gap: 10px;
   }
 
-  .gallery-selected-card {
-    position: relative;
-    border-radius: 14px;
-    overflow: hidden;
-    background: #f3eee5;
-  }
-
-  .gallery-selected-card img {
-    width: 100%;
-    height: 86px;
-    object-fit: cover;
-    display: block;
-  }
-
-  .gallery-selected-card span {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    background: rgba(37,37,37,.68);
-    color: white;
-    font-size: 11px;
+  .mgp-actions .admin-link {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
     border-radius: 999px;
-    padding: 2px 7px;
+    border: 1px solid rgba(90, 62, 43, 0.14);
+    background: #fff;
+    color: #5a3e2b;
+    text-decoration: none;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
   }
 
-  .gallery-selector-dialog {
-    width: min(1180px, calc(100vw - 28px));
+  .mgp-dialog {
+    width: min(1240px, calc(100vw - 28px));
+    max-width: none;
     border: 0;
     border-radius: 24px;
     padding: 0;
-    background: #F7F1E7;
+    background: #f7f1e7;
     color: #252525;
-    box-shadow: 0 30px 90px rgba(0,0,0,.28);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
   }
 
-  .gallery-selector-dialog::backdrop {
-    background: rgba(37,37,37,.58);
+  .mgp-dialog::backdrop {
+    background: rgba(37, 37, 37, 0.58);
     backdrop-filter: blur(3px);
   }
 
-  .gallery-selector {
+  .mgp-modal {
     display: grid;
-    max-height: min(780px, calc(100vh - 32px));
+    max-height: min(820px, calc(100vh - 32px));
+    overflow: hidden;
   }
 
-  .gallery-selector__header {
+  .mgp-header {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: 20px;
-    padding: 22px;
-    border-bottom: 1px solid rgba(90, 62, 43, .12);
+    padding: 24px 26px;
+    border-bottom: 1px solid rgba(90, 62, 43, 0.12);
   }
 
-  .gallery-selector__header h3 {
+  .mgp-header h3 {
     margin: 0;
-    color: #5A3E2B;
+    color: #5a3e2b;
+    font-size: 1.25rem;
+    font-weight: 900;
   }
 
-  .gallery-selector__toolbar {
+  .mgp-header p {
+    margin: 6px 0 0;
+    color: rgba(37, 37, 37, 0.56);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .mgp-close {
+    min-width: 84px;
+    min-height: 84px;
+    border: 1px solid rgba(90, 62, 43, 0.12);
+    border-radius: 999px;
+    background: #fff;
+    color: #5a3e2b;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .mgp-toolbar {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 12px;
-    padding: 16px 22px;
-    border-bottom: 1px solid rgba(90, 62, 43, .08);
+    gap: 14px;
+    padding: 18px 26px;
+    border-bottom: 1px solid rgba(90, 62, 43, 0.08);
   }
 
-  .gallery-selector__toolbar input {
+  .mgp-toolbar input {
     width: 100%;
-    border: 1px solid rgba(90, 62, 43, .16);
+    min-height: 52px;
+    border: 1px solid rgba(90, 62, 43, 0.16);
     border-radius: 999px;
-    padding: 12px 16px;
+    padding: 0 18px;
     background: #fff;
+    color: #252525;
+    outline: none;
+    box-sizing: border-box;
+    font: inherit;
   }
 
-  .gallery-selector__body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px;
-    gap: 18px;
-    padding: 0 22px 22px;
-    overflow: hidden;
-  }
-
-  .gallery-selector__grid {
-    columns: 4 150px;
-    column-gap: 12px;
-    overflow: auto;
-    max-height: 560px;
-    padding-top: 18px;
-  }
-
-  .gallery-card {
-    width: 100%;
-    break-inside: avoid;
-    margin-bottom: 12px;
-    padding: 0;
+  .mgp-apply {
+    min-height: 52px;
+    padding: 0 26px;
     border: 0;
-    background: transparent;
+    border-radius: 999px;
+    background: #2f5d50;
+    color: #fff;
+    font-weight: 900;
     cursor: pointer;
-    border-radius: 16px;
+    font-size: 0.95rem;
+  }
+
+  .mgp-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 20px;
+    padding: 22px 26px 26px;
     overflow: hidden;
-    display: block;
-    transition: .2s ease;
+  }
+
+  .mgp-library {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)) !important;
+    grid-auto-rows: minmax(180px, auto) !important;
+    gap: 14px !important;
+    max-height: 560px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    align-content: start;
+    padding: 2px 8px 8px 2px;
+  }
+
+  .mgp-library::-webkit-scrollbar,
+  .mgp-sidebar::-webkit-scrollbar,
+  .mgp-preview::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .mgp-library::-webkit-scrollbar-thumb,
+  .mgp-sidebar::-webkit-scrollbar-thumb,
+  .mgp-preview::-webkit-scrollbar-thumb {
+    background: rgba(90, 62, 43, 0.18);
+    border-radius: 999px;
+  }
+
+  .mgp-card {
+    all: unset;
+    display: grid !important;
+    grid-template-rows: 132px minmax(48px, auto) !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 180px;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(90, 62, 43, 0.1);
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(37, 37, 37, 0.05);
     position: relative;
   }
 
-  .gallery-card:hover {
+  .mgp-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgba(37,37,37,.16);
+    border-color: rgba(47, 93, 80, 0.24);
+    box-shadow: 0 14px 28px rgba(37, 37, 37, 0.12);
   }
 
-  .gallery-card.is-selected {
-    outline: 3px solid #D8B982;
-    outline-offset: 3px;
+  .mgp-card.is-selected {
+    border-color: #d8b982;
+    box-shadow: 0 0 0 3px rgba(216, 185, 130, 0.32);
   }
 
-  .gallery-card.is-selected::after {
+  .mgp-card.is-selected::after {
     content: '✓';
     position: absolute;
     top: 8px;
@@ -212,64 +351,195 @@ const pickerId = `media-gallery-picker-${fieldName}`;
     border-radius: 999px;
     display: grid;
     place-items: center;
-    background: #2F5D50;
-    color: #F7F1E7;
-    font-weight: 800;
+    background: #2f5d50;
+    color: #f7f1e7;
+    font-size: 0.85rem;
+    font-weight: 900;
+    box-shadow: 0 6px 14px rgba(47, 93, 80, 0.28);
+    z-index: 3;
   }
 
-  .gallery-card img {
+  .mgp-thumb {
     width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 16px;
-    background: #f2ece3;
+    height: 132px !important;
+    min-height: 132px !important;
+    overflow: hidden;
+    background: rgba(247, 241, 231, 0.65);
   }
 
-  .gallery-selector__side {
-    border-left: 1px solid rgba(90, 62, 43, .12);
-    padding: 18px 0 0 18px;
-    overflow: auto;
+  .mgp-thumb img {
+    width: 100% !important;
+    height: 132px !important;
+    display: block !important;
+    object-fit: cover !important;
+    border-radius: 0 !important;
+  }
+
+  .mgp-meta {
+    min-height: 48px;
+    display: grid;
+    align-content: center;
+    padding: 10px 11px 12px;
+    box-sizing: border-box;
+  }
+
+  .mgp-title {
+    color: #5a3e2b;
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .mgp-sidebar {
+    border-left: 1px solid rgba(90, 62, 43, 0.12);
+    padding-left: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
     max-height: 560px;
   }
 
-  .gallery-side-list {
+  .mgp-side-panel {
+    display: grid;
+    gap: 12px;
+  }
+
+  .mgp-side-panel h4 {
+    margin: 0;
+    color: #5a3e2b;
+    font-size: 0.88rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mgp-side-list {
     display: grid;
     gap: 10px;
   }
 
-  .gallery-side-item {
+  .mgp-side-item {
     display: grid;
-    grid-template-columns: 58px 1fr;
+    grid-template-columns: 62px minmax(0, 1fr) auto;
     gap: 10px;
     align-items: center;
+    padding: 8px;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid rgba(90, 62, 43, 0.1);
   }
 
-  .gallery-side-item img {
-    width: 58px;
-    height: 46px;
-    object-fit: cover;
-    border-radius: 10px;
+  .mgp-side-item img {
+    width: 62px !important;
+    height: 62px !important;
+    object-fit: cover !important;
+    border-radius: 13px;
+    display: block;
   }
 
-  .gallery-side-item p {
+  .mgp-side-item p {
     margin: 0;
     font-size: 12px;
-    color: #5A3E2B;
+    color: #5a3e2b;
+    line-height: 1.35;
+  }
+
+  .mgp-side-remove {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 999px;
+    background: rgba(180, 35, 35, 0.1);
+    color: #b42323;
+    cursor: pointer;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .mgp-side-remove:hover {
+    background: #b42323;
+    color: #fff;
   }
 
   @media (max-width: 860px) {
-    .gallery-selector__body {
+    .mgp-body {
       grid-template-columns: 1fr;
     }
 
-    .gallery-selector__side {
+    .mgp-sidebar {
       border-left: 0;
-      border-top: 1px solid rgba(90, 62, 43, .12);
+      border-top: 1px solid rgba(90, 62, 43, 0.12);
       padding: 18px 0 0;
     }
 
-    .gallery-selector__toolbar {
+    .mgp-toolbar {
       grid-template-columns: 1fr;
+    }
+
+    .mgp-preview-grid {
+      grid-template-columns: repeat(auto-fill, 66px);
+      grid-auto-rows: 66px;
+    }
+
+    .mgp-preview-card {
+      width: 66px !important;
+      height: 66px !important;
+    }
+
+    .mgp-preview-card img {
+      width: 66px !important;
+      height: 66px !important;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .mgp-dialog {
+      width: calc(100vw - 18px);
+      border-radius: 18px;
+    }
+
+    .mgp-header {
+      display: grid;
+      padding: 18px;
+    }
+
+    .mgp-close {
+      min-width: auto;
+      min-height: 44px;
+      padding: 0 18px;
+    }
+
+    .mgp-toolbar {
+      padding: 14px 18px;
+      grid-template-columns: 1fr;
+    }
+
+    .mgp-body {
+      padding: 16px 18px 18px;
+      grid-template-columns: 1fr;
+    }
+
+    .mgp-library {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      grid-auto-rows: minmax(172px, auto) !important;
+    }
+
+    .mgp-card {
+      grid-template-rows: 124px minmax(48px, auto) !important;
+      min-height: 172px;
+    }
+
+    .mgp-thumb,
+    .mgp-thumb img {
+      height: 124px !important;
     }
   }
 </style>
@@ -277,10 +547,19 @@ const pickerId = `media-gallery-picker-${fieldName}`;
 <script>
   import { adminSupabase } from '@/lib/admin-client';
 
-  if (!(window as any).__nunaMediaGalleryPickerInitialized) {
-    (window as any).__nunaMediaGalleryPickerInitialized = true;
+  if (!(window as any).__nunaMediaGalleryPickerV5Initialized) {
+    (window as any).__nunaMediaGalleryPickerV5Initialized = true;
 
     const galleryState = new Map();
+
+    function esc(value = '') {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
 
     function getParts(fieldName: string) {
       return {
@@ -293,14 +572,26 @@ const pickerId = `media-gallery-picker-${fieldName}`;
       };
     }
 
+    function getImageTitle(item: any) {
+      return item.title || item.file_name || item.alt_text || item.caption || 'Imagen';
+    }
+
     function parseGalleryText(value = '') {
       return value
         .split('\n')
         .map((line) => line.trim())
         .filter(Boolean)
         .map((line) => {
-          const [url, alt = '', caption = ''] = line.split('|').map((item: string) => item.trim());
-          return { public_url: url, alt_text: alt, caption, title: alt || caption || 'Imagen' };
+          const [url, alt = '', caption = ''] = line
+            .split('|')
+            .map((item: string) => item.trim());
+
+          return {
+            public_url: url,
+            alt_text: alt,
+            caption,
+            title: alt || caption || 'Imagen',
+          };
         })
         .filter((item: any) => item.public_url);
     }
@@ -324,11 +615,18 @@ const pickerId = `media-gallery-picker-${fieldName}`;
 
       selected.innerHTML = items.length
         ? `
-          <div class="gallery-selected-grid">
+          <div class="mgp-preview-grid">
             ${items.map((item: any, index: number) => `
-              <div class="gallery-selected-card">
-                <img src="${item.public_url}" alt="${item.alt_text || item.title || 'Imagen'}" />
-                <span>${index + 1}</span>
+              <div class="mgp-preview-card">
+                <img src="${esc(item.public_url)}" alt="${esc(item.alt_text || item.title || 'Imagen')}" />
+                <span class="mgp-preview-index">${index + 1}</span>
+                <button
+                  type="button"
+                  class="mgp-preview-remove"
+                  data-remove-from="${esc(fieldName)}"
+                  data-remove-url="${esc(item.public_url)}"
+                  title="Quitar imagen"
+                >×</button>
               </div>
             `).join('')}
           </div>
@@ -376,13 +674,21 @@ const pickerId = `media-gallery-picker-${fieldName}`;
       }
 
       side.innerHTML = `
-        <div>
-          <h4 style="margin:0 0 12px;color:#5A3E2B">${selectedItems.length} imagen(es) seleccionada(s)</h4>
-          <div class="gallery-side-list">
+        <div class="mgp-side-panel">
+          <h4>${selectedItems.length} imagen(es) seleccionada(s)</h4>
+
+          <div class="mgp-side-list">
             ${selectedItems.map((item: any, index: number) => `
-              <div class="gallery-side-item">
-                <img src="${item.public_url}" alt="${item.alt_text || item.title || 'Imagen'}" />
-                <p>${index + 1}. ${item.title || item.file_name || item.alt_text || 'Imagen'}</p>
+              <div class="mgp-side-item">
+                <img src="${esc(item.public_url)}" alt="${esc(item.alt_text || getImageTitle(item))}" />
+                <p>${index + 1}. ${esc(getImageTitle(item))}</p>
+                <button
+                  type="button"
+                  class="mgp-side-remove"
+                  data-side-remove-gallery="${esc(fieldName)}"
+                  data-remove-url="${esc(item.public_url)}"
+                  title="Quitar imagen"
+                >×</button>
               </div>
             `).join('')}
           </div>
@@ -404,19 +710,31 @@ const pickerId = `media-gallery-picker-${fieldName}`;
         return;
       }
 
-      grid.innerHTML = items.map((item: any) => `
-        <button
-          type="button"
-          class="gallery-card ${selectedUrls.has(item.public_url) ? 'is-selected' : ''}"
-          data-gallery-item="${item.id}"
-        >
-          <img
-            src="${item.public_url}"
-            alt="${item.alt_text || item.title || item.file_name || 'Imagen'}"
-            loading="lazy"
-          />
-        </button>
-      `).join('');
+      grid.innerHTML = items.map((item: any) => {
+        const title = getImageTitle(item);
+        const selectedClass = selectedUrls.has(item.public_url) ? 'is-selected' : '';
+
+        return `
+          <button
+            type="button"
+            class="mgp-card ${selectedClass}"
+            data-gallery-item="${esc(item.id)}"
+            title="${esc(title)}"
+          >
+            <div class="mgp-thumb">
+              <img
+                src="${esc(item.public_url)}"
+                alt="${esc(item.alt_text || title)}"
+                loading="lazy"
+              />
+            </div>
+
+            <div class="mgp-meta">
+              <span class="mgp-title">${esc(title)}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
 
       grid.querySelectorAll('[data-gallery-item]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -425,7 +743,10 @@ const pickerId = `media-gallery-picker-${fieldName}`;
 
           const currentState = galleryState.get(fieldName) || {};
           const currentSelected = currentState.selectedItems || [];
-          const exists = currentSelected.some((selected: any) => selected.public_url === item.public_url);
+
+          const exists = currentSelected.some(
+            (selected: any) => selected.public_url === item.public_url
+          );
 
           const nextSelected = exists
             ? currentSelected.filter((selected: any) => selected.public_url !== item.public_url)
@@ -463,15 +784,45 @@ const pickerId = `media-gallery-picker-${fieldName}`;
         renderSide(fieldName);
       } catch (error) {
         console.error(error);
-        grid.innerHTML = `<p class="admin-muted">${(error as any).message || 'No se pudieron cargar las imágenes.'}</p>`;
+        grid.innerHTML = `<p class="admin-muted">${esc((error as any).message || 'No se pudieron cargar las imágenes.')}</p>`;
       }
     }
 
     document.addEventListener('click', async (event) => {
-      const openBtn = (event.target as HTMLElement).closest('[data-open-gallery]') as HTMLElement | null;
-      const closeBtn = (event.target as HTMLElement).closest('[data-close-gallery]') as HTMLElement | null;
-      const clearBtn = (event.target as HTMLElement).closest('[data-clear-gallery]') as HTMLElement | null;
-      const applyBtn = (event.target as HTMLElement).closest('[data-apply-gallery]') as HTMLElement | null;
+      const target = event.target as HTMLElement;
+
+      const openBtn = target.closest('[data-open-gallery]') as HTMLElement | null;
+      const closeBtn = target.closest('[data-close-gallery]') as HTMLElement | null;
+      const clearBtn = target.closest('[data-clear-gallery]') as HTMLElement | null;
+      const applyBtn = target.closest('[data-apply-gallery]') as HTMLElement | null;
+      const removeBtn = target.closest('[data-remove-from]') as HTMLElement | null;
+      const sideRemoveBtn = target.closest('[data-side-remove-gallery]') as HTMLElement | null;
+
+      if (sideRemoveBtn) {
+        const fieldName = sideRemoveBtn.dataset.sideRemoveGallery as string;
+        const url = sideRemoveBtn.dataset.removeUrl as string;
+
+        const current = galleryState.get(fieldName) || {};
+        const nextSelected = (current.selectedItems || []).filter(
+          (item: any) => item.public_url !== url
+        );
+
+        galleryState.set(fieldName, { ...current, selectedItems: nextSelected });
+        renderGrid(fieldName, current.items || []);
+        renderSide(fieldName);
+      }
+
+      if (removeBtn) {
+        const fieldName = removeBtn.dataset.removeFrom as string;
+        const url = removeBtn.dataset.removeUrl as string;
+
+        const current = galleryState.get(fieldName) || {};
+        const nextSelected = (current.selectedItems || []).filter(
+          (item: any) => item.public_url !== url
+        );
+
+        setSelected(fieldName, nextSelected);
+      }
 
       if (openBtn) {
         const fieldName = openBtn.dataset.openGallery as string;
@@ -484,6 +835,7 @@ const pickerId = `media-gallery-picker-${fieldName}`;
         });
 
         if (search) search.value = '';
+
         dialog?.showModal();
 
         await loadGallery(fieldName);
@@ -508,14 +860,16 @@ const pickerId = `media-gallery-picker-${fieldName}`;
     });
 
     document.addEventListener('input', (event) => {
-      const search = (event.target as HTMLElement).closest('[data-gallery-search]') as HTMLElement | null;
+      const search = (event.target as HTMLElement).closest('[data-gallery-search]') as HTMLInputElement | null;
+
       if (!search) return;
 
-      const fieldName = (search as any).dataset.gallerySearch as string;
+      const fieldName = search.dataset.gallerySearch as string;
 
       clearTimeout((search as any).__timeout);
+
       (search as any).__timeout = setTimeout(() => {
-        loadGallery(fieldName, (search as HTMLInputElement).value || '');
+        loadGallery(fieldName, search.value || '');
       }, 250);
     });
 

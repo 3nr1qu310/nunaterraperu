@@ -462,7 +462,7 @@ const groupedRegions = regionOrder
                       <div class="destination-empty">
                         <p>{labels.noDestinations}</p>
                         <a href={site.whatsappUrl} target="_blank" rel="noopener">
-                          Consultar disponibilidad →
+                          {currentLocale === 'es' ? 'Consultar disponibilidad' : currentLocale === 'en' ? 'Check availability' : currentLocale === 'pt' ? 'Consultar disponibilidade' : 'Vérifier disponibilité'} →
                         </a>
                       </div>
                     )}
@@ -496,7 +496,7 @@ const groupedRegions = regionOrder
                       <div class="destination-empty">
                         <p>{labels.noProducts}</p>
                         <a href={site.whatsappUrl} target="_blank" rel="noopener">
-                          Pedir paquete personalizado →
+                          {currentLocale === 'es' ? 'Pedir paquete personalizado' : currentLocale === 'en' ? 'Request a custom package' : currentLocale === 'pt' ? 'Pedir pacote personalizado' : 'Demander un forfait personnalisé'} →
                         </a>
                       </div>
                     )}

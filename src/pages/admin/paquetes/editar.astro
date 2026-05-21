@@ -1,0 +1,1014 @@
+---
+export const prerender = true;
+
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+import MediaPicker from '@/components/admin/MediaPicker.astro';
+import MediaGalleryPicker from '@/components/admin/MediaGalleryPicker.astro';
+import './ProductEditor.scss';
+
+const translationLocales = ['en', 'pt', 'fr'];
+const translationLabels: Record<string, string> = {
+  en: 'Inglés',
+  pt: 'Portugués',
+  fr: 'Francés',
+};
+---
+
+<AdminLayout title="Editor de producto | Admin">
+  <p class="eyebrow">Paquetes y tours</p>
+  <h1 class="h2" id="pageTitle">Nuevo producto</h1>
+
+  <section class="admin-panel">
+    <form id="productForm" class="admin-form">
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Tipo</label>
+          <select name="product_type">
+            <option value="package">Paquete</option>
+            <option value="tour">Tour</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>Estado</label>
+          <select name="status">
+            <option value="draft">Borrador</option>
+            <option value="published">Publicado</option>
+            <option value="archived">Archivado</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>Orden</label>
+          <input name="sort_order" type="number" value="0" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Título</label>
+          <input name="title" required />
+        </div>
+        <div class="admin-field">
+          <label>Slug</label>
+          <input name="slug" required />
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>Subtítulo</label>
+        <input name="subtitle" />
+      </div>
+
+      <div class="admin-field">
+        <label>Descripción corta</label>
+        <textarea name="short_description"></textarea>
+      </div>
+
+      <div class="admin-field">
+        <label>Descripción larga</label>
+        <textarea name="description" style="min-height:160px"></textarea>
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Días</label>
+          <input name="duration_days" id="durationDays" type="number" min="1" max="60" />
+        </div>
+        <div class="admin-field">
+          <label>Noches</label>
+          <input name="duration_nights" type="number" />
+        </div>
+        <div class="admin-field">
+          <label>Texto duración</label>
+          <input name="duration_text" placeholder="5 días / 4 noches" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Región principal</label>
+          <select name="region_id" id="regionSelect">
+            <option value="">Seleccionar</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>Destino principal</label>
+          <select name="main_destination_id" id="mainDestinationSelect">
+            <option value="">Seleccionar</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>Precio desde</label>
+          <input name="price_from" type="number" step="0.01" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid admin-form-grid--3">
+        <div class="admin-field">
+          <label>Moneda</label>
+          <input name="currency" value="USD" />
+        </div>
+        <div class="admin-field">
+          <label>Tipo de servicio</label>
+          <input name="service_type" placeholder="Privado / compartido" />
+        </div>
+        <div class="admin-field">
+          <label>Dificultad</label>
+          <input name="difficulty_level" placeholder="Fácil a moderada" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Idiomas, separados por coma</label>
+          <input name="language_options" placeholder="Español, Inglés" />
+        </div>
+        <MediaPicker fieldName="video_url" label="Video" helperText="Selecciona un video desde la biblioteca de medios." />
+      </div>
+
+      <div class="admin-form-grid">
+        <MediaPicker fieldName="card_image_url" label="Imagen card" helperText="Imagen que se mostrará en listados." />
+        <MediaPicker fieldName="hero_image_url" label="Imagen hero" helperText="Imagen principal de la página individual." />
+      </div>
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>Personas mínimas</label>
+          <input name="min_people" type="number" />
+        </div>
+        <div class="admin-field">
+          <label>Personas máximas</label>
+          <input name="max_people" type="number" />
+        </div>
+      </div>
+
+      <div class="admin-form-grid">
+        <label class="check-item">
+          <input name="is_featured" type="checkbox" />
+          Destacado
+        </label>
+        <label class="check-item">
+          <input name="is_active" type="checkbox" checked />
+          Activo
+        </label>
+      </div>
+
+      <hr />
+
+      <div class="admin-field">
+        <label>Destinos relacionados</label>
+        <div id="destinationsChecks" class="check-grid"></div>
+      </div>
+      <div class="admin-field">
+        <label>Categorías</label>
+        <div id="categoriesChecks" class="check-grid"></div>
+      </div>
+
+      <hr />
+
+      <div class="admin-field">
+        <div class="builder-header">
+          <label>Itinerario por día</label>
+          <small class="admin-muted">Los días se generan según el campo "Días" de arriba.</small>
+        </div>
+        <div id="itineraryBuilder" class="itinerary-builder">
+          <p class="admin-muted">Ingresa el número de días para generar el itinerario.</p>
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="inclusions-grid">
+        <div class="admin-field">
+          <label>Incluye</label>
+          <div id="includedList" class="inclusion-list"></div>
+          <button type="button" class="add-item-btn" data-add-list="includedList">+ Agregar ítem</button>
+        </div>
+        <div class="admin-field">
+          <label>No incluye</label>
+          <div id="notIncludedList" class="inclusion-list"></div>
+          <button type="button" class="add-item-btn" data-add-list="notIncludedList">+ Agregar ítem</button>
+        </div>
+      </div>
+
+      <div class="inclusions-grid">
+        <div class="admin-field">
+          <label>Recomendaciones</label>
+          <div id="recommendationsList" class="inclusion-list"></div>
+          <button type="button" class="add-item-btn" data-add-list="recommendationsList">+ Agregar ítem</button>
+        </div>
+        <div class="admin-field">
+          <label>Notas importantes</label>
+          <div id="importantNotesList" class="inclusion-list"></div>
+          <button type="button" class="add-item-btn" data-add-list="importantNotesList">+ Agregar ítem</button>
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>Preguntas frecuentes</label>
+        <div id="faqList" class="faq-list"></div>
+        <button type="button" class="add-item-btn" data-add-faq>+ Agregar pregunta</button>
+      </div>
+
+      <MediaGalleryPicker
+        fieldName="gallery_text"
+        label="Galería del producto"
+        helperText="Selecciona varias imágenes desde la biblioteca de medios."
+      />
+
+      <hr />
+
+      <div class="admin-form-grid">
+        <div class="admin-field">
+          <label>SEO title</label>
+          <input name="seo_title" />
+        </div>
+        <MediaPicker fieldName="og_image_url" label="OG image" helperText="Imagen para compartir en redes sociales." />
+      </div>
+      <div class="admin-field">
+        <label>SEO description</label>
+        <textarea name="seo_description"></textarea>
+      </div>
+      <div class="admin-field">
+        <label>SEO keywords</label>
+        <input name="seo_keywords" />
+      </div>
+
+      <hr />
+
+      <section class="admin-translations">
+        <h2 class="h3">Traducciones</h2>
+        <p class="admin-muted">Completa estos campos solo si deseas mostrar el producto en otros idiomas.</p>
+
+        <div class="translation-tabs">
+          {translationLocales.map((lang, index) => (
+            <button type="button" class={`translation-tab ${index === 0 ? 'is-active' : ''}`} data-lang-tab={lang}>
+              {translationLabels[lang]}
+            </button>
+          ))}
+        </div>
+
+        {translationLocales.map((lang, index) => (
+          <div class={`translation-panel ${index === 0 ? 'is-active' : ''}`} data-lang-panel={lang}>
+            <div class="translation-section">
+              <h3>Contenido principal {lang.toUpperCase()}</h3>
+              <div class="admin-form-grid">
+                <div class="admin-field">
+                  <label>Título {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_title`} />
+                </div>
+                <div class="admin-field">
+                  <label>Subtítulo {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_subtitle`} />
+                </div>
+              </div>
+              <div class="admin-field">
+                <label>Descripción corta {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_short_description`}></textarea>
+              </div>
+              <div class="admin-field">
+                <label>Descripción larga {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_description`} style="min-height:140px"></textarea>
+              </div>
+              <div class="admin-form-grid admin-form-grid--3">
+                <div class="admin-field">
+                  <label>Duración {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_duration_text`} placeholder="5 days / 4 nights" />
+                </div>
+                <div class="admin-field">
+                  <label>Tipo de servicio {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_service_type`} />
+                </div>
+                <div class="admin-field">
+                  <label>Dificultad {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_difficulty_level`} />
+                </div>
+              </div>
+            </div>
+
+            <div class="translation-section">
+              <h3>Itinerario y detalles {lang.toUpperCase()}</h3>
+              <div class="admin-field">
+                <label>Itinerario {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_itinerary_text`} placeholder="1 | Arrival in Cusco | Reception | Not included | Hotel in Cusco | Transfer"></textarea>
+                <small class="admin-muted">Formato: día | título | descripción | comidas | alojamiento | actividades. Una línea por día.</small>
+              </div>
+              <div class="admin-form-grid">
+                <div class="admin-field">
+                  <label>Incluye {lang.toUpperCase()}</label>
+                  <textarea name={`translation_${lang}_included_text`}></textarea>
+                </div>
+                <div class="admin-field">
+                  <label>No incluye {lang.toUpperCase()}</label>
+                  <textarea name={`translation_${lang}_not_included_text`}></textarea>
+                </div>
+              </div>
+              <div class="admin-form-grid">
+                <div class="admin-field">
+                  <label>Recomendaciones {lang.toUpperCase()}</label>
+                  <textarea name={`translation_${lang}_recommendations_text`}></textarea>
+                </div>
+                <div class="admin-field">
+                  <label>Notas importantes {lang.toUpperCase()}</label>
+                  <textarea name={`translation_${lang}_important_notes_text`}></textarea>
+                </div>
+              </div>
+              <div class="admin-field">
+                <label>FAQs {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_faqs_text`} placeholder="Question? | Answer"></textarea>
+                <small class="admin-muted">Formato: pregunta | respuesta. Una línea por pregunta.</small>
+              </div>
+            </div>
+
+            <div class="translation-section">
+              <h3>SEO {lang.toUpperCase()}</h3>
+              <div class="admin-form-grid">
+                <div class="admin-field">
+                  <label>SEO title {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_seo_title`} />
+                </div>
+                <div class="admin-field">
+                  <label>SEO keywords {lang.toUpperCase()}</label>
+                  <input name={`translation_${lang}_seo_keywords`} />
+                </div>
+              </div>
+              <div class="admin-field">
+                <label>SEO description {lang.toUpperCase()}</label>
+                <textarea name={`translation_${lang}_seo_description`}></textarea>
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <div class="admin-actions" style="justify-content:flex-start">
+        <button class="btn btn--primary" type="submit">Guardar borrador</button>
+        <button class="btn btn--publish" type="button" id="publishBtn">Publicar cambios</button>
+        <a class="btn btn--outline-dark" href="/admin/paquetes">Volver</a>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    import { adminSupabase, notify, slugify, lines, csv, toNumber } from '@/lib/admin-client';
+
+    const form = document.querySelector('#productForm') as HTMLFormElement | null;
+    const productId = new URLSearchParams(window.location.search).get('id') || '';
+    const defaultType = new URLSearchParams(window.location.search).get('type') || 'package';
+    const translationLocales = ['en', 'pt', 'fr'];
+
+    let destinations: any[] = [];
+    let categories: any[] = [];
+
+    if (productId) {
+      (document.getElementById('pageTitle') as HTMLElement).textContent = 'Editar paquete o tour';
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    function escAttr(s: string) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+    function escHtml(s: string) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function setValue(name: string, value: any) {
+      const field = (form!.elements as any)[name] as HTMLInputElement | null;
+      if (!field) return;
+      if (field.type === 'checkbox') {
+        field.checked = Boolean(value);
+      } else if (Array.isArray(value)) {
+        field.value = value.join(', ');
+      } else {
+        field.value = value ?? '';
+      }
+      if (field.tagName === 'TEXTAREA') field.textContent = value ?? '';
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function getFieldValue(name: string) {
+      const field = form?.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
+      return field?.value || field?.textContent || '';
+    }
+
+    function getChecked(name: string) {
+      return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((el) => (el as HTMLInputElement).value);
+    }
+
+    function updateMediaPickers(fields: Record<string, string>) {
+      document.dispatchEvent(new CustomEvent('media-picker:update', { detail: { fields } }));
+    }
+    function updateGalleryPickers(fields: Record<string, string>) {
+      document.dispatchEvent(new CustomEvent('gallery-picker:update', { detail: { fields } }));
+    }
+
+    // ── itinerary builder ────────────────────────────────────────────────────
+
+    function dayCardInner(n: number, day: any = {}) {
+      return `
+        <div class="day-card__label">Día ${n}</div>
+        <div class="day-card__fields">
+          <div class="admin-field">
+            <label>Título del día</label>
+            <input type="text" data-field="title" value="${escAttr(day.title || '')}" placeholder="Ej: Llegada a Cusco y aclimatación" />
+          </div>
+          <div class="admin-field">
+            <label>Descripción</label>
+            <textarea data-field="description" placeholder="Detalle de actividades del día...">${escHtml(day.description || '')}</textarea>
+          </div>
+          <div class="day-card__row3">
+            <div class="admin-field">
+              <label>Comidas</label>
+              <input type="text" data-field="meals" value="${escAttr(day.meals || '')}" placeholder="Desayuno, cena..." />
+            </div>
+            <div class="admin-field">
+              <label>Alojamiento</label>
+              <input type="text" data-field="accommodation" value="${escAttr(day.accommodation || '')}" placeholder="Hotel / Camping" />
+            </div>
+            <div class="admin-field">
+              <label>Actividades</label>
+              <input type="text" data-field="activities" value="${escAttr(day.activities || '')}" placeholder="Visitas, traslados..." />
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function buildItinerary(count: number, existingDays: any[] = []) {
+      const builder = document.getElementById('itineraryBuilder');
+      if (!builder) return;
+      if (count <= 0) {
+        builder.innerHTML = '<p class="admin-muted">Ingresa el número de días para generar el itinerario.</p>';
+        return;
+      }
+      builder.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'day-card';
+        el.innerHTML = dayCardInner(i + 1, existingDays[i] || {});
+        builder.appendChild(el);
+      }
+    }
+
+    function getItineraryRows(pid: string) {
+      const builder = document.getElementById('itineraryBuilder');
+      if (!builder) return [];
+      return [...builder.querySelectorAll('.day-card')].map((card, i) => {
+        const g = (f: string) => ((card.querySelector(`[data-field="${f}"]`) as HTMLInputElement)?.value || '').trim();
+        return {
+          product_id: pid,
+          day_number: i + 1,
+          title: g('title') || `Día ${i + 1}`,
+          description: g('description'),
+          meals: g('meals'),
+          accommodation: g('accommodation'),
+          activities: g('activities'),
+          sort_order: i,
+        };
+      });
+    }
+
+    // ── inclusion lists ──────────────────────────────────────────────────────
+
+    function createInclusionItem(value = '') {
+      const div = document.createElement('div');
+      div.className = 'inclusion-item';
+      div.innerHTML = `
+        <input type="text" value="${escAttr(value)}" placeholder="Ingresa un ítem..." />
+        <button type="button" class="remove-item-btn" title="Eliminar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`;
+      div.querySelector('.remove-item-btn')?.addEventListener('click', () => div.remove());
+      return div;
+    }
+
+    function buildInclusionList(listId: string, items: string[]) {
+      const container = document.getElementById(listId);
+      if (!container) return;
+      container.innerHTML = '';
+      const src = items.length ? items : [''];
+      src.forEach((item) => container.appendChild(createInclusionItem(item)));
+    }
+
+    function getInclusionItems(listId: string) {
+      const container = document.getElementById(listId);
+      if (!container) return [];
+      return [...container.querySelectorAll('input[type="text"]')]
+        .map((el) => (el as HTMLInputElement).value.trim())
+        .filter(Boolean);
+    }
+
+    // ── faq list ─────────────────────────────────────────────────────────────
+
+    function createFaqItem(question = '', answer = '') {
+      const div = document.createElement('div');
+      div.className = 'faq-item';
+      div.innerHTML = `
+        <div class="admin-field">
+          <label>Pregunta</label>
+          <input type="text" data-faq-field="question" value="${escAttr(question)}" placeholder="¿Cuál es la pregunta?" />
+        </div>
+        <div class="admin-field">
+          <label>Respuesta</label>
+          <textarea data-faq-field="answer" placeholder="Respuesta detallada...">${escHtml(answer)}</textarea>
+        </div>
+        <button type="button" class="remove-item-btn remove-item-btn--top" title="Eliminar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`;
+      div.querySelector('.remove-item-btn')?.addEventListener('click', () => div.remove());
+      return div;
+    }
+
+    function buildFaqList(faqs: Array<{ question: string; answer: string }>) {
+      const container = document.getElementById('faqList');
+      if (!container) return;
+      container.innerHTML = '';
+      const src = faqs.length ? faqs : [{ question: '', answer: '' }];
+      src.forEach((f) => container.appendChild(createFaqItem(f.question, f.answer)));
+    }
+
+    function getFaqItems() {
+      const container = document.getElementById('faqList');
+      if (!container) return [];
+      return [...container.querySelectorAll('.faq-item')]
+        .map((item) => ({
+          question: ((item.querySelector('[data-faq-field="question"]') as HTMLInputElement)?.value || '').trim(),
+          answer: ((item.querySelector('[data-faq-field="answer"]') as HTMLTextAreaElement)?.value || '').trim(),
+        }))
+        .filter((item) => item.question || item.answer);
+    }
+
+    // ── selects & checks ─────────────────────────────────────────────────────
+
+    function renderChecks() {
+      document.querySelector('#destinationsChecks')!.innerHTML = destinations
+        .map((d) => `<label class="check-item"><input type="checkbox" name="destinations" value="${d.id}" />${d.name}</label>`)
+        .join('');
+      document.querySelector('#categoriesChecks')!.innerHTML = categories
+        .map((c) => `<label class="check-item"><input type="checkbox" name="categories" value="${c.id}" />${c.name}</label>`)
+        .join('');
+    }
+
+    function renderSelects(regions: any[]) {
+      document.querySelector('#regionSelect')!.innerHTML =
+        '<option value="">Seleccionar</option>' +
+        regions.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
+      document.querySelector('#mainDestinationSelect')!.innerHTML =
+        '<option value="">Seleccionar</option>' +
+        destinations.map((d) => `<option value="${d.id}">${d.name}</option>`).join('');
+    }
+
+    // ── translations ─────────────────────────────────────────────────────────
+
+    function setTranslationValues(product: any) {
+      const translations = product.product_translations || [];
+      translationLocales.forEach((lang) => {
+        const t = translations.find((item: any) => item.locale === lang) || {};
+        setValue(`translation_${lang}_title`, t.title || '');
+        setValue(`translation_${lang}_subtitle`, t.subtitle || '');
+        setValue(`translation_${lang}_short_description`, t.short_description || '');
+        setValue(`translation_${lang}_description`, t.description || '');
+        setValue(`translation_${lang}_duration_text`, t.duration_text || '');
+        setValue(`translation_${lang}_service_type`, t.service_type || '');
+        setValue(`translation_${lang}_difficulty_level`, t.difficulty_level || '');
+        setValue(`translation_${lang}_seo_title`, t.seo_title || '');
+        setValue(`translation_${lang}_seo_description`, t.seo_description || '');
+        setValue(`translation_${lang}_seo_keywords`, t.seo_keywords || '');
+      });
+    }
+
+    function setChildTranslationValues(product: any) {
+      const itinerary = product.product_itinerary_days || [];
+      const inclusions = product.product_inclusions || [];
+      const faqs = product.product_faqs || [];
+      translationLocales.forEach((lang) => {
+        const itText = itinerary
+          .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+          .map((day: any) => {
+            const t = (day.product_itinerary_day_translations || []).find((x: any) => x.locale === lang);
+            if (!t) return '';
+            return [day.day_number, t.title, t.description, t.meals, t.accommodation, t.activities].join(' | ');
+          })
+          .filter(Boolean).join('\n');
+        setValue(`translation_${lang}_itinerary_text`, itText);
+
+        const setIncText = (type: string, field: string) => {
+          const text = inclusions
+            .filter((i: any) => i.item_type === type)
+            .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+            .map((i: any) => {
+              const t = (i.product_inclusion_translations || []).find((x: any) => x.locale === lang);
+              return t?.content || '';
+            }).filter(Boolean).join('\n');
+          setValue(`translation_${lang}_${field}`, text);
+        };
+        setIncText('included', 'included_text');
+        setIncText('not_included', 'not_included_text');
+        setIncText('recommendation', 'recommendations_text');
+        setIncText('important_note', 'important_notes_text');
+
+        const faqText = faqs
+          .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+          .map((faq: any) => {
+            const t = (faq.product_faq_translations || []).find((x: any) => x.locale === lang);
+            if (!t) return '';
+            return `${t.question || ''} | ${t.answer || ''}`;
+          }).filter(Boolean).join('\n');
+        setValue(`translation_${lang}_faqs_text`, faqText);
+      });
+    }
+
+    // ── product → form ────────────────────────────────────────────────────────
+
+    function productToForm(product: any) {
+      for (const [key, value] of Object.entries(product)) setValue(key, value);
+      setValue('language_options', product.language_options || []);
+
+      updateMediaPickers({
+        card_image_url: product.card_image_url || '',
+        hero_image_url: product.hero_image_url || '',
+        og_image_url: product.og_image_url || '',
+        video_url: product.video_url || '',
+      });
+
+      const destIds = (product.product_destinations || []).map((x: any) => x.destination_id);
+      const catIds = (product.product_categories || []).map((x: any) => x.category_id);
+      (document.querySelectorAll('input[name="destinations"]') as NodeListOf<HTMLInputElement>).forEach((el) => { el.checked = destIds.includes(el.value); });
+      (document.querySelectorAll('input[name="categories"]') as NodeListOf<HTMLInputElement>).forEach((el) => { el.checked = catIds.includes(el.value); });
+
+      const days = (product.product_itinerary_days || []).sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0));
+      buildItinerary(product.duration_days || days.length || 0, days);
+
+      const inclusions = product.product_inclusions || [];
+      const sorted = (type: string) => inclusions.filter((i: any) => i.item_type === type).sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)).map((i: any) => i.content);
+      buildInclusionList('includedList', sorted('included'));
+      buildInclusionList('notIncludedList', sorted('not_included'));
+      buildInclusionList('recommendationsList', sorted('recommendation'));
+      buildInclusionList('importantNotesList', sorted('important_note'));
+
+      const faqs = (product.product_faqs || []).sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0));
+      buildFaqList(faqs.map((f: any) => ({ question: f.question || '', answer: f.answer || '' })));
+
+      const galleryText = (product.product_images || [])
+        .filter((img: any) => img.image_type === 'gallery')
+        .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+        .map((img: any) => `${img.image_url} | ${img.alt_text || ''} | ${img.caption || ''}`)
+        .join('\n');
+      setValue('gallery_text', galleryText);
+      updateGalleryPickers({ gallery_text: galleryText });
+
+      setTranslationValues(product);
+      setChildTranslationValues(product);
+    }
+
+    // ── load ──────────────────────────────────────────────────────────────────
+
+    async function load() {
+      const [regionsRes, destRes, catRes] = await Promise.all([
+        adminSupabase.from('regions').select('*').order('name'),
+        adminSupabase.from('destinations').select('*').order('name'),
+        adminSupabase.from('travel_categories').select('*').order('name'),
+      ]);
+
+      if (regionsRes.error || destRes.error || catRes.error) {
+        notify(regionsRes.error?.message || destRes.error?.message || catRes.error?.message, 'error');
+        return;
+      }
+
+      destinations = destRes.data || [];
+      categories = catRes.data || [];
+      renderSelects(regionsRes.data || []);
+      renderChecks();
+      setValue('product_type', defaultType);
+
+      if (!productId) {
+        buildInclusionList('includedList', []);
+        buildInclusionList('notIncludedList', []);
+        buildInclusionList('recommendationsList', []);
+        buildInclusionList('importantNotesList', []);
+        buildFaqList([]);
+        return;
+      }
+
+      const { data, error } = await adminSupabase
+        .from('products')
+        .select(`
+          *,
+          product_translations(*),
+          product_destinations(*),
+          product_categories(*),
+          product_itinerary_days(*, product_itinerary_day_translations(*)),
+          product_inclusions(*, product_inclusion_translations(*)),
+          product_faqs(*, product_faq_translations(*)),
+          product_images(*)
+        `)
+        .eq('id', productId)
+        .single();
+
+      if (error) return notify(error.message, 'error');
+      productToForm(data);
+    }
+
+    // ── slug auto-fill ────────────────────────────────────────────────────────
+
+    const formEls = form!.elements as any;
+    formEls.title?.addEventListener('input', () => {
+      if (!productId && !formEls.slug.value) {
+        formEls.slug.value = slugify(formEls.title.value);
+      }
+    });
+
+    // ── duration_days → itinerary ─────────────────────────────────────────────
+
+    document.getElementById('durationDays')?.addEventListener('change', (e) => {
+      const count = parseInt((e.target as HTMLInputElement).value) || 0;
+      const builder = document.getElementById('itineraryBuilder');
+      if (!builder) return;
+      const existing = [...builder.querySelectorAll('.day-card')];
+
+      if (count === 0) {
+        builder.innerHTML = '<p class="admin-muted">Ingresa el número de días para generar el itinerario.</p>';
+        return;
+      }
+
+      if (count > existing.length) {
+        for (let i = existing.length; i < count; i++) {
+          const el = document.createElement('div');
+          el.className = 'day-card';
+          el.innerHTML = dayCardInner(i + 1, {});
+          builder.appendChild(el);
+        }
+      } else {
+        for (let i = existing.length - 1; i >= count; i--) existing[i].remove();
+      }
+    });
+
+    // ── add item / add faq buttons ────────────────────────────────────────────
+
+    document.addEventListener('click', (e) => {
+      const addBtn = (e.target as HTMLElement).closest('[data-add-list]') as HTMLElement | null;
+      if (addBtn) {
+        const container = document.getElementById(addBtn.dataset.addList!);
+        container?.appendChild(createInclusionItem(''));
+      }
+      if ((e.target as HTMLElement).closest('[data-add-faq]')) {
+        document.getElementById('faqList')?.appendChild(createFaqItem('', ''));
+      }
+    });
+
+    // ── save helpers ──────────────────────────────────────────────────────────
+
+    async function replaceChildren(table: string, product_id: string, rows: any[]) {
+      await adminSupabase.from(table).delete().eq('product_id', product_id);
+      if (!rows.length) return { error: null };
+      return adminSupabase.from(table).insert(rows);
+    }
+
+    async function replaceChildrenReturning(table: string, product_id: string, rows: any[]) {
+      await adminSupabase.from(table).delete().eq('product_id', product_id);
+      if (!rows.length) return { data: [] as any[], error: null };
+      const { data, error } = await adminSupabase.from(table).insert(rows).select('*');
+      return { data, error };
+    }
+
+    function buildTranslationRows(pid: string, formData: FormData) {
+      return translationLocales.map((locale) => {
+        const fields = {
+          title: String(formData.get(`translation_${locale}_title`) || '').trim(),
+          subtitle: String(formData.get(`translation_${locale}_subtitle`) || '').trim(),
+          short_description: String(formData.get(`translation_${locale}_short_description`) || '').trim(),
+          description: String(formData.get(`translation_${locale}_description`) || '').trim(),
+          duration_text: String(formData.get(`translation_${locale}_duration_text`) || '').trim(),
+          service_type: String(formData.get(`translation_${locale}_service_type`) || '').trim(),
+          difficulty_level: String(formData.get(`translation_${locale}_difficulty_level`) || '').trim(),
+          seo_title: String(formData.get(`translation_${locale}_seo_title`) || '').trim(),
+          seo_description: String(formData.get(`translation_${locale}_seo_description`) || '').trim(),
+          seo_keywords: String(formData.get(`translation_${locale}_seo_keywords`) || '').trim(),
+        };
+        if (!Object.values(fields).some(Boolean)) return null;
+        return {
+          product_id: pid,
+          locale,
+          title: fields.title || String(formData.get('title') || '').trim(),
+          subtitle: fields.subtitle || null,
+          short_description: fields.short_description || null,
+          description: fields.description || null,
+          duration_text: fields.duration_text || null,
+          service_type: fields.service_type || null,
+          difficulty_level: fields.difficulty_level || null,
+          seo_title: fields.seo_title || null,
+          seo_description: fields.seo_description || null,
+          seo_keywords: fields.seo_keywords || null,
+          updated_at: new Date().toISOString(),
+        };
+      }).filter(Boolean);
+    }
+
+    async function saveProductTranslations(pid: string, formData: FormData) {
+      const rows = buildTranslationRows(pid, formData);
+      const { error: delErr } = await adminSupabase.from('product_translations').delete().eq('product_id', pid).in('locale', translationLocales);
+      if (delErr) return { error: delErr };
+      if (!rows.length) return { error: null };
+      return adminSupabase.from('product_translations').upsert(rows, { onConflict: 'product_id,locale' });
+    }
+
+    function buildTranslatedItineraryRows(formData: FormData, itineraryRows: any[]) {
+      const rows: any[] = [];
+      translationLocales.forEach((locale) => {
+        const translatedLines = lines(String(formData.get(`translation_${locale}_itinerary_text`) || ''));
+        translatedLines.forEach((line, index) => {
+          const baseDay = itineraryRows[index];
+          if (!baseDay) return;
+          const [_d, title, description, meals, accommodation, activities] = line.split('|').map((v) => v?.trim() || '');
+          if (![title, description, meals, accommodation, activities].some(Boolean)) return;
+          rows.push({ itinerary_day_id: baseDay.id, locale, title: title || null, description: description || null, meals: meals || null, accommodation: accommodation || null, activities: activities || null, updated_at: new Date().toISOString() });
+        });
+      });
+      return rows;
+    }
+
+    function buildTranslatedInclusionRows(formData: FormData, inclusionRows: any[]) {
+      const rows: any[] = [];
+      const configs = [
+        { type: 'included', field: 'included_text' },
+        { type: 'not_included', field: 'not_included_text' },
+        { type: 'recommendation', field: 'recommendations_text' },
+        { type: 'important_note', field: 'important_notes_text' },
+      ];
+      translationLocales.forEach((locale) => {
+        configs.forEach((config) => {
+          const baseItems = inclusionRows.filter((i) => i.item_type === config.type).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+          const translatedLines = lines(String(formData.get(`translation_${locale}_${config.field}`) || ''));
+          translatedLines.forEach((content, index) => {
+            const baseItem = baseItems[index];
+            if (!baseItem || !content) return;
+            rows.push({ inclusion_id: baseItem.id, locale, content, updated_at: new Date().toISOString() });
+          });
+        });
+      });
+      return rows;
+    }
+
+    function buildTranslatedFaqRows(formData: FormData, faqRows: any[]) {
+      const rows: any[] = [];
+      translationLocales.forEach((locale) => {
+        const translatedLines = lines(String(formData.get(`translation_${locale}_faqs_text`) || ''));
+        translatedLines.forEach((line, index) => {
+          const baseFaq = faqRows[index];
+          if (!baseFaq) return;
+          const [question, answer] = line.split('|').map((v) => v?.trim() || '');
+          if (!question && !answer) return;
+          rows.push({ faq_id: baseFaq.id, locale, question: question || null, answer: answer || null, updated_at: new Date().toISOString() });
+        });
+      });
+      return rows;
+    }
+
+    async function saveChildTranslations(formData: FormData, itineraryRows: any[], inclusionRows: any[], faqRows: any[]) {
+      const itTrans = buildTranslatedItineraryRows(formData, itineraryRows);
+      const incTrans = buildTranslatedInclusionRows(formData, inclusionRows);
+      const faqTrans = buildTranslatedFaqRows(formData, faqRows);
+
+      if (itineraryRows.length) {
+        const { error } = await adminSupabase.from('product_itinerary_day_translations').delete().in('itinerary_day_id', itineraryRows.map((r) => r.id)).in('locale', translationLocales);
+        if (error) return { error };
+      }
+      if (inclusionRows.length) {
+        const { error } = await adminSupabase.from('product_inclusion_translations').delete().in('inclusion_id', inclusionRows.map((r) => r.id)).in('locale', translationLocales);
+        if (error) return { error };
+      }
+      if (faqRows.length) {
+        const { error } = await adminSupabase.from('product_faq_translations').delete().in('faq_id', faqRows.map((r) => r.id)).in('locale', translationLocales);
+        if (error) return { error };
+      }
+      if (itTrans.length) { const { error } = await adminSupabase.from('product_itinerary_day_translations').insert(itTrans); if (error) return { error }; }
+      if (incTrans.length) { const { error } = await adminSupabase.from('product_inclusion_translations').insert(incTrans); if (error) return { error }; }
+      if (faqTrans.length) { const { error } = await adminSupabase.from('product_faq_translations').insert(faqTrans); if (error) return { error }; }
+      return { error: null };
+    }
+
+    // ── save product ──────────────────────────────────────────────────────────
+
+    async function saveProduct(statusOverride?: string) {
+      const data = new FormData(form as HTMLFormElement);
+      const status = statusOverride || String(data.get('status') || 'draft');
+
+      const payload = {
+        product_type: data.get('product_type'),
+        title: data.get('title'),
+        slug: slugify(String(data.get('slug') || data.get('title'))),
+        subtitle: data.get('subtitle') || null,
+        short_description: data.get('short_description') || null,
+        description: data.get('description') || null,
+        duration_days: toNumber(data.get('duration_days')),
+        duration_nights: toNumber(data.get('duration_nights')),
+        duration_text: data.get('duration_text') || null,
+        region_id: data.get('region_id') || null,
+        main_destination_id: data.get('main_destination_id') || null,
+        price_from: toNumber(data.get('price_from')),
+        currency: data.get('currency') || 'USD',
+        service_type: data.get('service_type') || null,
+        difficulty_level: data.get('difficulty_level') || null,
+        language_options: csv(String(data.get('language_options') || '')),
+        min_people: toNumber(data.get('min_people')),
+        max_people: toNumber(data.get('max_people')),
+        card_image_url: getFieldValue('card_image_url') || null,
+        hero_image_url: getFieldValue('hero_image_url') || null,
+        video_url: getFieldValue('video_url') || null,
+        is_featured: data.get('is_featured') === 'on',
+        is_active: data.get('is_active') === 'on',
+        status,
+        sort_order: toNumber(data.get('sort_order')) || 0,
+        seo_title: data.get('seo_title') || null,
+        seo_description: data.get('seo_description') || null,
+        seo_keywords: data.get('seo_keywords') || null,
+        og_image_url: getFieldValue('og_image_url') || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      let saved: any;
+      if (productId) {
+        const { data: updated, error } = await adminSupabase.from('products').update(payload).eq('id', productId).select('id').maybeSingle();
+        if (error) return notify(error.message, 'error');
+        if (!updated) return notify('No se actualizó el producto. Revisa permisos RLS.', 'error');
+        saved = updated;
+      } else {
+        const { data: inserted, error } = await adminSupabase.from('products').insert(payload).select('id').maybeSingle();
+        if (error) return notify(error.message, 'error');
+        if (!inserted) return notify('No se pudo crear el producto. Revisa permisos RLS.', 'error');
+        saved = inserted;
+      }
+
+      const pid = saved.id;
+
+      const destRows = getChecked('destinations').map((destination_id, i) => ({ product_id: pid, destination_id, sort_order: i, is_primary: destination_id === payload.main_destination_id }));
+      const catRows = getChecked('categories').map((category_id) => ({ product_id: pid, category_id }));
+      const itineraryRows = getItineraryRows(pid);
+
+      const inclusionRows = [
+        ...getInclusionItems('includedList').map((content, i) => ({ product_id: pid, item_type: 'included', content, sort_order: i })),
+        ...getInclusionItems('notIncludedList').map((content, i) => ({ product_id: pid, item_type: 'not_included', content, sort_order: i })),
+        ...getInclusionItems('recommendationsList').map((content, i) => ({ product_id: pid, item_type: 'recommendation', content, sort_order: i })),
+        ...getInclusionItems('importantNotesList').map((content, i) => ({ product_id: pid, item_type: 'important_note', content, sort_order: i })),
+      ];
+
+      const faqItems = getFaqItems();
+      const faqRows = faqItems.map((item, i) => ({ product_id: pid, question: item.question || `Pregunta ${i + 1}`, answer: item.answer, sort_order: i, is_active: true }));
+
+      const galleryValue = getFieldValue('gallery_text');
+      const imageRows = lines(String(galleryValue || ''))
+        .map((line, i) => {
+          const [image_url, alt_text, caption] = line.split('|').map((v) => v?.trim() || '');
+          return { product_id: pid, image_url, alt_text, caption, image_type: 'gallery', sort_order: i, is_active: true };
+        })
+        .filter((img) => img.image_url);
+
+      const baseOps = [
+        replaceChildren('product_destinations', pid, destRows),
+        replaceChildren('product_categories', pid, catRows),
+        replaceChildren('product_images', pid, imageRows),
+        saveProductTranslations(pid, data),
+      ];
+
+      const baseResults = await Promise.all(baseOps);
+      const baseError = baseResults.find((r) => r?.error)?.error;
+      if (baseError) return notify(baseError.message, 'error');
+
+      const itRes = await replaceChildrenReturning('product_itinerary_days', pid, itineraryRows);
+      if (itRes.error) return notify(itRes.error.message, 'error');
+
+      const incRes = await replaceChildrenReturning('product_inclusions', pid, inclusionRows);
+      if (incRes.error) return notify(incRes.error.message, 'error');
+
+      const faqRes = await replaceChildrenReturning('product_faqs', pid, faqRows);
+      if (faqRes.error) return notify(faqRes.error.message, 'error');
+
+      const childTransResult = await saveChildTranslations(data, itRes.data || [], incRes.data || [], faqRes.data || []);
+      if (childTransResult.error) return notify(childTransResult.error.message, 'error');
+
+      notify(statusOverride === 'published' ? 'Producto publicado.' : 'Producto guardado.', 'success');
+
+      if (!productId) {
+        window.location.href = `/admin/paquetes/editar?id=${pid}`;
+        return;
+      }
+      await load();
+    }
+
+    // ── form events ───────────────────────────────────────────────────────────
+
+    form?.addEventListener('submit', async (e) => { e.preventDefault(); await saveProduct(); });
+    document.getElementById('publishBtn')?.addEventListener('click', () => saveProduct('published'));
+
+    document.querySelectorAll('[data-lang-tab]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const lang = (tab as HTMLElement).dataset.langTab;
+        document.querySelectorAll('[data-lang-tab]').forEach((el) => el.classList.toggle('is-active', (el as HTMLElement).dataset.langTab === lang));
+        document.querySelectorAll('[data-lang-panel]').forEach((el) => el.classList.toggle('is-active', (el as HTMLElement).dataset.langPanel === lang));
+      });
+    });
+
+    window.setTimeout(load, 250);
+  </script>
+</AdminLayout>

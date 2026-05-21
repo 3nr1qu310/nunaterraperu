@@ -1,0 +1,403 @@
+---
+import AdminLayout from '@/components/admin/AdminLayout.astro';
+import MediaPicker from '@/components/admin/MediaPicker.astro';
+---
+
+<AdminLayout title="Lugares | Admin">
+
+  <div class="admin-page-header">
+    <p class="eyebrow">Geografía</p>
+    <h1 class="h2">Lugares turísticos</h1>
+    <p class="lead">Registra atractivos, miradores y puntos de interés dentro de cada destino.</p>
+  </div>
+
+  <!-- Formulario -->
+  <div class="admin-panel">
+    <h2 class="admin-panel-title" id="formTitle">Nuevo lugar</h2>
+
+    <form id="placeForm" class="admin-form">
+      <input type="hidden" name="id" />
+
+      <!-- Identificación -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Identificación</p>
+        <div class="admin-form-grid admin-form-grid--3">
+          <div class="admin-field">
+            <label>Nombre</label>
+            <input name="name" required placeholder="Machu Picchu" />
+          </div>
+          <div class="admin-field">
+            <label>Slug (URL)</label>
+            <input name="slug" required placeholder="machu-picchu" />
+            <span class="admin-field__hint">Se completa automáticamente desde el nombre.</span>
+          </div>
+          <div class="admin-field">
+            <label>Destino</label>
+            <select name="destination_id" id="destinationSelect" required>
+              <option value="">Seleccionar destino</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-form-grid" style="margin-top:14px">
+          <div class="admin-field">
+            <label>Subtítulo</label>
+            <input name="subtitle" placeholder="La ciudad perdida de los Incas" />
+          </div>
+          <div class="admin-field">
+            <label>Descripción corta</label>
+            <input name="short_description" placeholder="Breve descripción para tarjetas" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Descripción -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Descripción</p>
+        <div class="admin-field">
+          <label>Descripción completa</label>
+          <textarea name="description" placeholder="Describe el lugar, su historia e importancia..."></textarea>
+        </div>
+      </div>
+
+      <!-- Imágenes -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Imágenes</p>
+        <div class="admin-form-grid">
+          <MediaPicker
+            fieldName="card_image_url"
+            label="Imagen de tarjeta"
+            helperText="Foto para las tarjetas de listado."
+          />
+          <MediaPicker
+            fieldName="hero_image_url"
+            label="Imagen hero"
+            helperText="Foto principal para la página del lugar."
+          />
+        </div>
+      </div>
+
+      <!-- Información turística -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Información turística</p>
+        <div class="admin-form-grid admin-form-grid--3">
+          <div class="admin-field">
+            <label>Altitud</label>
+            <input name="altitude" placeholder="2,430 m s. n. m." />
+          </div>
+          <div class="admin-field">
+            <label>Mejor época para visitar</label>
+            <input name="best_time_to_visit" placeholder="Abril a octubre" />
+          </div>
+          <div class="admin-field">
+            <label>Días recomendados</label>
+            <input name="recommended_days" placeholder="1 a 2 días" />
+          </div>
+        </div>
+        <div class="admin-field" style="margin-top:14px">
+          <label>Ideal para (separado por comas)</label>
+          <input name="ideal_for" placeholder="Cultura, Historia, Fotografía, Familias" />
+          <span class="admin-field__hint">Ej: Cultura, Historia, Aventura</span>
+        </div>
+      </div>
+
+      <!-- Ubicación y mapa -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Ubicación y mapa</p>
+        <div class="admin-form-grid admin-form-grid--3">
+          <div class="admin-field">
+            <label>Latitud</label>
+            <input name="latitude" type="number" step="any" placeholder="-13.163141" />
+          </div>
+          <div class="admin-field">
+            <label>Longitud</label>
+            <input name="longitude" type="number" step="any" placeholder="-72.544963" />
+          </div>
+          <div class="admin-field"><!-- spacing --></div>
+        </div>
+        <div class="admin-form-grid" style="margin-top:14px">
+          <div class="admin-field">
+            <label>Posición X en mapa (px)</label>
+            <input name="map_x" type="number" step="any" placeholder="0" />
+          </div>
+          <div class="admin-field">
+            <label>Posición Y en mapa (px)</label>
+            <input name="map_y" type="number" step="any" placeholder="0" />
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <label class="check-item">
+            <input name="show_on_map" type="checkbox" checked />
+            Mostrar en el mapa interactivo
+          </label>
+        </div>
+      </div>
+
+      <!-- SEO -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">SEO</p>
+        <div class="admin-form-grid">
+          <div class="admin-field">
+            <label>SEO título</label>
+            <input name="seo_title" placeholder="Machu Picchu – Ciudad Inca | Nuna Terra Perú" />
+          </div>
+          <div class="admin-field">
+            <label>SEO descripción</label>
+            <input name="seo_description" placeholder="Descubre Machu Picchu..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Publicación -->
+      <div class="admin-form-section">
+        <p class="admin-form-section__title">Publicación</p>
+        <div class="admin-form-grid">
+          <div class="admin-field">
+            <label>Orden de aparición</label>
+            <input name="sort_order" type="number" value="0" min="0" />
+          </div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:4px">
+            <label class="check-item" style="width:100%">
+              <input name="is_active" type="checkbox" checked />
+              Publicado y visible en el sitio
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-actions" style="justify-content:flex-start;margin-top:8px">
+        <button class="btn btn--primary" type="submit">Guardar lugar</button>
+        <button class="admin-link" type="button" id="resetForm">Limpiar formulario</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla -->
+  <div class="admin-panel admin-table-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h2 class="admin-panel-title" style="margin:0;padding:0;border:none">Lugares registrados</h2>
+      <input id="searchPlaces" placeholder="Buscar lugar..." style="border:1px solid rgba(90,62,43,.16);border-radius:999px;padding:9px 16px;min-width:220px;background:#fffdf8;font-size:.88rem" />
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Lugar</th>
+          <th>Destino</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="4" style="text-align:center;padding:28px;color:rgba(37,37,37,.4)">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    import { adminSupabase, notify, slugify, csv, toNumber } from '@/lib/admin-client';
+
+    const form = document.querySelector('#placeForm') as HTMLFormElement;
+    const rows = document.querySelector('#rows')!;
+    const search = document.querySelector('#searchPlaces') as HTMLInputElement;
+
+    let places: any[] = [];
+    let destinations: any[] = [];
+    let slugManuallyEdited = false;
+
+    function getImageValue(fieldName: string) {
+      return (form.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement | null)?.value || '';
+    }
+
+    function setImageValue(fieldName: string, value = '') {
+      const input = form.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement | null;
+      if (!input) return;
+      input.value = value;
+      input.setAttribute('value', value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function setForm(place: Record<string, any> = {}) {
+      const els = form.elements as any;
+      slugManuallyEdited = !!place.id;
+      els.id.value = place.id || '';
+      els.name.value = place.name || '';
+      els.slug.value = place.slug || '';
+      els.destination_id.value = place.destination_id || '';
+      els.subtitle.value = place.subtitle || '';
+      els.short_description.value = place.short_description || '';
+      els.description.value = place.description || '';
+      els.altitude.value = place.altitude || '';
+      els.best_time_to_visit.value = place.best_time_to_visit || '';
+      els.recommended_days.value = place.recommended_days || '';
+      els.ideal_for.value = (place.ideal_for || []).join(', ');
+      els.latitude.value = place.latitude ?? '';
+      els.longitude.value = place.longitude ?? '';
+      els.map_x.value = place.map_x ?? '';
+      els.map_y.value = place.map_y ?? '';
+      els.show_on_map.checked = place.show_on_map ?? true;
+      els.seo_title.value = place.seo_title || '';
+      els.seo_description.value = place.seo_description || '';
+      els.sort_order.value = place.sort_order ?? 0;
+      els.is_active.checked = place.is_active ?? true;
+
+      setImageValue('card_image_url', place.card_image_url || '');
+      setImageValue('hero_image_url', place.hero_image_url || '');
+      document.dispatchEvent(new CustomEvent('media-picker:update', {
+        detail: {
+          fields: {
+            card_image_url: place.card_image_url || '',
+            hero_image_url: place.hero_image_url || '',
+          },
+        },
+      }));
+
+      document.querySelector('#formTitle')!.textContent = place.id ? 'Editar lugar' : 'Nuevo lugar';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function render() {
+      const term = search.value.toLowerCase();
+      const filtered = places.filter((p) =>
+        p.name.toLowerCase().includes(term) ||
+        (p.destinations?.name || '').toLowerCase().includes(term)
+      );
+
+      rows.innerHTML = filtered.length
+        ? filtered.map((p) => `
+            <tr>
+              <td>
+                <strong>${p.name}</strong>
+                ${p.subtitle ? `<br/><span class="admin-muted">${p.subtitle}</span>` : ''}
+                ${p.card_image_url ? `<div style="margin-top:8px"><img src="${p.card_image_url}" alt="${p.name}" style="width:80px;height:52px;object-fit:cover;border-radius:8px" /></div>` : ''}
+              </td>
+              <td>${p.destinations?.name || '<span class="admin-muted">—</span>'}</td>
+              <td>${p.is_active ? '<span class="admin-pill">Activo</span>' : '<span class="admin-pill admin-pill--draft">Inactivo</span>'}</td>
+              <td>
+                <div class="admin-row-actions">
+                  <button class="admin-link" data-edit="${p.id}">Editar</button>
+                  <button class="admin-link" data-toggle="${p.id}">${p.is_active ? 'Desactivar' : 'Activar'}</button>
+                  <button class="admin-link admin-danger" data-delete="${p.id}">Eliminar</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')
+        : '<tr><td colspan="4" style="text-align:center;padding:32px;color:rgba(37,37,37,.4)">No se encontraron lugares.</td></tr>';
+
+      document.querySelectorAll('[data-edit]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const place = places.find((p) => p.id === (btn as HTMLElement).dataset.edit);
+          if (place) setForm(place);
+        });
+      });
+
+      document.querySelectorAll('[data-toggle]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const place = places.find((p) => p.id === (btn as HTMLElement).dataset.toggle);
+          if (!place) return;
+          const { error } = await adminSupabase
+            .from('destination_places')
+            .update({ is_active: !place.is_active, updated_at: new Date().toISOString() })
+            .eq('id', place.id);
+          if (error) return notify(error.message, 'error');
+          notify('Lugar actualizado.', 'success');
+          load();
+        });
+      });
+
+      document.querySelectorAll('[data-delete]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('¿Eliminar este lugar? Esta acción no se puede deshacer.')) return;
+          const { error } = await adminSupabase
+            .from('destination_places')
+            .delete()
+            .eq('id', (btn as HTMLElement).dataset.delete);
+          if (error) return notify(error.message, 'error');
+          notify('Lugar eliminado.', 'success');
+          load();
+        });
+      });
+    }
+
+    async function load() {
+      const [destRes, placesRes] = await Promise.all([
+        adminSupabase.from('destinations').select('id,name').order('name'),
+        adminSupabase.from('destination_places').select('*, destinations(name)').order('sort_order').order('name'),
+      ]);
+      if (destRes.error || placesRes.error) return notify((destRes.error || placesRes.error)?.message || '', 'error');
+
+      destinations = destRes.data || [];
+      places = placesRes.data || [];
+
+      const select = document.querySelector('#destinationSelect')!;
+      select.innerHTML = '<option value="">Seleccionar destino</option>' +
+        destinations.map((d) => `<option value="${d.id}">${d.name}</option>`).join('');
+
+      render();
+    }
+
+    const els = form.elements as any;
+
+    els.name.addEventListener('input', () => {
+      if (!slugManuallyEdited) {
+        els.slug.value = slugify(els.name.value);
+      }
+    });
+
+    els.slug.addEventListener('input', () => {
+      slugManuallyEdited = true;
+    });
+
+    search.addEventListener('input', render);
+
+    document.querySelector('#resetForm')!.addEventListener('click', () => {
+      slugManuallyEdited = false;
+      setForm();
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const id = data.get('id');
+
+      const payload = {
+        name: data.get('name'),
+        slug: slugify(String(data.get('slug') || data.get('name'))),
+        destination_id: data.get('destination_id') || null,
+        subtitle: data.get('subtitle') || null,
+        short_description: data.get('short_description') || null,
+        description: data.get('description') || null,
+        card_image_url: getImageValue('card_image_url') || null,
+        hero_image_url: getImageValue('hero_image_url') || null,
+        altitude: data.get('altitude') || null,
+        best_time_to_visit: data.get('best_time_to_visit') || null,
+        recommended_days: data.get('recommended_days') || null,
+        ideal_for: csv(String(data.get('ideal_for') || '')),
+        latitude: data.get('latitude') ? Number(data.get('latitude')) : null,
+        longitude: data.get('longitude') ? Number(data.get('longitude')) : null,
+        map_x: data.get('map_x') ? Number(data.get('map_x')) : null,
+        map_y: data.get('map_y') ? Number(data.get('map_y')) : null,
+        show_on_map: data.get('show_on_map') === 'on',
+        seo_title: data.get('seo_title') || null,
+        seo_description: data.get('seo_description') || null,
+        sort_order: toNumber(data.get('sort_order')) || 0,
+        is_active: data.get('is_active') === 'on',
+        updated_at: new Date().toISOString(),
+      };
+
+      const result = id
+        ? await adminSupabase.from('destination_places').update(payload).eq('id', id).select('id').maybeSingle()
+        : await adminSupabase.from('destination_places').insert(payload).select('id').maybeSingle();
+
+      if (result.error) return notify(result.error.message, 'error');
+      if (!result.data) return notify('No se pudo guardar el lugar. Verifica permisos RLS.', 'error');
+
+      notify('Lugar guardado.', 'success');
+      await load();
+      const updated = places.find((p) => p.id === result.data!.id);
+      if (updated) setForm(updated);
+    });
+
+    window.setTimeout(load, 250);
+  </script>
+
+</AdminLayout>

@@ -11,33 +11,230 @@ const { title = 'Panel Admin | Nuna Terra Perú' } = Astro.props;
   <title>{title}</title>
 </head>
 <body class="admin-body">
+
   <aside class="admin-sidebar">
-    <a class="admin-brand" href="/admin">Nuna Terra<br/><span>Admin</span></a>
-    <nav>
-      <a href="/admin">Dashboard</a>
-      <a href="/admin/paquetes">Paquetes</a>
-      <a href="/admin/tours">Tours</a>
-      <a href="/admin/destinos">Destinos</a>
-      <a href="/admin/regiones">Regiones</a>
-      <a href="/admin/leads">Consultas</a>
-      <a href="/admin/configuracion">Configuración web</a>
-      <a href="/admin/media">Media</a>
-      <a href="/">Ver web</a>
+
+    <a class="admin-brand" href="/admin">
+      <span class="admin-brand__logo">NT</span>
+      <span class="admin-brand__text">
+        Nuna Terra
+        <small>Panel de control</small>
+      </span>
+    </a>
+
+    <nav class="admin-nav">
+
+      <div class="admin-nav-group">
+        <span class="admin-nav-group__label">General</span>
+        <a class="admin-nav-link" href="/admin" data-nav="/admin" data-exact>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+      </div>
+
+      <div class="admin-nav-group">
+        <span class="admin-nav-group__label">Contenido</span>
+        <a class="admin-nav-link" href="/admin/paquetes" data-nav="/admin/paquetes">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+          Paquetes
+        </a>
+        <a class="admin-nav-link" href="/admin/tours" data-nav="/admin/tours">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          Tours del día
+        </a>
+      </div>
+
+      <div class="admin-nav-group">
+        <span class="admin-nav-group__label">Geografía</span>
+        <a class="admin-nav-link" href="/admin/lugares" data-nav="/admin/lugares">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Lugares
+        </a>
+        <a class="admin-nav-link" href="/admin/destinos" data-nav="/admin/destinos">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Destinos
+        </a>
+        <a class="admin-nav-link" href="/admin/regiones" data-nav="/admin/regiones">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l9-4 9 4"/><path d="M3 6v14l9 4 9-4V6"/><path d="M12 2v20"/></svg>
+          Regiones
+        </a>
+      </div>
+
+      <div class="admin-nav-group">
+        <span class="admin-nav-group__label">Comercial</span>
+        <a class="admin-nav-link" href="/admin/promociones" data-nav="/admin/promociones">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+          Promociones
+        </a>
+        <a class="admin-nav-link" href="/admin/leads" data-nav="/admin/leads">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Consultas
+          <span class="admin-nav-badge" id="navBadgeLeads"></span>
+        </a>
+      </div>
+
+      <div class="admin-nav-group">
+        <span class="admin-nav-group__label">Sistema</span>
+        <a class="admin-nav-link" href="/admin/configuracion" data-nav="/admin/configuracion">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Configuración web
+        </a>
+        <a class="admin-nav-link" href="/admin/media" data-nav="/admin/media">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          Media
+        </a>
+      </div>
+
     </nav>
-    <div class="admin-user">
-      <small>Sesión</small>
-      <strong data-admin-email>Validando...</strong>
-      <button type="button" id="adminLogout">Cerrar sesión</button>
+
+    <div class="admin-publish-wrap">
+      <button type="button" id="publishBtn" class="admin-publish-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="publishIcon"><path d="M12 19V5"/><polyline points="5 12 12 5 19 12"/></svg>
+        <span id="publishBtnLabel">Publicar sitio</span>
+      </button>
+      <span id="publishStatus" class="admin-publish-status"></span>
     </div>
+
+    <div class="admin-sidebar-footer">
+      <a class="admin-nav-link admin-nav-link--external" href="/" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Ver sitio web
+      </a>
+      <div class="admin-user">
+        <div class="admin-user__avatar" id="adminAvatarInitial">—</div>
+        <div class="admin-user__info">
+          <small>Sesión activa</small>
+          <strong data-admin-email>Validando...</strong>
+        </div>
+        <button type="button" id="adminLogout" class="admin-user__logout" title="Cerrar sesión">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+
   </aside>
+
   <main class="admin-main">
     <div class="admin-message" data-admin-message></div>
     <slot />
   </main>
+
   <script>
-    import { requireAdmin, logoutAdmin } from '@/lib/admin-client';
+    import { requireAdmin, logoutAdmin, adminSupabase } from '@/lib/admin-client';
+
     requireAdmin();
+
     document.querySelector('#adminLogout')?.addEventListener('click', logoutAdmin);
+
+    // Active nav link
+    const path = window.location.pathname.replace(/\/$/, '');
+    document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => {
+      const nav = link.dataset.nav || '';
+      const exact = 'exact' in link.dataset;
+      const isActive = exact ? path === nav : path.startsWith(nav);
+      if (isActive) link.classList.add('is-active');
+    });
+
+    // Avatar initial
+    const emailEl = document.querySelector<HTMLElement>('[data-admin-email]');
+    const avatarEl = document.querySelector<HTMLElement>('#adminAvatarInitial');
+    const observer = new MutationObserver(() => {
+      const email = emailEl?.textContent?.trim() || '';
+      if (email && email !== 'Validando...') {
+        if (avatarEl) avatarEl.textContent = email[0].toUpperCase();
+        observer.disconnect();
+      }
+    });
+    if (emailEl) observer.observe(emailEl, { childList: true, characterData: true, subtree: true });
+
+    // Publish button
+    const publishBtn = document.querySelector<HTMLButtonElement>('#publishBtn');
+    const publishLabel = document.querySelector<HTMLElement>('#publishBtnLabel');
+    const publishStatus = document.querySelector<HTMLElement>('#publishStatus');
+    const publishIcon = document.querySelector<SVGElement>('#publishIcon');
+
+    function setPublishStatus(text: string) {
+      if (publishStatus) publishStatus.textContent = text;
+    }
+
+    function loadLastPublish() {
+      const ts = localStorage.getItem('nt_last_publish');
+      if (!ts || !publishStatus) return;
+      const d = new Date(Number(ts));
+      const fmt = d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+      publishStatus.textContent = `Último: ${fmt}`;
+    }
+    loadLastPublish();
+
+    publishBtn?.addEventListener('click', async () => {
+      if (publishBtn.disabled) return;
+      const { data } = await adminSupabase.auth.getSession();
+      if (!data.session) { setPublishStatus('Sesión expirada'); return; }
+
+      publishBtn.disabled = true;
+      publishBtn.classList.remove('is-success', 'is-error');
+      if (publishLabel) publishLabel.textContent = 'Publicando…';
+      if (publishIcon) publishIcon.innerHTML = '<circle cx="12" cy="12" r="9" stroke-dasharray="56" stroke-dashoffset="56"><animate attributeName="stroke-dashoffset" dur="1s" repeatCount="indefinite" from="56" to="0"/></circle>';
+      setPublishStatus('');
+
+      try {
+        const res = await fetch('/api/trigger-deploy', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${data.session.access_token}` },
+        });
+        const json = await res.json();
+
+        if (res.ok) {
+          publishBtn.classList.add('is-success');
+          if (publishLabel) publishLabel.textContent = 'Build lanzado';
+          if (publishIcon) publishIcon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+          localStorage.setItem('nt_last_publish', String(Date.now()));
+          window.setTimeout(() => {
+            publishBtn.disabled = false;
+            publishBtn.classList.remove('is-success');
+            if (publishLabel) publishLabel.textContent = 'Publicar sitio';
+            if (publishIcon) publishIcon.innerHTML = '<path d="M12 19V5"/><polyline points="5 12 12 5 19 12"/>';
+            loadLastPublish();
+          }, 5000);
+        } else {
+          publishBtn.classList.add('is-error');
+          if (publishLabel) publishLabel.textContent = 'Error';
+          if (publishIcon) publishIcon.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+          setPublishStatus(json.error || 'Intenta de nuevo');
+          window.setTimeout(() => {
+            publishBtn.disabled = false;
+            publishBtn.classList.remove('is-error');
+            if (publishLabel) publishLabel.textContent = 'Publicar sitio';
+            if (publishIcon) publishIcon.innerHTML = '<path d="M12 19V5"/><polyline points="5 12 12 5 19 12"/>';
+            setPublishStatus('');
+          }, 4000);
+        }
+      } catch {
+        publishBtn.disabled = false;
+        publishBtn.classList.add('is-error');
+        if (publishLabel) publishLabel.textContent = 'Error de red';
+        window.setTimeout(() => {
+          publishBtn.classList.remove('is-error');
+          if (publishLabel) publishLabel.textContent = 'Publicar sitio';
+        }, 3000);
+      }
+    });
+
+    // New leads badge
+    async function loadLeadsBadge() {
+      const badge = document.querySelector('#navBadgeLeads');
+      if (!badge) return;
+      const { count } = await adminSupabase
+        .from('leads')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'new');
+      if (count && count > 0) {
+        badge.textContent = String(count > 9 ? '9+' : count);
+        badge.classList.add('is-visible');
+      }
+    }
+    window.setTimeout(loadLeadsBadge, 500);
   </script>
+
 </body>
 </html>

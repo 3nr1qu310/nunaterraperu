@@ -9,13 +9,19 @@ import {
   getDestinationBySlug,
   getProductsByDestinationSlug,
   getPlacesByDestinationSlug,
+  getTravelCategories,
 } from '@/lib/content';
 
 import './DetalleDestino.scss';
 
 export async function getStaticPaths() {
   const destinations = await getDestinations();
-  return destinations.map((d) => ({ params: { slug: d.slug } }));
+
+  return destinations.map((destination) => ({
+    params: {
+      slug: destination.slug,
+    },
+  }));
 }
 
 const slug = Astro.params.slug || '';
@@ -26,9 +32,10 @@ if (!destination) {
   return Astro.redirect('/destinos');
 }
 
-const [relatedProducts, places] = await Promise.all([
+const [relatedProducts, places, allTravelCategories] = await Promise.all([
   getProductsByDestinationSlug(slug),
   getPlacesByDestinationSlug(slug),
+  getTravelCategories(),
 ]);
 
 const heroImage =
@@ -36,17 +43,8 @@ const heroImage =
   destination.cardImage ||
   '/images/placeholders/destination-placeholder.jpg';
 
-const packages = relatedProducts.filter((p) => p.type === 'package');
-const tours = relatedProducts.filter((p) => p.type === 'tour');
-
-const featuredPlace = places[0];
-const secondaryPlaces = places.slice(1);
-
-const featuredPackage = packages[0];
-const secondaryPackages = packages.slice(1);
-
-const featuredTour = tours[0];
-const secondaryTours = tours.slice(1);
+const packages = relatedProducts.filter((product) => product.type === 'package');
+const tours = relatedProducts.filter((product) => product.type === 'tour');
 
 const regionLabel =
   destination.region === 'costa'
@@ -64,8 +62,99 @@ const factItems = [
   ...(destination.recommendedDays ? [{ label: 'Estadía sugerida', value: destination.recommendedDays }] : []),
 ];
 
+const unique = <T,>(items: T[]) => [...new Set(items.filter(Boolean))];
+
+const relatedCategorySlugs = unique(
+  relatedProducts.flatMap((product) => product.categorySlugs || [])
+);
+
+const relatedTravelStyles = allTravelCategories
+  .filter((category) => relatedCategorySlugs.includes(category.slug))
+  .map((category) => {
+    const matchingProducts = relatedProducts.filter((product) =>
+      product.categorySlugs?.includes(category.slug)
+    );
+
+    const firstProduct = matchingProducts[0];
+
+    return {
+      ...category,
+      count: matchingProducts.length,
+      image:
+        category.cardImage ||
+        category.heroImage ||
+        firstProduct?.cardImage ||
+        firstProduct?.heroImage ||
+        heroImage,
+    };
+  })
+  .slice(0, 8);
+
+const galleryItemsRaw = [
+  {
+    imageUrl: destination.heroImage,
+    altText: destination.name,
+    caption: destination.name,
+    type: 'Destino',
+  },
+  {
+    imageUrl: destination.cardImage,
+    altText: destination.name,
+    caption: destination.subtitle || destination.name,
+    type: 'Destino',
+  },
+  ...places.flatMap((place) => [
+    {
+      imageUrl: place.heroImage,
+      altText: place.name,
+      caption: place.name,
+      type: 'Lugar',
+    },
+    {
+      imageUrl: place.cardImage,
+      altText: place.name,
+      caption: place.subtitle || place.name,
+      type: 'Lugar',
+    },
+  ]),
+  ...relatedProducts.flatMap((product) => [
+    {
+      imageUrl: product.heroImage,
+      altText: product.title,
+      caption: product.title,
+      type: product.type === 'package' ? 'Paquete' : 'Tour',
+    },
+    {
+      imageUrl: product.cardImage,
+      altText: product.title,
+      caption: product.subtitle || product.title,
+      type: product.type === 'package' ? 'Paquete' : 'Tour',
+    },
+    ...((product.gallery || []).map((image) => ({
+      imageUrl: image.imageUrl,
+      altText: image.altText || product.title,
+      caption: image.caption || product.title,
+      type: product.type === 'package' ? 'Paquete' : 'Tour',
+    }))),
+  ]),
+];
+
+const seenImages = new Set<string>();
+
+const galleryItems = galleryItemsRaw
+  .filter((item) => {
+    if (!item.imageUrl) return false;
+    if (seenImages.has(item.imageUrl)) return false;
+
+    seenImages.add(item.imageUrl);
+    return true;
+  })
+  .slice(0, 9);
+
 const sectionLinks = [
   { href: '#overview', label: 'Resumen' },
+  ...(relatedTravelStyles.length > 0 ? [{ href: '#estilos', label: 'Estilos' }] : []),
+  ...(galleryItems.length > 2 ? [{ href: '#galeria', label: 'Galería' }] : []),
   ...(places.length > 0 ? [{ href: '#lugares', label: 'Lugares' }] : []),
   ...(packages.length > 0 ? [{ href: '#paquetes', label: 'Paquetes' }] : []),
   ...(tours.length > 0 ? [{ href: '#tours', label: 'Tours' }] : []),
@@ -89,45 +178,40 @@ const sectionLinks = [
     <div class="destination-hero__overlay"></div>
     <div class="destination-hero__grain" aria-hidden="true"></div>
 
-    <div class="container destination-hero__grid">
-      <div class="destination-hero__copy" data-reveal>
-        <div class="destination-hero__topline">
-          <span class="destination-hero__eyebrow">Destino del Perú</span>
-          <span class="destination-hero__region">{regionLabel}</span>
-        </div>
-
-        <h1>{destination.name}</h1>
-
-        <p class="destination-hero__lead">
-          {destination.subtitle || destination.shortDescription || destination.description}
-        </p>
-
-        {destination.idealFor && destination.idealFor.length > 0 && (
-          <div class="destination-hero__tags">
-            {destination.idealFor.slice(0, 4).map((tag: string) => (
-              <span>{tag}</span>
-            ))}
-          </div>
-        )}
-
-        <div class="destination-hero__actions">
-          <a href="#paquetes" class="destination-btn destination-btn--primary">
-            Ver experiencias
-          </a>
-
-          <a href="/contacto" class="destination-btn destination-btn--ghost">
-            Diseñar mi viaje
-          </a>
-        </div>
+    <div class="container destination-hero__copy" data-reveal>
+      <div class="destination-hero__topline">
+        <span class="destination-hero__eyebrow">Destino del Perú</span>
+        <span class="destination-hero__region">{regionLabel}</span>
       </div>
 
-      <aside class="destination-hero__panel" data-reveal>
-        <div class="destination-hero__panel-head">
-          <span class="destination-hero__panel-kicker">Información esencial</span>
-          <h2>{destination.name}</h2>
-        </div>
+      <h1>{destination.name}</h1>
 
-        <div class="destination-hero__facts">
+      <p class="destination-hero__lead">
+        {destination.subtitle || destination.shortDescription || destination.description}
+      </p>
+
+      {destination.idealFor && destination.idealFor.length > 0 && (
+        <div class="destination-hero__tags">
+          {destination.idealFor.slice(0, 4).map((tag: string) => (
+            <span>{tag}</span>
+          ))}
+        </div>
+      )}
+
+      <div class="destination-hero__actions">
+        <a href={packages.length > 0 ? '#paquetes' : '#tours'} class="destination-btn destination-btn--primary">
+          Ver experiencias
+        </a>
+
+        <a href="/contacto" class="destination-btn destination-btn--ghost">
+          Hablar con un asesor
+        </a>
+      </div>
+    </div>
+
+    {factItems.length > 0 && (
+      <div class="destination-hero__facts-strip" data-reveal>
+        <div class="container destination-hero__facts-inner">
           {factItems.map((item) => (
             <div class="destination-hero__fact">
               <span class="destination-hero__fact-label">{item.label}</span>
@@ -135,16 +219,8 @@ const sectionLinks = [
             </div>
           ))}
         </div>
-
-        <p class="destination-hero__panel-text">
-          Un destino pensado para viajeros que buscan contexto, autenticidad y una experiencia mejor organizada.
-        </p>
-
-        <a href="/contacto" class="destination-hero__panel-cta">
-          Hablar con un asesor
-        </a>
-      </aside>
-    </div>
+      </div>
+    )}
 
     <div class="destination-hero__scroll" aria-hidden="true">
       <span></span>
@@ -180,12 +256,14 @@ const sectionLinks = [
         </div>
       </div>
 
-      <aside class="destination-overview__card" data-reveal>
-        <span class="destination-overview__card-eyebrow">Visión Nuna Terra</span>
-        <h3>Una forma más cuidada de vivir {destination.name}</h3>
+      <aside class="destination-overview__manifesto" data-reveal>
+        <span class="destination-overview__manifesto-kicker">Visión Nuna Terra</span>
+        <h3 class="destination-overview__manifesto-title">
+          Una forma más cuidada de vivir {destination.name}
+        </h3>
         <p>
-          No se trata solo de visitar el destino, sino de entenderlo mejor, vivirlo con calma
-          y conectarlo con una ruta coherente dentro del viaje.
+          No se trata solo de visitar el destino: es entenderlo, vivirlo con calma
+          y conectarlo con coherencia dentro de la ruta completa.
         </p>
 
         {destination.idealFor && destination.idealFor.length > 0 && (
@@ -195,145 +273,221 @@ const sectionLinks = [
             ))}
           </div>
         )}
+
+        <a href="/contacto" class="destination-overview__manifesto-cta">
+          Diseñar mi viaje →
+        </a>
       </aside>
     </div>
   </section>
 
   {(destination.altitude || destination.bestTime || destination.recommendedDays) && (
-    <section class="destination-section destination-highlights">
+    <section class="destination-highlights">
       <div class="container">
-        <div class="destination-highlights__grid" data-reveal-stagger>
+        <div class="destination-highlights__bar" data-reveal-stagger>
           {destination.altitude && (
-            <article class="destination-highlight-card">
-              <span class="destination-highlight-card__label">Altitud</span>
+            <article class="destination-highlight-stat">
+              <span class="destination-highlight-stat__label">Altitud</span>
               <strong>{destination.altitude}</strong>
-              <p>Información útil para planificar mejor tu experiencia y ritmo de viaje.</p>
+              <p>Dato clave para planificar mejor el ritmo del viaje.</p>
             </article>
           )}
 
           {destination.bestTime && (
-            <article class="destination-highlight-card">
-              <span class="destination-highlight-card__label">Mejor época</span>
+            <article class="destination-highlight-stat">
+              <span class="destination-highlight-stat__label">Mejor época</span>
               <strong>{destination.bestTime}</strong>
-              <p>Una referencia clave para elegir el momento ideal según clima y experiencia.</p>
+              <p>Una referencia útil para elegir el mejor momento de visita.</p>
             </article>
           )}
 
           {destination.recommendedDays && (
-            <article class="destination-highlight-card">
-              <span class="destination-highlight-card__label">Tiempo sugerido</span>
+            <article class="destination-highlight-stat">
+              <span class="destination-highlight-stat__label">Tiempo sugerido</span>
               <strong>{destination.recommendedDays}</strong>
-              <p>El tiempo recomendado para conocer el destino con mayor comodidad.</p>
+              <p>Tiempo recomendado para disfrutarlo con más comodidad.</p>
             </article>
           )}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {relatedTravelStyles.length > 0 && (
+    <section class="destination-section destination-styles" id="estilos">
+      <div class="container">
+        <div class="destination-styles__header" data-reveal>
+          <span class="destination-styles__eyebrow">Estilos de viaje</span>
+          <h2>Formas de vivir {destination.name}</h2>
+          <p>
+            Cada destino puede sentirse diferente según el tipo de experiencia que buscas:
+            cultura, naturaleza, aventura, familia o una ruta más premium.
+          </p>
+        </div>
+
+        <div class="destination-styles__grid" data-reveal-stagger>
+          {relatedTravelStyles.map((style) => (
+            <a href={`/categorias/${style.slug}`} class="destination-style-card">
+              <img src={style.image} alt={style.name} loading="lazy" />
+              <span class="destination-style-card__shade"></span>
+
+              <div class="destination-style-card__body">
+                {style.icon && <span class="destination-style-card__icon">{style.icon}</span>}
+                <span class="destination-style-card__label">Estilo de viaje</span>
+                <h3>{style.name}</h3>
+                {style.description && <p>{style.description}</p>}
+                <small>{style.count} experiencia{style.count === 1 ? '' : 's'} relacionada{style.count === 1 ? '' : 's'}</small>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {galleryItems.length > 2 && (
+    <section class="destination-section destination-gallery" id="galeria">
+      <div class="container">
+        <div class="destination-gallery__header" data-reveal>
+          <div>
+            <span class="destination-gallery__eyebrow">Galería</span>
+            <h2>Una mirada visual a {destination.name}</h2>
+          </div>
+
+          <p>
+            Imágenes tomadas de los lugares, paquetes y tours relacionados con este destino.
+          </p>
+        </div>
+
+        <div class="destination-gallery__grid" data-reveal-stagger>
+          {galleryItems.map((item, index) => (
+            <figure class={`destination-gallery__item ${index === 0 ? 'is-large' : ''} ${index === 3 ? 'is-wide' : ''}`}>
+              <img src={item.imageUrl} alt={item.altText || item.caption || destination.name} loading="lazy" />
+              <figcaption>
+                <span>{item.type}</span>
+                <strong>{item.caption || destination.name}</strong>
+              </figcaption>
+            </figure>
+          ))}
         </div>
       </div>
     </section>
   )}
 
   {places.length > 0 && (
-    <section class="destination-section destination-showcase destination-showcase--places" id="lugares">
+    <section class="destination-section destination-curated destination-curated--places" id="lugares">
       <div class="container">
-        <div class="destination-showcase__header" data-reveal>
-          <div>
-            <span class="destination-showcase__eyebrow">Lugares de interés</span>
+        <div class="destination-curated__top" data-reveal>
+          <div class="destination-curated__intro">
+            <span class="destination-curated__eyebrow">Lugares de interés</span>
             <h2>Qué visitar en {destination.name}</h2>
+            <p>
+              Una selección de espacios emblemáticos para entender el destino desde su historia,
+              paisaje y forma de vida.
+            </p>
           </div>
 
-          <p>
-            Lugares emblemáticos dentro de este destino, cada uno con una historia,
-            un paisaje y una forma distinta de vivir la experiencia.
-          </p>
+          <div class="destination-curated__actions">
+            <button class="destination-curated__arrow" type="button" data-carousel-prev="places" aria-label="Ver lugares anteriores">←</button>
+            <button class="destination-curated__arrow" type="button" data-carousel-next="places" aria-label="Ver más lugares">→</button>
+          </div>
         </div>
 
-        <div class="destination-showcase__layout destination-showcase__layout--places" data-reveal-stagger>
-          {featuredPlace && (
-            <div class="destination-showcase__featured">
-              <PlaceCard place={featuredPlace} />
-            </div>
-          )}
-
-          {secondaryPlaces.length > 0 && (
-            <div class="destination-showcase__grid">
-              {secondaryPlaces.map((place) => (
-                <div class="destination-showcase__item">
+        <div class="destination-carousel destination-carousel--places" data-carousel="places" data-reveal>
+          <div class="destination-carousel__viewport">
+            <div class="destination-carousel__track" data-carousel-track>
+              {places.map((place, index) => (
+                <article class={`destination-carousel__slide destination-carousel__slide--place ${index === 0 ? 'is-featured' : ''}`}>
                   <PlaceCard place={place} />
-                </div>
+                </article>
               ))}
             </div>
-          )}
+          </div>
+
+          <div class="destination-carousel__hint">
+            <span>Desliza para explorar</span>
+          </div>
         </div>
       </div>
     </section>
   )}
 
   {packages.length > 0 && (
-    <section class="destination-section destination-showcase destination-showcase--packages" id="paquetes">
+    <section class="destination-section destination-curated destination-curated--packages" id="paquetes">
       <div class="container">
-        <div class="destination-showcase__header" data-reveal>
-          <div>
-            <span class="destination-showcase__eyebrow">Paquetes</span>
+        <div class="destination-curated__split">
+          <div class="destination-curated__sticky-copy" data-reveal>
+            <span class="destination-curated__eyebrow">Paquetes</span>
             <h2>Paquetes en {destination.name}</h2>
+            <p>
+              Rutas completas para vivir este destino con una estructura clara:
+              tiempos bien pensados, experiencias conectadas y acompañamiento real.
+            </p>
+
+            <div class="destination-curated__mini-stats">
+              <span>{packages.length} opciones disponibles</span>
+              <span>Rutas organizadas</span>
+            </div>
+
+            <div class="destination-curated__actions destination-curated__actions--left">
+              <button class="destination-curated__arrow" type="button" data-carousel-prev="packages" aria-label="Ver paquetes anteriores">←</button>
+              <button class="destination-curated__arrow" type="button" data-carousel-next="packages" aria-label="Ver más paquetes">→</button>
+            </div>
           </div>
 
-          <p>
-            Rutas completas diseñadas para vivir este destino con calma,
-            buena organización y una experiencia mejor conectada.
-          </p>
-        </div>
-
-        <div class="destination-showcase__layout destination-showcase__layout--products" data-reveal-stagger>
-          {featuredPackage && (
-            <div class="destination-showcase__featured destination-showcase__featured--product">
-              <ProductCard product={featuredPackage} />
+          <div class="destination-carousel destination-carousel--products" data-carousel="packages" data-reveal>
+            <div class="destination-carousel__viewport">
+              <div class="destination-carousel__track" data-carousel-track>
+                {packages.map((product, index) => (
+                  <article class={`destination-carousel__slide destination-carousel__slide--product ${index === 0 ? 'is-featured' : ''}`}>
+                    <ProductCard product={product} />
+                  </article>
+                ))}
+              </div>
             </div>
-          )}
 
-          {secondaryPackages.length > 0 && (
-            <div class="destination-showcase__grid destination-showcase__grid--products">
-              {secondaryPackages.map((product) => (
-                <div class="destination-showcase__item">
-                  <ProductCard product={product} />
-                </div>
-              ))}
+            <div class="destination-carousel__hint">
+              <span>Explora los paquetes</span>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </section>
   )}
 
   {tours.length > 0 && (
-    <section class="destination-section destination-showcase destination-showcase--tours" id="tours">
+    <section class="destination-section destination-curated destination-curated--tours" id="tours">
       <div class="container">
-        <div class="destination-showcase__header" data-reveal>
-          <div>
-            <span class="destination-showcase__eyebrow">Tours</span>
+        <div class="destination-curated__top destination-curated__top--dark" data-reveal>
+          <div class="destination-curated__intro">
+            <span class="destination-curated__eyebrow">Tours</span>
             <h2>Tours en {destination.name}</h2>
+            <p>
+              Experiencias más puntuales para descubrir lo esencial del destino en menos tiempo,
+              con guía, logística y una ruta bien resuelta.
+            </p>
           </div>
 
-          <p>
-            Experiencias de uno o dos días para conocer lo esencial del destino
-            con guía, logística y acompañamiento.
-          </p>
+          <div class="destination-curated__actions">
+            <button class="destination-curated__arrow" type="button" data-carousel-prev="tours" aria-label="Ver tours anteriores">←</button>
+            <button class="destination-curated__arrow" type="button" data-carousel-next="tours" aria-label="Ver más tours">→</button>
+          </div>
         </div>
 
-        <div class="destination-showcase__layout destination-showcase__layout--products destination-showcase__layout--reverse" data-reveal-stagger>
-          {featuredTour && (
-            <div class="destination-showcase__featured destination-showcase__featured--product">
-              <ProductCard product={featuredTour} />
-            </div>
-          )}
-
-          {secondaryTours.length > 0 && (
-            <div class="destination-showcase__grid destination-showcase__grid--products">
-              {secondaryTours.map((product) => (
-                <div class="destination-showcase__item">
+        <div class="destination-carousel destination-carousel--tours" data-carousel="tours" data-reveal>
+          <div class="destination-carousel__viewport">
+            <div class="destination-carousel__track" data-carousel-track>
+              {tours.map((product, index) => (
+                <article class={`destination-carousel__slide destination-carousel__slide--tour ${index === 0 ? 'is-featured' : ''}`}>
                   <ProductCard product={product} />
-                </div>
+                </article>
               ))}
             </div>
-          )}
+          </div>
+
+          <div class="destination-carousel__hint">
+            <span>Desliza para ver más tours</span>
+          </div>
         </div>
       </div>
     </section>
@@ -348,6 +502,21 @@ const sectionLinks = [
           subtitle="Respuestas rápidas para ayudarte a tomar mejores decisiones antes de viajar."
           align="left"
         />
+
+        {destination.idealFor && destination.idealFor.length > 0 && (
+          <div class="destination-faqs__tags">
+            <span class="destination-faqs__tags-label">Ideal para</span>
+            <div class="destination-faqs__tags-list">
+              {destination.idealFor.map((tag: string) => (
+                <span>{tag}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <a href="/contacto" class="destination-faqs__cta">
+          Diseñar mi viaje
+        </a>
       </div>
 
       <div class="destination-faqs__list" data-reveal>
@@ -386,20 +555,25 @@ const sectionLinks = [
 
   <section class="destination-final-cta">
     <div class="container destination-final-cta__inner" data-reveal>
-      <span class="destination-final-cta__eyebrow">Diseña tu experiencia</span>
-      <h2>¿Quieres incluir {destination.name} en tu próxima ruta por Perú?</h2>
-      <p>
-        Creamos una experiencia a medida para integrar este destino dentro de una ruta clara,
-        elegante y memorable.
-      </p>
+      <div class="destination-final-cta__left">
+        <span class="destination-final-cta__eyebrow">Diseña tu experiencia</span>
+        <h2>¿Quieres incluir {destination.name} en tu próxima ruta por Perú?</h2>
+      </div>
 
-      <div class="destination-final-cta__actions">
-        <a href="/contacto" class="destination-btn destination-btn--primary">
-          Comenzar a planear
-        </a>
-        <a href="/contacto" class="destination-btn destination-btn--ghost-dark">
-          Hablar con un asesor
-        </a>
+      <div class="destination-final-cta__right">
+        <p>
+          Creamos una experiencia a medida para integrar este destino dentro de una ruta clara,
+          elegante y memorable.
+        </p>
+
+        <div class="destination-final-cta__actions">
+          <a href="/contacto" class="destination-btn destination-btn--primary">
+            Comenzar a planear
+          </a>
+          <a href="/contacto" class="destination-btn destination-btn--ghost-dark">
+            Hablar con un asesor
+          </a>
+        </div>
       </div>
     </div>
   </section>
@@ -459,6 +633,29 @@ const sectionLinks = [
     );
   }
 
+  const navLinks = document.querySelectorAll<HTMLAnchorElement>('.destination-anchor-nav__link');
+
+  if (navLinks.length > 0) {
+    const anchorObs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            navLinks.forEach((link) => {
+              link.classList.toggle('is-active', link.getAttribute('href') === `#${entry.target.id}`);
+            });
+          }
+        }
+      },
+      { threshold: 0.25, rootMargin: '-96px 0px -55% 0px' }
+    );
+
+    document.querySelectorAll<HTMLElement>('[id]').forEach((sec) => {
+      if ([...navLinks].some((link) => link.getAttribute('href') === `#${sec.id}`)) {
+        anchorObs.observe(sec);
+      }
+    });
+  }
+
   document.querySelectorAll('.destination-faqs details').forEach((det) => {
     const summary = det.querySelector('summary');
     if (!summary) return;
@@ -467,5 +664,55 @@ const sectionLinks = [
       e.preventDefault();
       (det as HTMLDetailsElement).open = !(det as HTMLDetailsElement).open;
     });
+  });
+
+  const carousels = document.querySelectorAll<HTMLElement>('[data-carousel]');
+
+  carousels.forEach((carousel) => {
+    const name = carousel.dataset.carousel;
+    const track = carousel.querySelector<HTMLElement>('[data-carousel-track]');
+    const prev = document.querySelector<HTMLButtonElement>(`[data-carousel-prev="${name}"]`);
+    const next = document.querySelector<HTMLButtonElement>(`[data-carousel-next="${name}"]`);
+
+    if (!track || !name) return;
+
+    const getStep = () => {
+      const firstSlide = track.querySelector<HTMLElement>('.destination-carousel__slide');
+      if (!firstSlide) return 320;
+
+      const styles = window.getComputedStyle(track);
+      const gap = Number.parseFloat(styles.columnGap || styles.gap || '18');
+
+      return firstSlide.offsetWidth + gap;
+    };
+
+    const updateButtons = () => {
+      if (!prev || !next) return;
+
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const current = track.scrollLeft;
+
+      prev.disabled = current <= 4;
+      next.disabled = current >= maxScroll - 4;
+    };
+
+    prev?.addEventListener('click', () => {
+      track.scrollBy({
+        left: -getStep(),
+        behavior: 'smooth',
+      });
+    });
+
+    next?.addEventListener('click', () => {
+      track.scrollBy({
+        left: getStep(),
+        behavior: 'smooth',
+      });
+    });
+
+    track.addEventListener('scroll', updateButtons, { passive: true });
+    window.addEventListener('resize', updateButtons);
+
+    updateButtons();
   });
 </script>
