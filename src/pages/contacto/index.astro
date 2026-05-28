@@ -1,66 +1,633 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
 import { site } from '@/lib/site';
+import { getSiteSettings } from '@/lib/settings';
+
+export const prerender = false;
+
+const settings = await getSiteSettings(['contacto_hero_video']);
+const heroVideo = settings['contacto_hero_video'] || '';
 ---
-<BaseLayout title="Contacto | Nuna Terra Perú">
-  <Hero eyebrow="Contacto" title="Diseñemos tu viaje por Perú" subtitle="Cuéntanos qué destinos quieres conocer, cuántos días tienes y qué tipo de experiencia buscas. Te ayudaremos a crear una ruta clara, organizada y adaptada a ti." image="/images/contact-hero.jpg" primaryText="Escribir por WhatsApp" primaryHref={site.whatsappUrl} secondaryText="Enviar consulta" secondaryHref="#formulario" />
-  <section class="section section--tight"><div class="container grid grid--4">{['WhatsApp','Correo','Ubicación','Redes sociales'].map((item)=><div class="card contact-card"><h3>{item}</h3><p>Canal directo para consultas, cotizaciones y orientación de viaje.</p></div>)}</div></section>
-  <section class="section" id="formulario"><div class="container contact-layout"><div><SectionHeading title="Cuéntanos sobre tu próximo viaje" subtitle="Mientras más detalles nos compartas, mejor podremos orientarte." /><form class="form" id="lead-form">
-  <input name="full_name" placeholder="Nombre completo" required />
-  <input name="email" type="email" placeholder="Correo electrónico" />
-  <input name="phone" placeholder="WhatsApp" required />
-  <input name="country" placeholder="País de residencia" />
-  <select name="interest_type">
-    <option value="general_question">Tipo de interés</option>
-    <option value="package">Paquete turístico</option>
-    <option value="tour">Tour</option>
-    <option value="custom_trip">Viaje a medida</option>
-  </select>
-  <select name="destinations_interest">
-    <option value="">Destino de interés</option>
-    <option>Cusco</option><option>Machu Picchu</option><option>Lima</option><option>Ica</option><option>Arequipa</option><option>Puno</option><option>Amazonía</option><option>Aún no lo sé</option>
-  </select>
-  <input name="travel_date" type="date" placeholder="Fecha estimada de viaje" />
-  <input name="number_of_people" type="number" min="1" placeholder="Número de viajeros" />
-  <select name="duration_range">
-    <option value="">Duración aproximada</option>
-    <option>1 día</option><option>2 días</option><option>3 a 5 días</option><option>6 a 8 días</option><option>Más de 9 días</option>
-  </select>
-  <select name="travel_style">
-    <option value="">Estilo de viaje</option>
-    <option>Familiar</option><option>Pareja</option><option>Amigos</option><option>Premium</option><option>Aventura</option><option>Cultural</option><option>Relajado</option>
-  </select>
-  <textarea name="message" rows="5" placeholder="Cuéntanos qué te gustaría vivir en Perú"></textarea>
-  <label><input name="consent" type="checkbox" required /> Acepto ser contactado por Nuna Terra Perú.</label>
-  <input type="hidden" name="source" value="contact_page" />
-  <button class="btn btn--primary" type="submit">Solicitar propuesta de viaje</button>
-  <p class="form-message" id="form-message" aria-live="polite"></p>
-</form></div><aside class="side"><h3>Atención personalizada</h3><p>Nuestro equipo revisará tu consulta y te orientará con una propuesta según tus fechas, destinos e intereses.</p><p>{site.whatsapp}</p><p>{site.email}</p><p>{site.location}</p></aside></div></section>
+
+<BaseLayout
+  title="Contacto | Nuna Terra Perú"
+  description="Diseñamos tu viaje por Perú a medida. Cuéntanos tus fechas, destinos y presupuesto — te enviamos una propuesta en menos de 24 horas."
+>
+  <Hero
+    eyebrow="Contacto"
+    title="Diseñemos tu viaje juntos"
+    subtitle="Cuéntanos qué destinos quieres conocer, cuántos días tienes y qué experiencia buscas. Recibe una propuesta personalizada en menos de 24 horas."
+    image="/images/contact-hero.jpg"
+    video={heroVideo || undefined}
+    primaryText="Escribir por WhatsApp"
+    primaryHref={site.whatsappUrl}
+  />
+
+  <!-- ─── Form + Info ─────────────────────────────────────────── -->
+  <section class="contact-section" id="formulario">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- Form column -->
+        <div class="form-col">
+          <header class="form-header">
+            <p class="eyebrow">Cuéntanos</p>
+            <h2 class="h2 form-title">Tu próxima aventura</h2>
+            <p class="lead form-lead">
+              Completa los datos esenciales y uno de nuestros especialistas
+              te enviará una ruta personalizada.
+            </p>
+          </header>
+
+          <form class="lead-form" id="lead-form" novalidate>
+            <!-- Nombre -->
+            <div class="field">
+              <label for="full_name">Nombre completo <span class="req">*</span></label>
+              <input
+                id="full_name"
+                name="full_name"
+                autocomplete="name"
+                placeholder="¿Cómo te llamas?"
+                required
+              />
+            </div>
+
+            <!-- Email + WhatsApp -->
+            <div class="field-row">
+              <div class="field">
+                <label for="email">Correo electrónico <span class="req">*</span></label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="tu@correo.com"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="phone">WhatsApp <span class="req">*</span></label>
+                <input
+                  id="phone"
+                  name="phone"
+                  autocomplete="tel"
+                  placeholder="+51 000 000 000"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Destino -->
+            <div class="field">
+              <label for="destinations_interest">¿A dónde quieres ir?</label>
+              <select id="destinations_interest" name="destinations_interest">
+                <option value="">Selecciona un destino</option>
+                <option>Cusco</option>
+                <option>Machu Picchu</option>
+                <option>Lima</option>
+                <option>Ica</option>
+                <option>Arequipa</option>
+                <option>Puno</option>
+                <option>Amazonía</option>
+                <option>Varios destinos</option>
+                <option>Aún no lo sé</option>
+              </select>
+            </div>
+
+            <!-- Fecha + Viajeros -->
+            <div class="field-row">
+              <div class="field">
+                <label for="travel_date">Fecha estimada</label>
+                <input id="travel_date" name="travel_date" type="date" />
+              </div>
+              <div class="field">
+                <label for="number_of_people">Número de viajeros</label>
+                <input
+                  id="number_of_people"
+                  name="number_of_people"
+                  type="number"
+                  min="1"
+                  max="50"
+                  placeholder="¿Cuántos van?"
+                />
+              </div>
+            </div>
+
+            <!-- Mensaje -->
+            <div class="field">
+              <label for="message">Mensaje</label>
+              <textarea
+                id="message"
+                name="message"
+                rows="4"
+                placeholder="Cuéntanos qué experiencias buscas, si tienes fechas fijas, presupuesto o algún requerimiento especial…"
+              ></textarea>
+            </div>
+
+            <!-- Consent -->
+            <label class="consent-label">
+              <input name="consent" type="checkbox" required />
+              <span>Acepto que Nuna Terra Perú se ponga en contacto conmigo.</span>
+            </label>
+
+            <!-- Hidden -->
+            <input type="hidden" name="source" value="contact_page" />
+
+            <button class="btn btn--primary btn--submit" type="submit">
+              Solicitar propuesta
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+
+            <p class="form-status" id="form-status" aria-live="polite"></p>
+          </form>
+
+          <!-- Success state (hidden until submitted) -->
+          <div class="success-panel" id="success-panel" hidden>
+            <div class="success-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3>¡Solicitud recibida!</h3>
+            <p>
+              Gracias por escribirnos. Uno de nuestros especialistas revisará
+              tu consulta y se comunicará contigo en menos de 24 horas.
+            </p>
+            <p class="success-check-email">
+              Revisa tu bandeja de entrada — te enviamos un correo de confirmación.
+            </p>
+            <a class="btn btn--outline-dark" href={site.whatsappUrl} target="_blank" rel="noopener">
+              Hablar por WhatsApp ahora
+            </a>
+          </div>
+        </div>
+
+        <!-- Info panel -->
+        <aside class="info-panel">
+          <div class="info-panel__inner">
+            <span class="info-badge">Respuesta en menos de 24 h</span>
+
+            <h3 class="info-title">Atención personalizada</h3>
+            <p class="info-desc">
+              Cada viaje es diseñado desde cero por nuestro equipo local en Perú —
+              guías certificados, rutas exclusivas y atención en cada etapa de tu aventura.
+            </p>
+
+            <ul class="info-contacts" role="list">
+              <li>
+                <a class="info-contact" href={site.whatsappUrl} target="_blank" rel="noopener">
+                  <span class="info-contact__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  </span>
+                  <div>
+                    <strong>WhatsApp</strong>
+                    <span>{site.whatsapp}</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a class="info-contact" href={`mailto:${site.email}`}>
+                  <span class="info-contact__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  </span>
+                  <div>
+                    <strong>Correo</strong>
+                    <span>{site.email}</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <span class="info-contact info-contact--static">
+                  <span class="info-contact__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </span>
+                  <div>
+                    <strong>Ubicación</strong>
+                    <span>{site.location}</span>
+                  </div>
+                </span>
+              </li>
+            </ul>
+
+            <ul class="info-highlights" role="list">
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                Guías locales certificados
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                Itinerarios a medida y flexibles
+              </li>
+              <li>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                Reservas seguras y asistencia 24/7
+              </li>
+            </ul>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
 </BaseLayout>
-<style lang="scss">.contact-card{padding:24px}.contact-card h3{font-family:var(--font-display);font-size:1.8rem;color:var(--color-earth);margin:0}.contact-layout{display:grid;grid-template-columns:1fr 350px;gap:34px;align-items:start}.form{display:grid;gap:14px}.form-message{font-weight:700;color:var(--color-green);margin:4px 0 0}.form input,.form select,.form textarea{width:100%;border:1px solid rgba(90,62,43,.18);border-radius:16px;background:white;padding:14px 16px}.form input:focus,.form textarea:focus,.form select:focus{outline:2px solid rgba(47,93,80,.25);border-color:var(--color-green)}.side{position:sticky;top:130px;background:var(--color-earth);color:var(--color-ivory);padding:28px;border-radius:var(--radius-md)}.side h3{font-family:var(--font-display);font-size:2rem;margin:0 0 10px;color:var(--color-ivory)}@media(max-width:900px){.contact-layout{grid-template-columns:1fr}.side{position:static}}</style>
+
+<style lang="scss">
+/* ── Section wrapper ─────────────────────────────────── */
+.contact-section {
+  padding: 96px 0 120px;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 20%, rgba(47,93,80,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 10% 80%, rgba(216,185,130,.08) 0%, transparent 55%),
+    var(--color-ivory);
+}
+
+/* ── Two-column grid ─────────────────────────────────── */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 52px;
+  align-items: start;
+}
+
+/* ── Entry animations (no JS required) ──────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.form-col {
+  min-width: 0;
+  animation: slideUp .7s cubic-bezier(.22,1,.36,1) both;
+}
+
+.info-panel {
+  animation: slideUp .7s .12s cubic-bezier(.22,1,.36,1) both;
+}
+
+.form-header { margin-bottom: 40px; }
+.form-title  { margin: 8px 0 14px; }
+.form-lead   { margin: 0; }
+
+/* ── Fields ──────────────────────────────────────────── */
+.lead-form {
+  display: grid;
+  gap: 20px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.field label {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--color-earth);
+  letter-spacing: .01em;
+}
+
+.req { color: var(--color-green); font-weight: 700; }
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid rgba(90,62,43,.18);
+  border-radius: 12px;
+  background: #fff;
+  padding: 13px 16px;
+  color: var(--color-charcoal);
+  font-size: .93rem;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A3E2B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.field textarea { resize: vertical; min-height: 110px; }
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px rgba(47,93,80,.1);
+}
+
+.field input::placeholder,
+.field textarea::placeholder { color: rgba(37,37,37,.35); }
+
+/* ── Consent ─────────────────────────────────────────── */
+.consent-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: .84rem;
+  color: rgba(37,37,37,.7);
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.consent-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1px solid rgba(90,62,43,.25);
+  border-radius: 5px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: var(--color-green);
+}
+
+/* ── Submit button ───────────────────────────────────── */
+.btn--submit {
+  width: fit-content;
+  padding: 15px 32px;
+  font-size: .95rem;
+  gap: 10px;
+}
+
+.btn--submit svg { transition: transform var(--transition); }
+.btn--submit:hover svg { transform: translateX(4px); }
+
+/* ── Status message ──────────────────────────────────── */
+.form-status {
+  font-size: .88rem;
+  font-weight: 600;
+  min-height: 1.4em;
+  color: var(--color-green);
+  margin: 0;
+}
+.form-status.is-error { color: #9a2f1a; }
+.form-status.is-loading { color: rgba(37,37,37,.5); font-weight: 400; }
+
+/* ── Success panel ───────────────────────────────────── */
+.success-panel {
+  padding: 48px 40px;
+  background: white;
+  border: 1px solid rgba(47,93,80,.15);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(47,93,80,.08);
+  text-align: center;
+}
+
+.success-panel[hidden] { display: none; }
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(47,93,80,.1);
+  color: var(--color-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.success-panel h3 {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: var(--color-earth);
+  margin: 0 0 14px;
+}
+
+.success-panel p {
+  color: rgba(37,37,37,.72);
+  max-width: 440px;
+  margin: 0 auto 10px;
+  line-height: 1.7;
+}
+
+.success-check-email {
+  font-size: .86rem;
+  color: var(--color-green);
+  font-weight: 500;
+  margin-bottom: 28px !important;
+}
+
+/* ── Info panel ──────────────────────────────────────── */
+.info-panel {
+  position: sticky;
+  top: 120px;
+}
+
+.info-panel__inner {
+  background: var(--color-earth);
+  color: var(--color-ivory);
+  border-radius: 20px;
+  padding: 36px 32px;
+  box-shadow: 0 24px 60px rgba(90,62,43,.28);
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle grain texture */
+.info-panel__inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: .5;
+  border-radius: inherit;
+}
+
+.info-badge {
+  display: inline-block;
+  background: rgba(216,185,130,.18);
+  border: 1px solid rgba(216,185,130,.3);
+  color: var(--color-sand);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 22px;
+}
+
+.info-title {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  line-height: 1.1;
+  color: var(--color-ivory);
+  margin: 0 0 14px;
+}
+
+.info-desc {
+  font-size: .88rem;
+  line-height: 1.7;
+  color: rgba(247,241,231,.72);
+  margin: 0 0 28px;
+}
+
+/* ── Contact links ───────────────────────────────────── */
+.info-contacts {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-contact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(247,241,231,.07);
+  border: 1px solid rgba(247,241,231,.1);
+  text-decoration: none;
+  color: var(--color-ivory);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+a.info-contact:hover {
+  background: rgba(247,241,231,.13);
+  border-color: rgba(247,241,231,.2);
+}
+
+.info-contact--static { cursor: default; }
+
+.info-contact__icon {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  background: rgba(216,185,130,.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-sand);
+}
+
+.info-contact div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-contact strong {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--color-sand);
+}
+
+.info-contact span {
+  font-size: .87rem;
+  color: rgba(247,241,231,.8);
+}
+
+/* ── Highlights list ─────────────────────────────────── */
+.info-highlights {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(247,241,231,.1);
+}
+
+.info-highlights li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .86rem;
+  color: rgba(247,241,231,.8);
+}
+
+.info-highlights svg {
+  flex-shrink: 0;
+  color: var(--color-sand);
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .contact-grid {
+    grid-template-columns: 1fr 320px;
+    gap: 36px;
+  }
+}
+
+@media (max-width: 860px) {
+  .contact-section { padding: 72px 0 96px; }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  /* Show info panel first on mobile */
+  .info-panel {
+    position: static;
+    order: -1;
+  }
+
+  .info-panel__inner { padding: 28px 24px; }
+}
+
+@media (max-width: 560px) {
+  .field-row { grid-template-columns: 1fr; }
+  .form-header { margin-bottom: 28px; }
+  .success-panel { padding: 36px 24px; }
+}
+</style>
 
 <script>
   const form = document.querySelector('#lead-form') as HTMLFormElement | null;
-  const message = document.querySelector('#form-message');
-  form?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
-    message.textContent = 'Enviando consulta...';
+  const statusEl = document.querySelector('#form-status') as HTMLElement | null;
+  const successPanel = document.querySelector('#success-panel') as HTMLElement | null;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!statusEl) return;
+    statusEl.className = 'form-status is-loading';
+    statusEl.textContent = 'Enviando solicitud…';
+
+    const payload = Object.fromEntries(new FormData(form!).entries());
+
     try {
-      const response = await fetch('/api/leads', {
+      const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.message || 'Error al enviar');
-      message.textContent = 'Tu consulta fue enviada correctamente. Te contactaremos pronto.';
-      form.reset();
-    } catch (error) {
-      message.textContent = 'No se pudo enviar la consulta. Escríbenos por WhatsApp o intenta nuevamente.';
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) throw new Error(data.message || 'Error');
+
+      // Show success state
+      form!.hidden = true;
+      if (successPanel) successPanel.hidden = false;
+      statusEl.textContent = '';
+
+    } catch {
+      statusEl.className = 'form-status is-error';
+      statusEl.textContent = 'No se pudo enviar. Escríbenos por WhatsApp o inténtalo de nuevo.';
     }
   });
 </script>

@@ -521,6 +521,78 @@
 }
 
 /* =========================================================
+   ESTILOS DE VIAJE — Tag pills visuales
+========================================================= */
+
+.cat-tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(247, 241, 231, 0.65);
+  border: 1px solid rgba(90, 62, 43, 0.1);
+  min-height: 56px;
+}
+
+/* Ocultar el input nativo sin perder accesibilidad */
+.cat-tag input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.cat-tag {
+  cursor: pointer;
+  user-select: none;
+}
+
+.cat-tag__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(90, 62, 43, 0.16);
+  background: #fff;
+  color: rgba(37, 37, 37, 0.72);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+  cursor: pointer;
+}
+
+.cat-tag:hover .cat-tag__pill {
+  transform: translateY(-2px);
+  border-color: rgba(47, 93, 80, 0.3);
+  background: rgba(47, 93, 80, 0.06);
+  box-shadow: 0 4px 14px rgba(47, 93, 80, 0.1);
+}
+
+/* Estado seleccionado */
+.cat-tag input:checked + .cat-tag__pill {
+  background: #2f5d50;
+  border-color: #2f5d50;
+  color: #f7f1e7;
+  box-shadow: 0 4px 14px rgba(47, 93, 80, 0.25);
+  transform: translateY(-1px);
+}
+
+.cat-tag__icon {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+/* =========================================================
    RESPONSIVE
 ========================================================= */
 
@@ -564,6 +636,16 @@
 
   .check-grid {
     grid-template-columns: 1fr;
+  }
+
+  .cat-tags-grid {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .cat-tag__pill {
+    padding: 8px 13px;
+    font-size: 0.82rem;
   }
 
   .faq-item {

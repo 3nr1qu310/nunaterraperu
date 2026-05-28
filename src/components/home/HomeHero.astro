@@ -5,6 +5,8 @@ const {
   copy,
   heroImage = '/images/home-hero.jpg',
   heroImages = [],
+  /** URL de video para usar como fondo. Si se provee, reemplaza el slideshow de imágenes. */
+  heroVideo = '',
 } = Astro.props;
 
 const images = [
@@ -24,16 +26,28 @@ const firstImage = images[0] || heroImage;
   style={`--hero-first-image: url('${firstImage}');`}
 >
   <div class="home-hero__slider" aria-hidden="true">
-    {images.map((image, index) => (
-      <img
-        src={image}
-        alt=""
-        class={`home-hero__bg ${index === 0 ? 'is-active' : ''}`}
-        loading={index === 0 ? 'eager' : 'lazy'}
-        fetchpriority={index === 0 ? 'high' : 'auto'}
-        data-hero-slide
+    {heroVideo ? (
+      <video
+        class="home-hero__bg is-active"
+        src={heroVideo}
+        autoplay
+        muted
+        loop
+        playsinline
+        poster={firstImage}
       />
-    ))}
+    ) : (
+      images.map((image, index) => (
+        <img
+          src={image}
+          alt=""
+          class={`home-hero__bg ${index === 0 ? 'is-active' : ''}`}
+          loading={index === 0 ? 'eager' : 'lazy'}
+          fetchpriority={index === 0 ? 'high' : 'auto'}
+          data-hero-slide
+        />
+      ))
+    )}
   </div>
 
   <div class="home-hero__overlay" aria-hidden="true"></div>

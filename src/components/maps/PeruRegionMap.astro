@@ -1,5 +1,5 @@
 ---
-import type { Destination, RegionSlug } from '@/types/content';
+import type { Destination, Region, RegionSlug } from '@/types/content';
 import { getLocaleFromUrl } from '@/lib/i18n';
 import PeruDepartmentsMap from '@/components/maps/PeruDepartmentsMap.astro';
 import './PeruRegionMap.scss';
@@ -9,6 +9,7 @@ interface Props {
   region?: RegionSlug;
   title?: string;
   subtitle?: string;
+  allRegions?: Region[];
 }
 
 const {
@@ -16,12 +17,19 @@ const {
   region,
   title = 'Mapa del Perú',
   subtitle = 'Explora los destinos disponibles.',
+  allRegions = [],
 } = Astro.props;
+
+// Todas las regiones; la actual se marca como activa en el template
+const navRegions = allRegions;
 
 const currentLocale = getLocaleFromUrl(Astro.url.pathname);
 
 const destinationBase =
   currentLocale === 'es' ? '/destinos' : `/${currentLocale}/destinations`;
+
+const regionBase =
+  currentLocale === 'es' ? '/regiones' : `/${currentLocale}/regions`;
 
 const pins = destinations.filter(
   (destination) =>
@@ -40,19 +48,50 @@ const activeRegion = region || 'all';
 
     <p class="peru-map-section__subtitle">{subtitle}</p>
 
-    <div class="peru-map-section__legend" aria-label="Regiones del Perú">
-      <span class={`legend-pill legend-pill--coast ${region === 'costa' ? 'is-active' : ''}`}>
-        Costa
-      </span>
+    {navRegions.length > 0 && (
+      <div class="peru-map-section__other-regions">
+        <p class="peru-map-section__other-label">Explorar regiones</p>
 
-      <span class={`legend-pill legend-pill--sierra ${region === 'sierra' ? 'is-active' : ''}`}>
-        Sierra
-      </span>
+        <div class="peru-map-section__region-cards">
+          {navRegions.map((r) => (
+            <a
+              href={`${regionBase}/${r.slug}`}
+              class={`region-nav-card region-nav-card--${r.slug}${r.slug === region ? ' is-current' : ''}`}
+              aria-current={r.slug === region ? 'page' : undefined}
+            >
+              <div class="region-nav-card__img-wrap">
+                <img
+                  src={r.cardImage}
+                  alt={r.name}
+                  loading="lazy"
+                  draggable="false"
+                />
+              </div>
 
-      <span class={`legend-pill legend-pill--selva ${region === 'selva' ? 'is-active' : ''}`}>
-        Selva
-      </span>
-    </div>
+              <div class="region-nav-card__text">
+                <span class="region-nav-card__name">{r.name}</span>
+                <span class="region-nav-card__headline">{r.headline}</span>
+              </div>
+
+              <svg
+                class="region-nav-card__arrow"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
   </div>
 
   <div class={`peru-map peru-map--${activeRegion}`}>

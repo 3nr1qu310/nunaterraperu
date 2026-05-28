@@ -175,6 +175,76 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
     </form>
   </div>
 
+  <!-- Productos de la promoción -->
+  <div class="admin-panel" id="promoProductsPanel" style="display:none">
+    <h2 class="admin-panel-title" style="display:flex;align-items:center;gap:10px">
+      Productos en esta promoción
+      <span id="promoProductsCount" class="admin-pill" style="font-size:.8em;display:none"></span>
+    </h2>
+    <p class="admin-muted" style="margin:-8px 0 20px">
+      Elige qué paquetes o tours participan en esta promoción y configura sus precios promocionales.
+    </p>
+
+    <!-- Mini-formulario de adición -->
+    <div class="admin-form-section">
+      <p class="admin-form-section__title">Agregar producto</p>
+      <div class="admin-field">
+        <label>Paquete o tour</label>
+        <select id="ppProductSelect">
+          <option value="">Seleccionar...</option>
+        </select>
+      </div>
+      <div class="admin-form-grid admin-form-grid--3" style="margin-top:12px">
+        <div class="admin-field">
+          <label>Precio promocional</label>
+          <input id="ppPromoPrice" type="number" step="0.01" min="0" placeholder="980.00" />
+          <span class="admin-field__hint">Dejar vacío para usar el descuento general.</span>
+        </div>
+        <div class="admin-field">
+          <label>Precio original</label>
+          <input id="ppOriginalPrice" type="number" step="0.01" min="0" placeholder="1200.00" />
+          <span class="admin-field__hint">Se muestra tachado como referencia.</span>
+        </div>
+        <div class="admin-field">
+          <label>Badge personalizado</label>
+          <input id="ppBadge" placeholder="20% OFF · Especial" />
+          <span class="admin-field__hint">Sobreescribe el badge de la promoción.</span>
+        </div>
+      </div>
+      <div class="admin-field" style="margin-top:12px">
+        <label>Notas internas</label>
+        <input id="ppNotes" placeholder="Ej: Solo aplica en temporada baja..." />
+      </div>
+      <button type="button" id="ppAddBtn" class="btn btn--primary" style="margin-top:18px">
+        + Agregar a esta promoción
+      </button>
+    </div>
+
+    <!-- Tabla de productos vinculados -->
+    <div class="admin-table-wrap" style="margin-top:8px">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Tipo</th>
+            <th>Precio orig.</th>
+            <th>Precio promo</th>
+            <th>Badge</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="ppRows">
+          <tr>
+            <td colspan="7" style="text-align:center;padding:28px;color:rgba(37,37,37,.4)">
+              Cargando productos...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Tabla -->
   <div class="admin-panel admin-table-wrap">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
@@ -284,6 +354,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
 
       discountTypeEl.dispatchEvent(new Event('change'));
       document.querySelector('#formTitle')!.textContent = promo.id ? 'Editar promoción' : 'Nueva promoción';
+      showPromoProductsPanel(promo.id || '');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -426,8 +497,181 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
       notify('Promoción guardada.', 'success');
       await load();
       const updated = promos.find((p) => p.id === result.data!.id);
+      // setForm ya llama a showPromoProductsPanel internamente
       if (updated) setForm(updated);
     });
+
+    // ── Promotion Products ────────────────────────────────────────────────────
+
+    let currentPromoId = '';
+    let allProducts: any[] = [];
+    let promoProducts: any[] = [];
+
+    async function loadAllProducts() {
+      if (allProducts.length) return; // cache en memoria
+      const { data, error } = await adminSupabase
+        .from('products')
+        .select('id, title, product_type, price_from, currency')
+        .order('title');
+      if (error) return notify(error.message, 'error');
+      allProducts = data || [];
+      const sel = document.querySelector('#ppProductSelect') as HTMLSelectElement;
+      if (!sel) return;
+      sel.innerHTML =
+        '<option value="">Seleccionar paquete o tour...</option>' +
+        allProducts
+          .map(
+            (p) =>
+              `<option value="${p.id}">[${p.product_type === 'tour' ? 'Tour' : 'Paquete'}] ${p.title}</option>`
+          )
+          .join('');
+    }
+
+    async function loadPromoProducts(promoId: string) {
+      const { data, error } = await adminSupabase
+        .from('promotion_products')
+        .select('*, products(id, title, product_type, price_from, currency)')
+        .eq('promotion_id', promoId)
+        .order('sort_order');
+      if (error) return notify(error.message, 'error');
+      promoProducts = data || [];
+      renderPromoProducts();
+    }
+
+    function renderPromoProducts() {
+      const ppRows = document.querySelector('#ppRows')!;
+      const countEl = document.querySelector('#promoProductsCount') as HTMLElement;
+      if (promoProducts.length) {
+        countEl.textContent = String(promoProducts.length);
+        countEl.style.display = '';
+      } else {
+        countEl.style.display = 'none';
+      }
+
+      ppRows.innerHTML = promoProducts.length
+        ? promoProducts
+            .map((pp) => {
+              const prod = pp.products;
+              const currency = prod?.currency || 'USD';
+              const origDisplay = pp.original_price
+                ? `${currency} ${Number(pp.original_price).toLocaleString()}`
+                : prod?.price_from
+                  ? `${currency} ${Number(prod.price_from).toLocaleString()}`
+                  : '—';
+              const promoDisplay = pp.promotional_price
+                ? `<strong style="color:#5A3E2B">${currency} ${Number(pp.promotional_price).toLocaleString()}</strong>`
+                : '—';
+              return `
+                <tr>
+                  <td><strong>${prod?.title || '<em>Producto no encontrado</em>'}</strong></td>
+                  <td>
+                    <span class="admin-pill ${prod?.product_type === 'tour' ? 'admin-pill--draft' : ''}">
+                      ${prod?.product_type === 'tour' ? 'Tour' : 'Paquete'}
+                    </span>
+                  </td>
+                  <td>${origDisplay}</td>
+                  <td>${promoDisplay}</td>
+                  <td>${pp.custom_badge ? `<span class="admin-pill admin-pill--promo">${pp.custom_badge}</span>` : '—'}</td>
+                  <td>
+                    ${pp.is_active
+                      ? '<span class="admin-pill">Activo</span>'
+                      : '<span class="admin-pill admin-pill--draft">Inactivo</span>'}
+                  </td>
+                  <td>
+                    <div class="admin-row-actions">
+                      <button class="admin-link" data-pp-toggle="${pp.id}" data-pp-active="${pp.is_active}">
+                        ${pp.is_active ? 'Desactivar' : 'Activar'}
+                      </button>
+                      <button class="admin-link admin-danger" data-pp-remove="${pp.id}">
+                        Quitar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            })
+            .join('')
+        : '<tr><td colspan="7" style="text-align:center;padding:28px;color:rgba(37,37,37,.4)">No hay productos vinculados a esta promoción.</td></tr>';
+
+      document.querySelectorAll('[data-pp-toggle]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = (btn as HTMLElement).dataset.ppToggle;
+          const isActive = (btn as HTMLElement).dataset.ppActive === 'true';
+          const { error } = await adminSupabase
+            .from('promotion_products')
+            .update({ is_active: !isActive })
+            .eq('id', id);
+          if (error) return notify(error.message, 'error');
+          notify('Estado actualizado.', 'success');
+          await loadPromoProducts(currentPromoId);
+        });
+      });
+
+      document.querySelectorAll('[data-pp-remove]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('¿Quitar este producto de la promoción?')) return;
+          const id = (btn as HTMLElement).dataset.ppRemove;
+          const { error } = await adminSupabase
+            .from('promotion_products')
+            .delete()
+            .eq('id', id);
+          if (error) return notify(error.message, 'error');
+          notify('Producto quitado de la promoción.', 'success');
+          await loadPromoProducts(currentPromoId);
+        });
+      });
+    }
+
+    async function addPromoProduct() {
+      if (!currentPromoId) return notify('Guarda la promoción primero.', 'error');
+
+      const sel = document.querySelector('#ppProductSelect') as HTMLSelectElement;
+      const promoPriceInput = document.querySelector('#ppPromoPrice') as HTMLInputElement;
+      const origPriceInput = document.querySelector('#ppOriginalPrice') as HTMLInputElement;
+      const badgeInput = document.querySelector('#ppBadge') as HTMLInputElement;
+      const notesInput = document.querySelector('#ppNotes') as HTMLInputElement;
+
+      if (!sel.value) return notify('Selecciona un paquete o tour.', 'error');
+
+      const { error } = await adminSupabase.from('promotion_products').insert({
+        promotion_id: currentPromoId,
+        product_id: sel.value,
+        promotional_price: promoPriceInput.value ? Number(promoPriceInput.value) : null,
+        original_price: origPriceInput.value ? Number(origPriceInput.value) : null,
+        custom_badge: badgeInput.value.trim() || null,
+        notes: notesInput.value.trim() || null,
+        is_active: true,
+        sort_order: promoProducts.length,
+      });
+
+      if (error) {
+        // Clave duplicada → el producto ya está en la promoción
+        if (error.code === '23505') return notify('Este producto ya está en esta promoción.', 'error');
+        return notify(error.message, 'error');
+      }
+
+      // Limpiar mini-formulario
+      sel.value = '';
+      promoPriceInput.value = '';
+      origPriceInput.value = '';
+      badgeInput.value = '';
+      notesInput.value = '';
+
+      notify('Producto agregado a la promoción.', 'success');
+      await loadPromoProducts(currentPromoId);
+    }
+
+    function showPromoProductsPanel(promoId: string) {
+      currentPromoId = promoId;
+      const panel = document.querySelector('#promoProductsPanel') as HTMLElement;
+      panel.style.display = promoId ? '' : 'none';
+      if (promoId) {
+        loadAllProducts();
+        loadPromoProducts(promoId);
+      }
+    }
+
+    document.querySelector('#ppAddBtn')?.addEventListener('click', addPromoProduct);
 
     window.setTimeout(load, 250);
   </script>

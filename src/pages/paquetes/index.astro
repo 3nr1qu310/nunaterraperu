@@ -1,1033 +1,665 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
+import LucideIcon from '@/components/cards/LucideIcon.astro';
 import { getPackages, getTravelCategories } from '@/lib/content';
-import { travelCategories as mockCategories } from '@/data/categories';
-import type { TravelCategory, ProductExtended } from '@/types/content';
+import { getSiteSettings } from '@/lib/settings';
+import { site } from '@/lib/site';
+import './PackageIndex.scss';
 
 export const prerender = false;
 
-const allPackages = await getPackages();
-const dbCategories = await getTravelCategories();
-const categories: TravelCategory[] = dbCategories.length ? dbCategories : mockCategories;
+const [allPackages, allCategories, settings] = await Promise.all([
+  getPackages(),
+  getTravelCategories(),
+  getSiteSettings(['paquetes_hero_video']),
+]);
 
+const paquetesHeroVideo = settings['paquetes_hero_video'] || '';
+
+/* ── Robust category matching (by slug AND by name) ── */
 function normalizeStr(s: string): string {
   return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
 }
 
-type StyleSection = { category: TravelCategory; packages: ProductExtended[] };
+const activeCategorySlugs = new Set(allPackages.flatMap((p) => p.categorySlugs || []));
+const activeCategories = allCategories.filter((cat) =>
+  activeCategorySlugs.has(cat.slug)
+);
 
-const sections: StyleSection[] = categories
+const uniqueDestinations = new Set(allPackages.flatMap((p) => p.destinations || []));
+
+/* ── Marquee ── */
+const baseMarquee =
+  uniqueDestinations.size >= 5
+    ? Array.from(uniqueDestinations)
+    : ['Cusco', 'Machu Picchu', 'Lago Titicaca', 'Arequipa', 'Lima', 'Nazca', 'Iquitos', 'Valle Sagrado', 'Cañón del Colca', 'Huaraz', 'Paracas', 'Trujillo'];
+const marqueeItems = [...baseMarquee, ...baseMarquee];
+const marqueeDuration = `${Math.max(32, baseMarquee.length * 4)}s`;
+
+/* ── Category groups (catalog) ── */
+const categoryGroups = activeCategories
   .map((cat) => ({
-    category: cat,
+    ...cat,
     packages: allPackages.filter((pkg) => {
       const slugMatch = pkg.categorySlugs?.some(
         (s) => normalizeStr(s) === normalizeStr(cat.slug)
       );
-      const nameMatch = pkg.categories?.some(
+      const nameMatch = (pkg as { categories?: string[] }).categories?.some(
         (c) => normalizeStr(c) === normalizeStr(cat.name)
       );
       return slugMatch || nameMatch;
     }),
   }))
-  .filter((s) => s.packages.length > 0);
+  .filter((g) => g.packages.length > 0);
 
-const categorizedSlugs = new Set(sections.flatMap((s) => s.packages.map((p) => p.slug)));
-const uncategorized = allPackages.filter((p) => !categorizedSlugs.has(p.slug));
+/* ── Process steps ── */
+const steps = [
+  {
+    num: '01',
+    icon: 'search',
+    title: 'Descubre tu itinerario',
+    description: 'Explora el catálogo por estilo de viaje y duración. Desde circuitos de 4 noches hasta expediciones de dos semanas.',
+  },
+  {
+    num: '02',
+    icon: 'message-circle',
+    title: 'Coordina los detalles',
+    description: 'Un asesor de Nuna Terra te responde en menos de 24 h para confirmar fechas, ajustar el grupo y personalizar paradas.',
+  },
+  {
+    num: '03',
+    icon: 'map',
+    title: 'Vive el viaje',
+    description: 'Guías locales, alojamientos cuidados y logística completa. Tú solo disfruta — nosotros nos encargamos del resto.',
+  },
+];
+
+/* ── Trust items ── */
+const trustItems = [
+  {
+    icon: 'compass',
+    title: 'Itinerarios con alma',
+    description: 'No armamos paquetes genéricos. Cada ruta fue diseñada por alguien que conoce el destino de primera mano, con paradas que no aparecen en ninguna guía.',
+  },
+  {
+    icon: 'shield',
+    title: 'Precio todo incluido',
+    description: 'Transporte, alojamiento, guía y entradas: todo está detallado antes de reservar. Sin cargos sorpresa al llegar al destino.',
+  },
+  {
+    icon: 'users',
+    title: 'Grupos reducidos',
+    description: 'Máximo 12 personas por salida. Viajes más personales, más flexibles y con mayor acceso a experiencias fuera de ruta.',
+  },
+  {
+    icon: 'clock',
+    title: 'Logística sin estrés',
+    description: 'Coordinamos traslados, hospedajes y permisos especiales. Si algo cambia en ruta, nuestro equipo lo resuelve en el momento.',
+  },
+];
 ---
 
-<BaseLayout title="Paquetes turísticos por Perú | Nuna Terra Perú">
+<BaseLayout
+  title="Paquetes turísticos por Perú | Nuna Terra Perú"
+  description="Itinerarios de varios días para descubrir la costa, sierra y selva del Perú con guías, alojamiento y logística incluidos."
+>
 
-  <!-- HERO: Split-screen asimétrico -->
-  <section class="pkg-hero">
-    <div class="pkg-hero__left">
-      <div class="pkg-hero__content">
-        <p class="pkg-hero__eyebrow">Experiencias de viaje</p>
-        <h1 class="pkg-hero__title">
-          Paquetes<br /><em>por el Perú</em>
-        </h1>
-        <p class="pkg-hero__subtitle">
-          Experiencias de varios días diseñadas para descubrir la costa, sierra
-          y selva del Perú con organización, acompañamiento y sentido.
-        </p>
-        <div class="pkg-hero__actions">
-          <a href="#paquetes" class="pkg-hero__btn-primary">Explorar paquetes</a>
-          <a href="/contacto" class="pkg-hero__btn-secondary">Diseñar mi viaje</a>
-        </div>
-        {sections.length > 0 && (
-          <div class="pkg-hero__cats">
-            <span class="pkg-hero__cats-label">Estilos disponibles</span>
-            <div class="pkg-hero__cat-pills">
-              {sections.map(({ category }) => (
-                <a href={`#cat-${category.slug}`} class="pkg-hero__cat-pill">
-                  {category.name}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
+  <!-- ══════════════════════════════════════════════════════════
+       HERO — full-bleed, cinematic
+  ══════════════════════════════════════════════════════════ -->
+  <section class="pri-hero" aria-label="Paquetes turísticos por el Perú">
+    {paquetesHeroVideo ? (
+      <video
+        class="pri-hero__bg"
+        src={paquetesHeroVideo}
+        autoplay
+        muted
+        loop
+        playsinline
+        poster="/images/packages-hero.jpg"
+      />
+    ) : (
+      <img
+        class="pri-hero__bg"
+        src="/images/packages-hero.jpg"
+        alt="Machu Picchu al amanecer entre nubes"
+        loading="eager"
+        fetchpriority="high"
+      />
+    )}
+    <div class="pri-hero__overlay" aria-hidden="true"></div>
+
+    <div class="container pri-hero__content">
+      <p class="pri-hero__eyebrow">
+        <span class="pri-hero__dot" aria-hidden="true"></span>
+        Paquetes turísticos
+      </p>
+
+      <h1 class="pri-hero__title">
+        El Perú en<br /><em>profundidad</em>
+      </h1>
+
+      <p class="pri-hero__subtitle">
+        Itinerarios de varios días con alojamiento, guía local y logística completa.
+        Para quienes quieren ir más allá de la superficie.
+      </p>
+
+      <div class="pri-hero__actions">
+        <a href="#catalogo" class="pri-hero__btn pri-hero__btn--primary">
+          Ver paquetes
+        </a>
+        <a
+          href={site.whatsappUrl}
+          class="pri-hero__btn pri-hero__btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Consultar por WhatsApp ↗
+        </a>
       </div>
     </div>
 
-    <div class="pkg-hero__right">
-      <img
-        class="pkg-hero__img"
-        src="/images/packages-hero.jpg"
-        alt="Paisaje de Perú"
-        loading="eager"
-      />
-      <div class="pkg-hero__img-overlay"></div>
-      <div class="pkg-hero__stats">
-        <div class="pkg-hero__stat">
-          <span class="pkg-hero__stat-num">{allPackages.length > 0 ? `${allPackages.length}+` : '12+'}</span>
-          <span class="pkg-hero__stat-lbl">Paquetes activos</span>
-        </div>
-        <div class="pkg-hero__stat-sep"></div>
-        <div class="pkg-hero__stat">
-          <span class="pkg-hero__stat-num">{sections.length > 0 ? sections.length : '4'}</span>
-          <span class="pkg-hero__stat-lbl">Estilos de viaje</span>
-        </div>
-      </div>
+    <div class="pri-hero__scroll" aria-hidden="true">
+      <span class="pri-hero__scroll-line"></span>
     </div>
   </section>
 
-  <!-- NAV STICKY DE CATEGORÍAS -->
-  {sections.length > 1 && (
-    <nav class="pkg-nav" id="paquetes" aria-label="Estilos de viaje">
-      <div class="container pkg-nav__inner">
-        <span class="pkg-nav__label">Filtrar por</span>
-        <div class="pkg-nav__pills">
-          {sections.map(({ category, packages }) => (
-            <a
-              href={`#cat-${category.slug}`}
-              class="pkg-nav__pill"
-              data-nav-target={category.slug}
-            >
-              {category.name}
-              <span class="pkg-nav__count">{packages.length}</span>
-            </a>
-          ))}
-          {uncategorized.length > 0 && (
-            <a href="#cat-otros" class="pkg-nav__pill" data-nav-target="otros">
-              Otros
-              <span class="pkg-nav__count">{uncategorized.length}</span>
-            </a>
-          )}
+  <!-- ══════════════════════════════════════════════════════════
+       MARQUEE — destination ticker
+  ══════════════════════════════════════════════════════════ -->
+  <div class="pri-marquee" aria-hidden="true">
+    <div class="pri-marquee__track" style={`--duration: ${marqueeDuration}`}>
+      {marqueeItems.map((dest) => (
+        <>
+          <span class="pri-marquee__item">{dest}</span>
+          <span class="pri-marquee__sep">✦</span>
+        </>
+      ))}
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       STATS BAR
+  ══════════════════════════════════════════════════════════ -->
+  <div class="pri-stats" aria-label="Cifras del catálogo de paquetes">
+    <div class="container pri-stats__inner">
+      <div class="pri-stat">
+        <strong>{allPackages.length > 0 ? allPackages.length : '12'}</strong>
+        <span>Paquetes disponibles</span>
+      </div>
+      <div class="pri-stat">
+        <strong>{uniqueDestinations.size > 0 ? uniqueDestinations.size : '18'}</strong>
+        <span>Destinos</span>
+      </div>
+      {activeCategories.length > 0 && (
+        <div class="pri-stat">
+          <strong>{activeCategories.length}</strong>
+          <span>Estilos de viaje</span>
+        </div>
+      )}
+      <div class="pri-stat">
+        <strong>4–14</strong>
+        <span>Noches de duración</span>
+      </div>
+      <div class="pri-stat">
+        <strong>≤12</strong>
+        <span>Personas por grupo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       CATALOG — one section per travel category
+  ══════════════════════════════════════════════════════════ -->
+  <div class="pri-catalog-wrap" id="catalogo">
+
+    <!-- Section heading -->
+    <div class="container">
+      <div class="pri-catalog__head">
+        <div class="pri-catalog__head-left">
+          <p class="pri-catalog__eyebrow">Catálogo completo</p>
+          <h2 class="pri-catalog__title">
+            Encuentra tu viaje
+          </h2>
+        </div>
+        <p class="pri-catalog__subtitle">
+          Cada estilo de viaje tiene su propio ritmo. Elige la experiencia
+          que más te identifica y descubre los itinerarios disponibles.
+        </p>
+      </div>
+    </div>
+
+    <!-- Filter bar — sticky jump nav between categories -->
+    {categoryGroups.length > 1 && (
+      <div class="pri-filter-bar" aria-label="Filtrar por estilo de viaje">
+        <div class="container">
+          <nav class="pri-filter-pills">
+            {categoryGroups.map((group) => (
+              <a
+                href={`#tcat-section-${group.slug}`}
+                class="pri-filter-pill"
+                data-filter={group.slug}
+              >
+                {group.name}
+              </a>
+            ))}
+          </nav>
         </div>
       </div>
-    </nav>
-  )}
-
-  <!-- CONTENIDO DE PAQUETES -->
-  <div id={sections.length <= 1 ? 'paquetes' : undefined} class="pkg-content">
-
-    {sections.length === 0 && allPackages.length === 0 && (
-      <section class="section pkg-empty">
-        <div class="container pkg-empty__inner animate-up">
-          <div class="pkg-empty__icon">
-            <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-              <circle cx="26" cy="26" r="25" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 3.5" opacity="0.35"/>
-              <path d="M18 26h16M26 18v16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <h2 class="pkg-empty__title">Próximamente</h2>
-          <p class="pkg-empty__subtitle">
-            Estamos preparando nuestros paquetes. Escríbenos para diseñar tu experiencia a medida.
-          </p>
-          <a href="/contacto" class="btn btn--primary">Contáctanos</a>
-        </div>
-      </section>
     )}
 
-    {sections.map(({ category, packages }, i) => {
-      const isReversed = i % 2 !== 0;
-      const featuredPkg = packages.find((p) => p.featured) || packages[0];
-      const sidePkgs = packages.filter((p) => p.slug !== featuredPkg?.slug).slice(0, 2);
-      const overflowPkgs = packages.filter((p) => p.slug !== featuredPkg?.slug).slice(2);
-
-      return (
-        <section
-          id={`cat-${category.slug}`}
-          class="pkg-section"
-          data-nav-section={category.slug}
-        >
-          <div class="container">
-
-            <header class="pkg-section__head animate-up">
-              <div class="pkg-section__head-left">
-                <span class="pkg-section__idx" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <div class="pkg-section__titles">
-                  <p class="pkg-section__eyebrow">Estilo de viaje</p>
-                  <h2 class="pkg-section__title">{category.name}</h2>
-                </div>
+    <!-- Category sections -->
+    {categoryGroups.length > 0 ? (
+      <div class="tcat-list">
+        {categoryGroups.map((group, gi) => (
+          <section
+            class="tcat-section"
+            id={`tcat-section-${group.slug}`}
+            data-section-index={gi}
+            aria-labelledby={`tcat-title-${group.slug}`}
+          >
+            {group.heroImage && (
+              <div class="tcat-section__bg" aria-hidden="true">
+                <img src={group.heroImage} alt="" loading="lazy" />
               </div>
-              <div class="pkg-section__head-right">
-                {category.description && (
-                  <p class="pkg-section__desc">{category.description}</p>
-                )}
-                <a href={`/categorias/${category.slug}`} class="pkg-section__all-link">
-                  Ver todos en {category.name} <span aria-hidden="true">→</span>
-                </a>
-              </div>
-            </header>
+            )}
 
-            {featuredPkg && (
-              <div class={`pkg-main-row animate-up ${sidePkgs.length === 0 ? 'pkg-main-row--solo' : ''} ${isReversed && sidePkgs.length > 0 ? 'pkg-main-row--reverse' : ''}`} style="--delay: 80ms">
-                <div class="pkg-main-row__featured">
-                  <ProductCard product={featuredPkg} />
+            <div class="container">
+              <div class="tcat-layout">
+
+                <!-- LEFT — sticky category intro -->
+                <div class="tcat-intro" data-section-index={gi}>
+                  <span class="tcat-seq" aria-hidden="true">
+                    {String(gi + 1).padStart(2, '0')}
+                  </span>
+
+                  <p class="tcat-intro__eyebrow">Estilo de viaje</p>
+
+                  <div class="tcat-icon-wrap" aria-hidden="true">
+                    <LucideIcon
+                      name={group.icon || 'map'}
+                      size={22}
+                      class="tcat-icon"
+                    />
+                  </div>
+
+                  <div class="tcat-divider" aria-hidden="true"></div>
+
+                  <h3 class="tcat-name" id={`tcat-title-${group.slug}`}>
+                    {group.name}
+                  </h3>
+
+                  {group.description && (
+                    <p class="tcat-desc">{group.description}</p>
+                  )}
+
+                  <div class="tcat-count">
+                    <strong class="tcat-count__num">{group.packages.length}</strong>
+                    <span>{group.packages.length === 1 ? 'paquete' : 'paquetes'} disponibles</span>
+                  </div>
                 </div>
-                {sidePkgs.length > 0 && (
-                  <div class="pkg-main-row__sidebar">
-                    {sidePkgs.map((pkg, j) => (
-                      <div class="animate-up" style={`--delay: ${(j + 1) * 100}ms`}>
+
+                <!-- RIGHT — packages carousel -->
+                <div class="tcat-carousel-outer" data-carousel-id={group.slug}>
+                  <button
+                    class="tcat-nav tcat-nav--prev"
+                    aria-label="Paquete anterior"
+                    type="button"
+                    disabled
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                  </button>
+
+                  <div class="tcat-tours" id={`pkg-grid-${group.slug}`}>
+                    {group.packages.map((pkg, pi) => (
+                      <div
+                        class={`tcat-card-wrap${group.packages.length === 1 ? ' tcat-card-wrap--wide' : ''}`}
+                        data-card-i={pi}
+                      >
                         <ProductCard product={pkg} />
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-            )}
 
-            {overflowPkgs.length > 0 && (
-              <div class="pkg-overflow-grid">
-                {overflowPkgs.map((pkg, j) => (
-                  <div class="animate-up" style={`--delay: ${j * 80}ms`}>
-                    <ProductCard product={pkg} />
+                  <button
+                    class="tcat-nav tcat-nav--next"
+                    aria-label="Siguiente paquete"
+                    type="button"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </button>
+
+                  <div class="tcat-progress" aria-hidden="true">
+                    <div class="tcat-progress__track">
+                      <div class="tcat-progress__fill"></div>
+                    </div>
+                    <span class="tcat-progress__count"></span>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
 
-          </div>
-          <div class="pkg-section__sep" aria-hidden="true"></div>
-        </section>
-      );
-    })}
-
-    {uncategorized.length > 0 && (
-      <section id="cat-otros" class="pkg-section" data-nav-section="otros">
-        <div class="container">
-          <header class="pkg-section__head animate-up">
-            <div class="pkg-section__head-left">
-              <span class="pkg-section__idx" aria-hidden="true">
-                {String(sections.length + 1).padStart(2, '0')}
-              </span>
-              <div class="pkg-section__titles">
-                <p class="pkg-section__eyebrow">Más opciones</p>
-                <h2 class="pkg-section__title">Otras experiencias</h2>
               </div>
             </div>
-            <div class="pkg-section__head-right">
-              <p class="pkg-section__desc">
-                Paquetes seleccionados para completar tu viaje por el Perú.
-              </p>
-            </div>
-          </header>
-          <div class="pkg-overflow-grid">
-            {uncategorized.map((pkg, j) => (
-              <div class="animate-up" style={`--delay: ${j * 80}ms`}>
-                <ProductCard product={pkg} />
-              </div>
-            ))}
-          </div>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <div class="container">
+        <div class="pri-empty">
+          <div class="pri-empty__icon" aria-hidden="true">⌖</div>
+          <h3 class="pri-empty__title">Catálogo en preparación</h3>
+          <p class="pri-empty__text">
+            Muy pronto tendremos paquetes disponibles. Contáctanos para diseñar tu itinerario a medida.
+          </p>
         </div>
-      </section>
+      </div>
     )}
 
   </div>
 
-  <!-- CTA STRIP FINAL -->
-  <section class="pkg-cta">
-    <div class="container pkg-cta__inner animate-up">
-      <div class="pkg-cta__text">
-        <p class="pkg-cta__eyebrow">Viaje a medida</p>
-        <h2 class="pkg-cta__title">¿No encuentras lo que buscas?</h2>
-        <p class="pkg-cta__subtitle">
-          Diseñamos tu itinerario desde cero. Cuéntanos qué quieres vivir.
-        </p>
+  <!-- ══════════════════════════════════════════════════════════
+       HOW IT WORKS
+  ══════════════════════════════════════════════════════════ -->
+  <section class="pri-process" aria-labelledby="pri-process-title">
+    <div class="container">
+
+      <div class="pri-process__head">
+        <p class="pri-process__eyebrow">Simple por diseño</p>
+        <h2 class="pri-process__title" id="pri-process-title">
+          Cómo funciona
+        </h2>
       </div>
-      <a href="/contacto" class="pkg-cta__btn">Diseñar mi viaje</a>
+
+      <div class="pri-process__steps">
+        {steps.map((step, i) => (
+          <div class="pri-step reveal-item" data-delay={i * 110}>
+            <div class="pri-step__num" aria-hidden="true">{step.num}</div>
+            <div class="pri-step__icon-wrap" aria-hidden="true">
+              <LucideIcon name={step.icon} size={22} class="pri-step__icon" />
+            </div>
+            <h3 class="pri-step__title">{step.title}</h3>
+            <p class="pri-step__desc">{step.description}</p>
+            {i < steps.length - 1 && (
+              <div class="pri-step__connector" aria-hidden="true">
+                <span class="pri-step__connector-arrow">→</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
     </div>
   </section>
 
-</BaseLayout>
-
-<style lang="scss">
-
-  /* ─── KEYFRAMES ─────────────────────────────────── */
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(28px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  /* ─── SCROLL REVEAL ─────────────────────────────── */
-
-  .animate-up {
-    opacity: 0;
-    transform: translateY(28px);
-    transition:
-      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
-      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
-
-    &.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .animate-up {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
-
-    .pkg-hero__eyebrow,
-    .pkg-hero__title,
-    .pkg-hero__subtitle,
-    .pkg-hero__actions,
-    .pkg-hero__cats,
-    .pkg-hero__img,
-    .pkg-hero__stats {
-      animation: none;
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  /* ─── HERO ─────────────────────────────────────── */
-
-  .pkg-hero {
-    display: grid;
-    grid-template-columns: 55fr 45fr;
-    min-height: 100dvh;
-    position: relative;
-  }
-
-  .pkg-hero__left {
-    background: var(--color-green);
-    display: flex;
-    align-items: center;
-    padding: 140px 64px 80px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .pkg-hero__content {
-    max-width: 500px;
-    width: 100%;
-  }
-
-  /* Hero entrance: each element animates on load with stagger */
-  .pkg-hero__eyebrow {
-    color: var(--color-sand);
-    font-family: var(--font-body);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin: 0 0 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
-
-    &::before {
-      content: '';
-      display: block;
-      width: 28px;
-      height: 1px;
-      background: var(--color-sand);
-      opacity: 0.6;
-      flex-shrink: 0;
-    }
-  }
-
-  .pkg-hero__title {
-    font-family: var(--font-display);
-    color: var(--color-ivory);
-    font-size: clamp(3.6rem, 6.5vw, 7rem);
-    line-height: 0.9;
-    letter-spacing: -0.025em;
-    margin: 0 0 28px;
-    font-weight: 600;
-    animation: slideUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
-
-    em {
-      font-style: italic;
-      color: var(--color-sand);
-    }
-  }
-
-  .pkg-hero__subtitle {
-    color: rgba(247, 241, 231, 0.68);
-    font-size: clamp(0.92rem, 1.1vw, 1.04rem);
-    line-height: 1.78;
-    max-width: 420px;
-    margin: 0 0 36px;
-    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
-  }
-
-  .pkg-hero__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 52px;
-    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
-  }
-
-  .pkg-hero__btn-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--color-sand);
-    color: var(--color-charcoal);
-    border-radius: 999px;
-    padding: 13px 26px;
-    font-size: 0.84rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-decoration: none;
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease;
-
-    &:hover { transform: translateY(-2px); background: #e8cc9a; }
-    &:active { transform: translateY(0) scale(0.98); }
-  }
-
-  .pkg-hero__btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 999px;
-    padding: 12px 26px;
-    border: 1px solid rgba(247, 241, 231, 0.3);
-    color: rgba(247, 241, 231, 0.85);
-    font-size: 0.84rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-decoration: none;
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, color 0.22s ease;
-
-    &:hover { transform: translateY(-2px); border-color: rgba(247, 241, 231, 0.6); color: var(--color-ivory); }
-    &:active { transform: translateY(0) scale(0.98); }
-  }
-
-  .pkg-hero__cats {
-    border-top: 1px solid rgba(247, 241, 231, 0.12);
-    padding-top: 28px;
-    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
-  }
-
-  .pkg-hero__cats-label {
-    display: block;
-    color: rgba(247, 241, 231, 0.42);
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-
-  .pkg-hero__cat-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .pkg-hero__cat-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(247, 241, 231, 0.18);
-    background: rgba(247, 241, 231, 0.06);
-    color: rgba(247, 241, 231, 0.72);
-    font-size: 0.76rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-decoration: none;
-    backdrop-filter: blur(8px);
-    transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-
-    &:hover {
-      background: rgba(247, 241, 231, 0.14);
-      border-color: rgba(247, 241, 231, 0.35);
-      color: var(--color-ivory);
-      transform: translateY(-1px);
-    }
-  }
-
-  .pkg-hero__right {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .pkg-hero__img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    animation: fadeIn 1.1s ease 0.1s both;
-  }
-
-  .pkg-hero__img-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      105deg,
-      rgba(47, 93, 80, 0.42) 0%,
-      rgba(37, 37, 37, 0.15) 55%,
-      transparent 100%
-    );
-  }
-
-  .pkg-hero__stats {
-    position: absolute;
-    bottom: 40px;
-    right: 36px;
-    display: flex;
-    align-items: stretch;
-    border-radius: 16px;
-    overflow: hidden;
-    backdrop-filter: blur(18px);
-    background: rgba(247, 241, 231, 0.1);
-    border: 1px solid rgba(247, 241, 231, 0.14);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
-  }
-
-  .pkg-hero__stat {
-    display: flex;
-    flex-direction: column;
-    padding: 18px 26px;
-  }
-
-  .pkg-hero__stat-sep {
-    width: 1px;
-    background: rgba(247, 241, 231, 0.12);
-    align-self: stretch;
-  }
-
-  .pkg-hero__stat-num {
-    font-family: var(--font-display);
-    font-size: 2.6rem;
-    line-height: 1;
-    color: var(--color-sand);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-
-  .pkg-hero__stat-lbl {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(247, 241, 231, 0.52);
-    margin-top: 5px;
-  }
-
-  /* ─── NAV STICKY ────────────────────────────────── */
-
-  .pkg-nav {
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    background: rgba(247, 241, 231, 0.95);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(90, 62, 43, 0.1);
-  }
-
-  .pkg-nav__inner {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding-top: 14px;
-    padding-bottom: 14px;
-    overflow-x: auto;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar { display: none; }
-  }
-
-  .pkg-nav__label {
-    color: rgba(90, 62, 43, 0.4);
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .pkg-nav__pills {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-
-  .pkg-nav__pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 18px;
-    border-radius: 999px;
-    border: 1px solid rgba(90, 62, 43, 0.16);
-    color: var(--color-earth);
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-decoration: none;
-    white-space: nowrap;
-    transition:
-      background 0.22s ease,
-      border-color 0.22s ease,
-      color 0.22s ease,
-      transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-
-    &:hover, &.is-active {
-      background: var(--color-green);
-      border-color: var(--color-green);
-      color: var(--color-ivory);
-
-      .pkg-nav__count {
-        background: rgba(247, 241, 231, 0.2);
-        color: var(--color-ivory);
-      }
-    }
-
-    &:active { transform: scale(0.97); }
-  }
-
-  .pkg-nav__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: rgba(90, 62, 43, 0.08);
-    color: rgba(90, 62, 43, 0.6);
-    font-size: 0.64rem;
-    font-weight: 700;
-    transition: background 0.22s ease, color 0.22s ease;
-  }
-
-  /* ─── SECCIONES DE PAQUETES ─────────────────────── */
-
-  .pkg-content {
-    background: var(--color-ivory);
-  }
-
-  .pkg-section {
-    padding: clamp(64px, 8vw, 96px) 0 0;
-    scroll-margin-top: 52px;
-  }
-
-  .pkg-section__sep {
-    margin-top: clamp(64px, 8vw, 96px);
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(90, 62, 43, 0.1) 20%,
-      rgba(216, 185, 130, 0.3) 50%,
-      rgba(90, 62, 43, 0.1) 80%,
-      transparent
-    );
-  }
-
-  /* Section header: title side gets more room */
-  .pkg-section__head {
-    display: grid;
-    grid-template-columns: 62fr 38fr;
-    gap: clamp(32px, 4vw, 64px);
-    align-items: start;
-    margin-bottom: clamp(40px, 5vw, 60px);
-  }
-
-  .pkg-section__head-left {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-  }
-
-  .pkg-section__idx {
-    font-family: var(--font-display);
-    font-size: clamp(3.5rem, 6vw, 7rem);
-    line-height: 0.82;
-    color: var(--color-sand);
-    opacity: 0.32;
-    letter-spacing: -0.04em;
-    flex-shrink: 0;
-    user-select: none;
-    font-weight: 600;
-    /* subtle float on the number */
-    transition: opacity 0.4s ease;
-  }
-
-  .pkg-section:hover .pkg-section__idx {
-    opacity: 0.5;
-  }
-
-  .pkg-section__titles {
-    padding-top: 6px;
-  }
-
-  .pkg-section__eyebrow {
-    color: var(--color-green);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    margin: 0 0 10px;
-  }
-
-  .pkg-section__title {
-    font-family: var(--font-display);
-    color: var(--color-earth);
-    font-size: clamp(2.2rem, 3.5vw, 3.8rem);
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    margin: 0;
-    font-weight: 600;
-  }
-
-  .pkg-section__head-right {
-    padding-top: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-    /* Align with the title by accounting for eyebrow height */
-    padding-top: clamp(28px, 3vw, 36px);
-  }
-
-  .pkg-section__desc {
-    color: rgba(37, 37, 37, 0.6);
-    font-size: 0.96rem;
-    line-height: 1.75;
-    margin: 0;
-    max-width: 400px;
-  }
-
-  .pkg-section__all-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--color-green);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: gap 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-
-    span { transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-
-    &:hover {
-      gap: 14px;
-      span { transform: translateX(4px); }
-    }
-  }
-
-  /* ─── LAYOUT: FEATURED + SIDEBAR ───────────────── */
-
-  .pkg-main-row {
-    display: grid;
-    grid-template-columns: 58fr 42fr;
-    grid-template-areas: "featured sidebar";
-    gap: 24px;
-    align-items: start;
-
-    &--solo {
-      grid-template-columns: 1fr;
-      grid-template-areas: "featured";
-      max-width: 520px;
-    }
-
-    /* Alternate layout: sidebar left, featured right */
-    &--reverse {
-      grid-template-columns: 42fr 58fr;
-      grid-template-areas: "sidebar featured";
-    }
-  }
-
-  .pkg-main-row__featured {
-    grid-area: featured;
-
-    :global(.product-card__media) {
-      aspect-ratio: 4 / 3;
-    }
-  }
-
-  .pkg-main-row__sidebar {
-    grid-area: sidebar;
-    display: grid;
-    gap: 24px;
-  }
-
-  /* Overflow grid: responsive without breakpoints */
-  .pkg-overflow-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 24px;
-    margin-top: 24px;
-  }
-
-  /* ─── ESTADO VACÍO ──────────────────────────────── */
-
-  .pkg-empty__inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 96px 0;
-    gap: 20px;
-  }
-
-  .pkg-empty__icon {
-    color: var(--color-earth);
-    opacity: 0.3;
-    margin-bottom: 8px;
-  }
-
-  .pkg-empty__title {
-    font-family: var(--font-display);
-    color: var(--color-earth);
-    font-size: clamp(2rem, 3vw, 3rem);
-    margin: 0;
-    font-weight: 600;
-  }
-
-  .pkg-empty__subtitle {
-    color: rgba(37, 37, 37, 0.58);
-    font-size: 1rem;
-    line-height: 1.7;
-    max-width: 440px;
-    margin: 0;
-  }
-
-  /* ─── CTA STRIP FINAL ───────────────────────────── */
-
-  .pkg-cta {
-    background: var(--color-earth);
-    padding: clamp(60px, 8vw, 88px) 0;
-    margin-top: clamp(64px, 8vw, 96px);
-  }
-
-  .pkg-cta__inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 40px;
-  }
-
-  .pkg-cta__eyebrow {
-    color: var(--color-sand);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    margin: 0 0 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    &::before {
-      content: '';
-      display: block;
-      width: 20px;
-      height: 1px;
-      background: var(--color-sand);
-      opacity: 0.6;
-    }
-  }
-
-  .pkg-cta__title {
-    font-family: var(--font-display);
-    color: var(--color-ivory);
-    font-size: clamp(1.8rem, 3vw, 3rem);
-    line-height: 0.96;
-    letter-spacing: -0.02em;
-    margin: 0 0 12px;
-    font-weight: 600;
-  }
-
-  .pkg-cta__subtitle {
-    color: rgba(247, 241, 231, 0.6);
-    font-size: 0.96rem;
-    line-height: 1.65;
-    margin: 0;
-    max-width: 400px;
-  }
-
-  .pkg-cta__btn {
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-    flex-shrink: 0;
-    padding: 14px 32px;
-    border-radius: 999px;
-    background: var(--color-sand);
-    color: var(--color-charcoal);
-    font-size: 0.86rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-decoration: none;
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s ease;
-
-    &:hover { transform: translateY(-2px); background: #e8cc9a; }
-    &:active { transform: translateY(0) scale(0.98); }
-  }
-
-  /* ─── RESPONSIVE ────────────────────────────────── */
-
-  @media (max-width: 1024px) {
-    .pkg-hero {
-      grid-template-columns: 1fr;
-      min-height: auto;
-    }
-
-    .pkg-hero__right {
-      height: 52vw;
-      min-height: 280px;
-    }
-
-    .pkg-hero__left {
-      padding: 120px 28px 56px;
-    }
-
-    .pkg-hero__content {
-      max-width: 100%;
-    }
-
-    .pkg-section__head {
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-
-    .pkg-section__head-right {
-      padding-top: 0;
-    }
-
-    .pkg-main-row,
-    .pkg-main-row--reverse {
-      grid-template-columns: 1fr;
-      grid-template-areas:
-        "featured"
-        "sidebar";
-    }
-
-    .pkg-main-row__featured {
-      :global(.product-card__media) {
-        aspect-ratio: 16 / 10;
-      }
-    }
-
-    .pkg-cta__inner {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .pkg-hero__left {
-      padding: 100px 20px 48px;
-    }
-
-    .pkg-hero__stats {
-      bottom: 20px;
-      right: 20px;
-    }
-
-    .pkg-hero__stat {
-      padding: 14px 18px;
-    }
-
-    .pkg-hero__stat-num {
-      font-size: 2rem;
-    }
-
-    .pkg-section__head-left {
-      gap: 14px;
-    }
-
-    .pkg-overflow-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .pkg-nav__label {
-      display: none;
-    }
-  }
-</style>
-
-<script>
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ── Scroll-reveal ─────────────────────────────── */
-  if (!prefersReduced) {
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            revealObserver.unobserve(entry.target);
-          }
+  <!-- ══════════════════════════════════════════════════════════
+       WHY NUNA TERRA
+  ══════════════════════════════════════════════════════════ -->
+  <section class="pri-trust" aria-labelledby="pri-trust-title">
+    <div class="container">
+
+      <div class="pri-trust__head">
+        <p class="pri-trust__eyebrow">Por qué elegirnos</p>
+        <h2 class="pri-trust__title" id="pri-trust-title">
+          Cada detalle tiene un porqué
+        </h2>
+      </div>
+
+      <div class="pri-trust__grid">
+        {trustItems.map((item, i) => (
+          <div class="pri-trust-item reveal-item" data-delay={i * 80}>
+            <div class="pri-trust-item__icon-wrap" aria-hidden="true">
+              <LucideIcon name={item.icon} size={20} class="pri-trust-item__icon" />
+            </div>
+            <h3 class="pri-trust-item__title">{item.title}</h3>
+            <p class="pri-trust-item__desc">{item.description}</p>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       CUSTOM PACKAGE CTA — full-bleed
+  ══════════════════════════════════════════════════════════ -->
+  <section class="pri-custom" aria-labelledby="pri-custom-title">
+    <div class="pri-custom__bg" aria-hidden="true">
+      <img
+        src="https://picsum.photos/seed/perucustom2025/1600/800"
+        alt=""
+        loading="lazy"
+      />
+    </div>
+    <div class="pri-custom__overlay" aria-hidden="true"></div>
+
+    <div class="container pri-custom__content">
+      <p class="pri-custom__eyebrow">Itinerario a medida</p>
+      <h2 class="pri-custom__title" id="pri-custom-title">
+        ¿No encuentras<br />lo que buscas?
+      </h2>
+      <p class="pri-custom__subtitle">
+        Diseñamos tu itinerario desde cero según tus días, intereses y tamaño
+        de grupo. Un asesor de Nuna Terra trabaja contigo hasta que el viaje
+        sea exactamente lo que imaginas.
+      </p>
+      <div class="pri-custom__actions">
+        <a href="/contacto" class="pri-custom__btn pri-custom__btn--primary">
+          Diseñar mi itinerario
+        </a>
+        <a
+          href={site.whatsappUrl}
+          class="pri-custom__btn pri-custom__btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Hablar por WhatsApp ↗
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (() => {
+      /* ── Stagger delay per card ───────────────────────── */
+      document.querySelectorAll('.tcat-tours').forEach((grid) => {
+        grid.querySelectorAll('.tcat-card-wrap').forEach((card, i) => {
+          card.style.setProperty('--card-delay', `${i * 100}ms`);
         });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
-    );
+      });
 
-    document.querySelectorAll('.animate-up').forEach((el) => {
-      revealObserver.observe(el);
-    });
-  } else {
-    /* Skip animation: make everything visible immediately */
-    document.querySelectorAll('.animate-up').forEach((el) => {
-      el.classList.add('is-visible');
-    });
-  }
-
-  /* ── Active nav pill on scroll ─────────────────── */
-  const navSections = document.querySelectorAll<HTMLElement>('[data-nav-section]');
-  const navPills = document.querySelectorAll<HTMLElement>('.pkg-nav__pill[data-nav-target]');
-
-  if (navSections.length && navPills.length) {
-    const navHeight = (document.querySelector('.pkg-nav') as HTMLElement | null)?.offsetHeight ?? 52;
-
-    const activeObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const id = (entry.target as HTMLElement).dataset.navSection;
-            navPills.forEach((pill) => {
-              pill.classList.toggle('is-active', pill.dataset.navTarget === id);
+      /* ── IntersectionObserver reveals ────────────────── */
+      if ('IntersectionObserver' in window) {
+        const sectionObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const el = entry.target;
+                const delay = parseInt(el.dataset.delay || '0', 10);
+                setTimeout(() => el.classList.add('is-visible'), delay);
+                sectionObserver.unobserve(el);
+              }
             });
-          }
-        });
-      },
-      {
-        threshold: 0.25,
-        rootMargin: `-${navHeight + 8}px 0px -40% 0px`,
-      }
-    );
+          },
+          { threshold: 0.06, rootMargin: '0px 0px -20px 0px' }
+        );
+        document.querySelectorAll('.reveal-item').forEach((el) =>
+          sectionObserver.observe(el)
+        );
 
-    navSections.forEach((section) => activeObserver.observe(section));
-  }
-</script>
+        const introObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                introObserver.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.12 }
+        );
+        document.querySelectorAll('.tcat-intro').forEach((el) =>
+          introObserver.observe(el)
+        );
+
+        const cardObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-card-visible');
+                cardObserver.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.04, rootMargin: '0px 0px -24px 0px' }
+        );
+        document.querySelectorAll('.tcat-card-wrap').forEach((card) =>
+          cardObserver.observe(card)
+        );
+      } else {
+        document.querySelectorAll('.reveal-item').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-intro').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-card-wrap').forEach((card) => card.classList.add('is-card-visible'));
+      }
+
+      /* ── Filter bar — sticky shadow + scroll spy ──────── */
+      const filterBar = document.querySelector('.pri-filter-bar');
+      if (filterBar) {
+        // Sentinel for sticky detection
+        const sentinel = document.createElement('div');
+        sentinel.style.cssText = 'height:1px;pointer-events:none;position:absolute;top:0;left:0;right:0;';
+        filterBar.parentElement.style.position = 'relative';
+        filterBar.parentElement.insertBefore(sentinel, filterBar);
+
+        new IntersectionObserver(
+          ([e]) => filterBar.classList.toggle('is-stuck', !e.isIntersecting),
+          { threshold: 1 }
+        ).observe(sentinel);
+
+        // Scroll spy — highlight active pill
+        const pills = document.querySelectorAll('.pri-filter-pill');
+        const sections = document.querySelectorAll('.tcat-section[id]');
+
+        new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const id = entry.target.id;
+                pills.forEach((p) => {
+                  const active = p.getAttribute('href') === `#${id}`;
+                  p.classList.toggle('is-active', active);
+                  if (active) p.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+                });
+              }
+            });
+          },
+          { threshold: 0.4 }
+        ).observe(...sections.length ? [sections[0]] : []);
+
+        // Observe all sections for spy
+        sections.forEach((s) => {
+          new IntersectionObserver(
+            ([e]) => {
+              if (e.isIntersecting) {
+                const id = e.target.id;
+                pills.forEach((p) => {
+                  p.classList.toggle('is-active', p.getAttribute('href') === `#${id}`);
+                });
+              }
+            },
+            { threshold: 0.35, rootMargin: '-10% 0px -55% 0px' }
+          ).observe(s);
+        });
+      }
+
+      /* ── Carousel init ────────────────────────────────── */
+      document.querySelectorAll('.tcat-carousel-outer').forEach((outer) => {
+        const track = outer.querySelector('.tcat-tours');
+        const prevBtn = outer.querySelector('.tcat-nav--prev');
+        const nextBtn = outer.querySelector('.tcat-nav--next');
+        const fill = outer.querySelector('.tcat-progress__fill');
+        const countEl = outer.querySelector('.tcat-progress__count');
+        const cards = outer.querySelectorAll('.tcat-card-wrap');
+
+        if (!track || !cards.length) return;
+
+        const getCardWidth = () => {
+          const c = cards[0];
+          if (!c) return 300;
+          const gap = parseInt(getComputedStyle(track).gap) || 20;
+          return c.offsetWidth + gap;
+        };
+
+        const update = () => {
+          const maxScroll = track.scrollWidth - track.clientWidth;
+          if (prevBtn) prevBtn.disabled = track.scrollLeft < 4;
+          if (nextBtn) nextBtn.disabled = track.scrollLeft >= maxScroll - 4;
+
+          if (fill) {
+            const pct = maxScroll <= 0 ? 100 : (track.scrollLeft / maxScroll) * 100;
+            fill.style.width = `${Math.max(8, Math.min(100, pct))}%`;
+          }
+          if (countEl) {
+            const w = getCardWidth();
+            const idx = w > 0 ? Math.round(track.scrollLeft / w) + 1 : 1;
+            countEl.textContent = `${Math.min(idx, cards.length)} / ${cards.length}`;
+          }
+        };
+
+        const checkScrollable = () => {
+          const scrollable = track.scrollWidth > track.clientWidth + 8;
+          outer.toggleAttribute('data-scrollable', scrollable);
+          update();
+        };
+
+        prevBtn?.addEventListener('click', () => {
+          track.scrollBy({ left: -getCardWidth(), behavior: 'smooth' });
+        });
+        nextBtn?.addEventListener('click', () => {
+          track.scrollBy({ left: getCardWidth(), behavior: 'smooth' });
+        });
+        track.addEventListener('scroll', update, { passive: true });
+
+        // Drag-to-scroll
+        let isDragging = false, startX = 0, startScroll = 0;
+        track.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startX = e.pageX - track.offsetLeft;
+          startScroll = track.scrollLeft;
+          track.classList.add('is-dragging');
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          track.scrollLeft = startScroll - (e.pageX - track.offsetLeft - startX);
+        });
+        window.addEventListener('mouseup', () => {
+          isDragging = false;
+          track.classList.remove('is-dragging');
+        });
+
+        checkScrollable();
+        if ('ResizeObserver' in window) {
+          new ResizeObserver(checkScrollable).observe(track);
+        }
+        countEl && (countEl.textContent = `1 / ${cards.length}`);
+      });
+
+      /* ── Smooth anchor scrolling ──────────────────────── */
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const target = document.querySelector(a.getAttribute('href'));
+          if (!target) return;
+          e.preventDefault();
+          const offset = 56; // filter bar height
+          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        });
+      });
+    })();
+  </script>
+
+</BaseLayout>

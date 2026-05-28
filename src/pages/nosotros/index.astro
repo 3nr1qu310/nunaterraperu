@@ -2,11 +2,827 @@
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import Hero from '@/components/ui/Hero.astro';
 import SectionHeading from '@/components/sections/SectionHeading.astro';
+import { getSiteSettings } from '@/lib/settings';
+
+export const prerender = false;
+
+const settings = await getSiteSettings(['nosotros_hero_video']);
+const heroVideo = settings['nosotros_hero_video'] || '';
 ---
-<BaseLayout title="Nosotros | Nuna Terra Perú">
-  <Hero eyebrow="Sobre Nuna Terra Perú" title="Viajes con alma por todo el Perú" subtitle="En Nuna Terra Perú diseñamos experiencias que conectan cultura, naturaleza y territorio, acompañando a cada viajero antes, durante y después de su recorrido." image="/images/about-hero.jpg" primaryText="Diseñar mi viaje" primaryHref="/contacto" secondaryText="Explorar paquetes" secondaryHref="/paquetes" />
-  <section class="section"><div class="container two"><div><SectionHeading title="Nuestra esencia" subtitle="Nuna Terra Perú nace con la idea de mostrar el país desde una mirada más profunda, cercana y auténtica." /><p>Creemos que viajar por el Perú no es solo visitar destinos, sino conectar con su historia, sus paisajes, su cultura viva y las personas que dan sentido a cada experiencia.</p><p><b>Nuna</b> se asocia al alma o esencia, y <b>Terra</b> representa la tierra, el territorio y los caminos que recorren la costa, sierra y selva.</p></div><img src="/images/about-essence.jpg" alt="Cultura peruana" /></div></section>
-  <section class="section"><div class="container"><SectionHeading title="Diseñamos experiencias de viaje por Perú" centered /><div class="grid grid--4">{['Paquetes turísticos','Tours','Viajes a medida','Asesoría antes del viaje'].map((item)=><div class="card" style="padding:24px"><h3 class="h3" style="font-size:1.5rem">{item}</h3><p>Organización clara, atención personalizada y experiencias con sentido.</p></div>)}</div></div></section>
-  <section class="section dark"><div class="container"><SectionHeading title="Nuestro compromiso" subtitle="Brindar información clara, orientación personalizada y experiencias organizadas con responsabilidad." /><a class="btn btn--gold" href="/contacto">Diseñar mi viaje</a></div></section>
+
+<BaseLayout
+  title="Nosotros | Nuna Terra Perú"
+  description="Somos una agencia boutique de viajes por Perú, fundada desde el amor al territorio y la convicción de que cada viaje puede ser una experiencia transformadora."
+>
+  <!-- ══════════════════════════════════════════════════════
+       HERO
+  ══════════════════════════════════════════════════════ -->
+  <Hero
+    eyebrow="Sobre Nuna Terra Perú"
+    title="Viajes con alma por todo el Perú"
+    subtitle="Somos guías, exploradores y compañeros de ruta. Diseñamos experiencias que conectan cultura, naturaleza y territorio, acompañando a cada viajero antes, durante y después de su recorrido."
+    image="/images/about-hero.jpg"
+    video={heroVideo || undefined}
+    primaryText="Diseñar mi viaje"
+    primaryHref="/contacto"
+    secondaryText="Explorar paquetes"
+    secondaryHref="/paquetes"
+  />
+
+  <!-- ══════════════════════════════════════════════════════
+       STATS STRIP
+  ══════════════════════════════════════════════════════ -->
+  <div class="nt-stats" aria-label="Cifras de Nuna Terra Perú">
+    <div class="container nt-stats__inner">
+      <div class="nt-stat nt-stat--1">
+        <span class="nt-stat__num">+8</span>
+        <span class="nt-stat__label">Años de experiencia</span>
+      </div>
+      <div class="nt-stat nt-stat--2">
+        <span class="nt-stat__num">3 200+</span>
+        <span class="nt-stat__label">Viajeros acompañados</span>
+      </div>
+      <div class="nt-stat nt-stat--3">
+        <span class="nt-stat__num">47</span>
+        <span class="nt-stat__label">Destinos cubiertos</span>
+      </div>
+      <div class="nt-stat nt-stat--4">
+        <span class="nt-stat__num">12</span>
+        <span class="nt-stat__label">Regiones del Perú</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       HISTORIA — NUESTRA ESENCIA
+  ══════════════════════════════════════════════════════ -->
+  <section class="section nt-essence">
+    <div class="container nt-essence__grid">
+      <div class="nt-essence__text">
+        <SectionHeading
+          eyebrow="Nuestra historia"
+          title="Nace de la tierra, crece desde el alma"
+          subtitle="Nuna Terra Perú nació con la idea de mostrar el país desde una mirada más profunda, cercana y auténtica."
+        />
+        <p>Creemos que viajar por el Perú no es solo visitar destinos, sino conectar con su historia, sus paisajes, su cultura viva y las personas que dan sentido a cada experiencia.</p>
+        <p><strong>Nuna</strong>, en quechua, es el alma o la esencia del ser. <strong>Terra</strong> es la tierra, el territorio y los caminos que recorren la costa, sierra y selva. Juntos, representamos un compromiso con el viaje auténtico.</p>
+        <p>Fundada en Cusco en 2017, comenzamos como un pequeño equipo de guías y apasionados del territorio. Hoy somos una agencia boutique con presencia en toda la ruta peruana, sin perder el espíritu que nos dio origen.</p>
+      </div>
+      <div class="nt-essence__media">
+        <img
+          src="https://picsum.photos/seed/nuna-essence-25/900/1100"
+          alt="Montañas andinas del Perú"
+          class="nt-essence__img"
+          loading="lazy"
+        />
+        <div class="nt-essence__badge" aria-hidden="true">
+          <span class="nt-essence__badge-num">2017</span>
+          <span class="nt-essence__badge-label">Fundada en Cusco</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       MISIÓN & VISIÓN
+  ══════════════════════════════════════════════════════ -->
+  <section class="section nt-mv">
+    <div class="container">
+      <SectionHeading
+        eyebrow="Propósito"
+        title="Misión y visión"
+        subtitle="Lo que nos mueve cada día y el horizonte al que apuntamos."
+        centered
+      />
+      <div class="nt-mv__grid">
+
+        <!-- MISIÓN -->
+        <article class="nt-mv-card nt-mv-card--dark">
+          <div class="nt-mv-card__icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="6"/>
+              <circle cx="12" cy="12" r="2"/>
+            </svg>
+          </div>
+          <span class="nt-mv-card__eyebrow">Misión</span>
+          <h3 class="nt-mv-card__title">Lo que hacemos cada día</h3>
+          <p class="nt-mv-card__text">Conectar a cada viajero con la esencia viva del Perú — su tierra, su cultura y su gente — a través de experiencias diseñadas con propósito, rigor y cuidado genuino.</p>
+          <ul class="nt-mv-card__pillars" aria-label="Pilares de nuestra misión">
+            <li>Organización clara y transparente</li>
+            <li>Atención personalizada desde el primer contacto</li>
+            <li>Conexión auténtica con comunidades locales</li>
+          </ul>
+        </article>
+
+        <!-- VISIÓN -->
+        <article class="nt-mv-card nt-mv-card--green">
+          <div class="nt-mv-card__icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+          <span class="nt-mv-card__eyebrow">Visión</span>
+          <h3 class="nt-mv-card__title">A dónde nos dirigimos</h3>
+          <p class="nt-mv-card__text">Ser la agencia de referencia para quienes buscan el Perú auténtico, reconocidos por nuestro conocimiento del territorio, nuestra red de alianzas locales y el impacto positivo que generamos en cada destino.</p>
+          <ul class="nt-mv-card__pillars" aria-label="Pilares de nuestra visión">
+            <li>Referente en turismo responsable y de impacto</li>
+            <li>Red de alianzas con guías y comunidades locales</li>
+            <li>Contribución positiva en cada destino que visitamos</li>
+          </ul>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       VALORES
+  ══════════════════════════════════════════════════════ -->
+  <section class="section nt-values">
+    <div class="container">
+      <SectionHeading
+        eyebrow="Lo que nos guía"
+        title="Nuestros valores"
+        subtitle="Principios que guían cada decisión, desde el diseño del itinerario hasta la atención post-viaje."
+        centered
+      />
+      <div class="nt-values__grid">
+        {[
+          {
+            icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+            title: 'Autenticidad',
+            desc: 'Mostramos el Perú real: sin filtros, sin escenografía. Las experiencias que diseñamos son genuinas, no postales.',
+          },
+          {
+            icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+            title: 'Sostenibilidad',
+            desc: 'Cada viaje debe dejar el territorio mejor de lo que lo encontró. La responsabilidad ambiental no es opcional.',
+          },
+          {
+            icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+            title: 'Conexión humana',
+            desc: 'Los viajes más memorables nacen del encuentro con las personas: guías, artesanos, cocineros, agricultores.',
+          },
+          {
+            icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+            title: 'Excelencia',
+            desc: 'Cada detalle importa. Desde el alojamiento hasta la logística, buscamos la mejor versión posible en todo.',
+          },
+          {
+            icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+            title: 'Conocimiento local',
+            desc: 'Conocemos el Perú desde adentro. Nuestros aliados son locales y nuestro conocimiento, de primera mano.',
+          },
+          {
+            icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+            title: 'Transparencia',
+            desc: 'Sin letras pequeñas ni sorpresas. Comunicamos con claridad desde el primer contacto hasta el regreso a casa.',
+          },
+        ].map((v) => (
+          <div class="nt-value">
+            <div class="nt-value__icon" set:html={v.icon} aria-hidden="true" />
+            <h3 class="nt-value__title">{v.title}</h3>
+            <p class="nt-value__desc">{v.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SERVICIOS — ZIG-ZAG
+  ══════════════════════════════════════════════════════ -->
+  <section class="section nt-services">
+    <div class="container">
+      <SectionHeading
+        eyebrow="Qué hacemos"
+        title="Experiencias que diseñamos"
+        centered
+      />
+      <div class="nt-svc-list">
+        {[
+          {
+            num: '01',
+            title: 'Paquetes turísticos',
+            desc: 'Itinerarios completos para la costa, sierra y selva. Transporte, alojamiento, guías y actividades seleccionadas con criterio. Todo pensado para que tú solo disfrutes.',
+            img: 'https://picsum.photos/seed/nuna-pkg-2025/800/600',
+            alt: 'Paquetes turísticos por el Perú',
+          },
+          {
+            num: '02',
+            title: 'Tours y excursiones',
+            desc: 'Salidas grupales o privadas a los grandes destinos del Perú. Machu Picchu, Lago Titicaca, Cañón del Colca, Amazonía y mucho más, con guías locales certificados.',
+            img: 'https://picsum.photos/seed/nuna-tours-2025/800/600',
+            alt: 'Tours por el Perú',
+          },
+          {
+            num: '03',
+            title: 'Viajes a medida',
+            desc: 'Diseñamos tu itinerario desde cero según tus fechas, intereses y presupuesto. Sin moldes ni paquetes estándar. Tu viaje, exactamente como lo imaginas.',
+            img: 'https://picsum.photos/seed/nuna-custom-2025/800/600',
+            alt: 'Viajes personalizados por el Perú',
+          },
+          {
+            num: '04',
+            title: 'Asesoría de viaje',
+            desc: 'Respondemos todas tus preguntas antes de salir: visas, clima, equipaje, seguridad, salud. Tu tranquilidad y preparación forman parte del servicio.',
+            img: 'https://picsum.photos/seed/nuna-advice-2025/800/600',
+            alt: 'Asesoría de viaje a Perú',
+          },
+        ].map((svc, i) => (
+          <div class:list={['nt-svc-row', i % 2 !== 0 && 'nt-svc-row--rev']}>
+            <div class="nt-svc-row__text">
+              <span class="nt-svc-row__num" aria-hidden="true">{svc.num}</span>
+              <h3 class="nt-svc-row__title">{svc.title}</h3>
+              <p class="nt-svc-row__desc">{svc.desc}</p>
+              <a class="btn btn--outline-dark" href="/contacto">Consultar disponibilidad</a>
+            </div>
+            <div class="nt-svc-row__media">
+              <img src={svc.img} alt={svc.alt} loading="lazy" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       EQUIPO
+  ══════════════════════════════════════════════════════ -->
+  <section class="section nt-team">
+    <div class="container">
+      <SectionHeading
+        eyebrow="Nuestro equipo"
+        title="Las personas detrás de cada viaje"
+        subtitle="Un equipo apasionado, con profundo conocimiento del territorio peruano y vocación de servicio genuina."
+        centered
+      />
+      <div class="nt-team__grid">
+        {[
+          {
+            name: 'Luciana Quispe',
+            role: 'Directora de Experiencias',
+            bio: 'Nacida en Cusco, lleva más de 12 años diseñando itinerarios a medida por toda la región andina. Su especialidad: conectar viajeros con comunidades vivas del Perú profundo.',
+            img: 'https://picsum.photos/seed/nuna-team-lq/600/720',
+          },
+          {
+            name: 'Carlos Huanca',
+            role: 'Guía Senior · Sierra y Camino Inka',
+            bio: 'Guía oficial certificado con más de 2 000 caminatas en el Camino Inka. Habla quechua, español e inglés. Conoce cada piedra de Machu Picchu y cada flor del camino.',
+            img: 'https://picsum.photos/seed/nuna-team-ch/600/720',
+          },
+          {
+            name: 'Ana María Ramos',
+            role: 'Coordinadora Internacional',
+            bio: 'Especialista en atención a viajeros de Europa y Norteamérica. Asegura que cada detalle logístico esté resuelto antes de que el viajero llegue al aeropuerto de Lima.',
+            img: 'https://picsum.photos/seed/nuna-team-amr/600/720',
+          },
+          {
+            name: 'Diego Vásquez',
+            role: 'Especialista en Amazonía',
+            bio: 'Biólogo y guía naturalista. Diseña expediciones responsables a la Amazonía peruana, con énfasis en conservación y turismo de base comunitaria.',
+            img: 'https://picsum.photos/seed/nuna-team-dv/600/720',
+          },
+        ].map((m) => (
+          <article class="nt-team-card">
+            <div class="nt-team-card__photo-wrap">
+              <img class="nt-team-card__photo" src={m.img} alt={`Foto de ${m.name}`} loading="lazy" />
+            </div>
+            <div class="nt-team-card__body">
+              <h3 class="nt-team-card__name">{m.name}</h3>
+              <span class="nt-team-card__role">{m.role}</span>
+              <p class="nt-team-card__bio">{m.bio}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+      <p class="nt-team__join">
+        ¿Te apasiona el Perú y el turismo responsable? <a href="/contacto">Escríbenos</a> — siempre buscamos personas comprometidas con el territorio.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       CTA FINAL
+  ══════════════════════════════════════════════════════ -->
+  <section class="nt-cta" aria-labelledby="nt-cta-title">
+    <div class="nt-cta__bg" aria-hidden="true">
+      <img
+        src="https://picsum.photos/seed/nuna-cta-about/1600/900"
+        alt=""
+        loading="lazy"
+      />
+    </div>
+    <div class="nt-cta__overlay" aria-hidden="true"></div>
+    <div class="container nt-cta__content">
+      <p class="nt-cta__eyebrow">Nuestro compromiso</p>
+      <h2 class="nt-cta__title" id="nt-cta-title">
+        Cada viaje es<br /><em>una promesa</em>
+      </h2>
+      <p class="nt-cta__subtitle">
+        Información clara, orientación personalizada y experiencias organizadas con responsabilidad.<br />
+        Eso te prometemos desde el primer mensaje hasta que regresas a casa.
+      </p>
+      <div class="nt-cta__actions">
+        <a class="btn btn--gold" href="/contacto">Diseñar mi viaje</a>
+        <a class="btn btn--outline" href="/paquetes">Ver paquetes</a>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
-<style lang="scss">.two{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}.two img{border-radius:var(--radius-lg);box-shadow:var(--shadow-soft)}.dark{background:var(--color-earth);color:var(--color-ivory)}.dark .h2,.dark .lead{color:var(--color-ivory)}@media(max-width:800px){.two{grid-template-columns:1fr}}</style>
+
+<style lang="scss">
+
+  /* ══════════════════════════════════════════════════════
+     STATS STRIP
+  ══════════════════════════════════════════════════════ */
+  .nt-stats {
+    background: var(--color-charcoal);
+    padding: 48px 0;
+  }
+  .nt-stats__inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .nt-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 0 20px;
+    border-right: 1px solid rgba(247,241,231,.1);
+    &:last-child { border-right: none; }
+  }
+  .nt-stat--1 { animation: statFade .6s ease both .1s; }
+  .nt-stat--2 { animation: statFade .6s ease both .22s; }
+  .nt-stat--3 { animation: statFade .6s ease both .34s; }
+  .nt-stat--4 { animation: statFade .6s ease both .46s; }
+  @keyframes statFade {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .nt-stat__num {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    font-weight: 700;
+    color: var(--color-sand);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .nt-stat__label {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: rgba(247,241,231,.5);
+    text-align: center;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     HISTORIA / ESENCIA
+  ══════════════════════════════════════════════════════ */
+  .nt-essence__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 88px;
+    align-items: center;
+  }
+  .nt-essence__text {
+    p {
+      color: rgba(37,37,37,.72);
+      line-height: 1.82;
+      font-size: 1rem;
+      margin: 0 0 20px;
+      &:last-child { margin-bottom: 0; }
+    }
+    strong { color: var(--color-earth); font-weight: 700; }
+  }
+  .nt-essence__media {
+    position: relative;
+  }
+  .nt-essence__img {
+    width: 100%;
+    height: 640px;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 40px 96px rgba(90,62,43,.2);
+  }
+  .nt-essence__badge {
+    position: absolute;
+    bottom: -28px;
+    left: -28px;
+    background: var(--color-earth);
+    color: var(--color-ivory);
+    padding: 22px 30px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 48px rgba(90,62,43,.4);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .nt-essence__badge-num {
+    font-family: var(--font-display);
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--color-sand);
+  }
+  .nt-essence__badge-label {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .16em;
+    color: rgba(247,241,231,.62);
+  }
+
+  /* ══════════════════════════════════════════════════════
+     MISIÓN & VISIÓN
+  ══════════════════════════════════════════════════════ */
+  .nt-mv {
+    background:
+      radial-gradient(ellipse at top right, rgba(47,93,80,.06) 0%, transparent 55%),
+      radial-gradient(ellipse at bottom left, rgba(216,185,130,.09) 0%, transparent 55%),
+      var(--color-ivory);
+  }
+  .nt-mv__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .nt-mv-card {
+    padding: 48px;
+    border-radius: var(--radius-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  .nt-mv-card--dark {
+    background: var(--color-charcoal);
+    color: var(--color-ivory);
+    border: 1px solid rgba(216,185,130,.14);
+    .nt-mv-card__icon { color: var(--color-sand); }
+    .nt-mv-card__eyebrow { color: var(--color-sand); }
+    .nt-mv-card__title { color: var(--color-ivory); }
+    .nt-mv-card__text { color: rgba(247,241,231,.7); }
+    .nt-mv-card__pillars li { color: rgba(247,241,231,.65); }
+    .nt-mv-card__pillars li::before { background: var(--color-sand); }
+  }
+  .nt-mv-card--green {
+    background: var(--color-green);
+    color: var(--color-ivory);
+    border: 1px solid rgba(247,241,231,.1);
+    .nt-mv-card__icon { color: rgba(247,241,231,.78); }
+    .nt-mv-card__eyebrow { color: rgba(247,241,231,.62); }
+    .nt-mv-card__title { color: var(--color-ivory); }
+    .nt-mv-card__text { color: rgba(247,241,231,.72); }
+    .nt-mv-card__pillars li { color: rgba(247,241,231,.65); }
+    .nt-mv-card__pillars li::before { background: var(--color-sand); }
+  }
+  .nt-mv-card__icon {
+    margin-bottom: 20px;
+  }
+  .nt-mv-card__eyebrow {
+    display: block;
+    font-size: .68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    margin-bottom: 12px;
+  }
+  .nt-mv-card__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 2.4vw, 2.3rem);
+    line-height: 1.08;
+    margin: 0 0 20px;
+  }
+  .nt-mv-card__text {
+    font-size: 1rem;
+    line-height: 1.78;
+    margin: 0 0 28px;
+  }
+  .nt-mv-card__pillars {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    li {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: .88rem;
+      font-weight: 500;
+      &::before {
+        content: '';
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     VALORES
+  ══════════════════════════════════════════════════════ */
+  .nt-values {
+    background: linear-gradient(180deg, var(--color-ivory) 0%, #ede6d6 100%);
+  }
+  .nt-values__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .nt-value {
+    background: rgba(255,255,255,.68);
+    border: 1px solid rgba(90,62,43,.1);
+    border-radius: var(--radius-md);
+    padding: 34px;
+    transition:
+      transform var(--transition),
+      box-shadow var(--transition),
+      border-color var(--transition);
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 52px rgba(90,62,43,.12);
+      border-color: rgba(216,185,130,.5);
+    }
+  }
+  .nt-value__icon {
+    width: 46px;
+    height: 46px;
+    background: rgba(90,62,43,.08);
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: var(--color-earth);
+    margin-bottom: 20px;
+  }
+  .nt-value__title {
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    color: var(--color-earth);
+    margin: 0 0 10px;
+    line-height: 1.1;
+  }
+  .nt-value__desc {
+    font-size: .9rem;
+    color: rgba(37,37,37,.62);
+    line-height: 1.72;
+    margin: 0;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     SERVICIOS — ZIG-ZAG
+  ══════════════════════════════════════════════════════ */
+  .nt-services {
+    background: var(--color-ivory);
+  }
+  .nt-svc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 88px;
+  }
+  .nt-svc-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 76px;
+    align-items: center;
+  }
+  .nt-svc-row--rev {
+    .nt-svc-row__text { order: 2; }
+    .nt-svc-row__media { order: 1; }
+  }
+  .nt-svc-row__text {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .nt-svc-row__num {
+    font-family: var(--font-display);
+    font-size: 4.5rem;
+    font-weight: 700;
+    color: rgba(90,62,43,.12);
+    line-height: 1;
+    letter-spacing: -.04em;
+    display: block;
+  }
+  .nt-svc-row__title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    color: var(--color-earth);
+    margin: 0;
+    line-height: 1.08;
+  }
+  .nt-svc-row__desc {
+    font-size: 1rem;
+    color: rgba(37,37,37,.65);
+    line-height: 1.78;
+    margin: 0;
+  }
+  .nt-svc-row__media {
+    img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 28px 72px rgba(90,62,43,.18);
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     EQUIPO
+  ══════════════════════════════════════════════════════ */
+  .nt-team {
+    background:
+      radial-gradient(ellipse at top center, rgba(90,62,43,.05) 0%, transparent 45%),
+      var(--color-ivory);
+  }
+  .nt-team__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 44px;
+  }
+  .nt-team-card {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(90,62,43,.1);
+    background: white;
+    transition: transform var(--transition), box-shadow var(--transition);
+    &:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 28px 64px rgba(90,62,43,.16);
+    }
+  }
+  .nt-team-card__photo-wrap {
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+  }
+  .nt-team-card__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms ease;
+  }
+  .nt-team-card:hover .nt-team-card__photo {
+    transform: scale(1.06);
+  }
+  .nt-team-card__body {
+    padding: 24px 22px 26px;
+  }
+  .nt-team-card__name {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--color-earth);
+    margin: 0 0 5px;
+    line-height: 1.1;
+  }
+  .nt-team-card__role {
+    display: block;
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--color-green);
+    margin-bottom: 13px;
+  }
+  .nt-team-card__bio {
+    font-size: .86rem;
+    color: rgba(37,37,37,.6);
+    line-height: 1.68;
+    margin: 0;
+  }
+  .nt-team__join {
+    text-align: center;
+    font-size: .96rem;
+    color: rgba(37,37,37,.58);
+    margin: 0;
+    a {
+      color: var(--color-earth);
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color var(--transition);
+      &:hover { color: var(--color-green); }
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     CTA FINAL
+  ══════════════════════════════════════════════════════ */
+  .nt-cta {
+    position: relative;
+    overflow: hidden;
+    padding: 120px 0;
+  }
+  .nt-cta__bg {
+    position: absolute;
+    inset: 0;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  .nt-cta__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(37,37,37,.88) 0%, rgba(90,62,43,.72) 100%);
+  }
+  .nt-cta__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .nt-cta__eyebrow {
+    color: var(--color-sand);
+    font-size: .72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    margin: 0;
+  }
+  .nt-cta__title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    color: var(--color-ivory);
+    line-height: .95;
+    margin: 0;
+    letter-spacing: -.02em;
+    em {
+      font-style: italic;
+      color: var(--color-sand);
+    }
+  }
+  .nt-cta__subtitle {
+    font-size: 1.05rem;
+    color: rgba(247,241,231,.75);
+    line-height: 1.78;
+    margin: 0;
+    max-width: 600px;
+  }
+  .nt-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════════════════ */
+  @media (max-width: 1100px) {
+    .nt-team__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 900px) {
+    .nt-stats__inner { grid-template-columns: repeat(2, 1fr); }
+    .nt-stat {
+      border-right: none;
+      border-bottom: 1px solid rgba(247,241,231,.1);
+      padding: 20px;
+      &:nth-child(odd) { border-right: 1px solid rgba(247,241,231,.1); }
+      &:nth-child(3),
+      &:nth-child(4) { border-bottom: none; }
+    }
+
+    .nt-essence__grid { grid-template-columns: 1fr; gap: 56px; }
+    .nt-essence__img { height: 460px; }
+    .nt-essence__badge { left: 0; bottom: -20px; }
+
+    .nt-mv__grid { grid-template-columns: 1fr; }
+
+    .nt-values__grid { grid-template-columns: repeat(2, 1fr); }
+
+    .nt-svc-row {
+      grid-template-columns: 1fr;
+      gap: 36px;
+      .nt-svc-row__text,
+      .nt-svc-row__media { order: unset !important; }
+    }
+    .nt-svc-list { gap: 64px; }
+
+    .nt-cta { padding: 88px 0; }
+  }
+
+  @media (max-width: 640px) {
+    .nt-stats__inner { grid-template-columns: 1fr; }
+    .nt-stat { border-right: none !important; }
+
+    .nt-values__grid { grid-template-columns: 1fr; }
+    .nt-team__grid { grid-template-columns: 1fr; }
+    .nt-mv-card { padding: 32px 24px; }
+    .nt-essence__img { height: 360px; }
+
+    .nt-cta__title { font-size: clamp(2.4rem, 10vw, 3.6rem); }
+  }
+</style>

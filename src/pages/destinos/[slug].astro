@@ -6,6 +6,7 @@ import PlaceCard from '@/components/cards/PlaceCard.astro';
 
 import {
   getDestinations,
+  getRegions,
   getDestinationBySlug,
   getProductsByDestinationSlug,
   getPlacesByDestinationSlug,
@@ -24,10 +25,12 @@ if (!destination) {
   return Astro.redirect('/destinos');
 }
 
-const [relatedProducts, places, allTravelCategories] = await Promise.all([
+const [relatedProducts, places, allTravelCategories, allDestinations, allRegions] = await Promise.all([
   getProductsByDestinationSlug(slug),
   getPlacesByDestinationSlug(slug),
   getTravelCategories(),
+  getDestinations(),
+  getRegions(),
 ]);
 
 const heroImage =
@@ -143,6 +146,42 @@ const galleryItems = galleryItemsRaw
   })
   .slice(0, 9);
 
+/* ── Destinos de la misma región (excluir el actual) ── */
+const sameRegionDestinations = allDestinations
+  .filter((d) => d.region === destination.region && d.slug !== slug)
+  .slice(0, 4);
+
+/* ── Otras regiones (excluir la actual) ── */
+const otherRegions = allRegions.filter((r) => r.slug !== destination.region);
+
+/* ── Colores de fondo por región ── */
+const regionColorMap: Record<string, string> = {
+  costa:  '#0d2233',
+  sierra: '#141208',
+  selva:  '#071a10',
+};
+
+/* ── Datos pre-computados para evitar expresiones complejas en JSX ── */
+const nearbyCards = sameRegionDestinations.map((dest) => ({
+  slug: dest.slug,
+  name: dest.name,
+  img: dest.cardImage || dest.heroImage || '/images/placeholders/destination-placeholder.jpg',
+  desc: dest.subtitle || dest.shortDescription || '',
+  meta: ([dest.bestTime, dest.recommendedDays, dest.altitude].filter(Boolean)[0]) || '',
+  href: '/destinos/' + dest.slug,
+}));
+
+const regionCards = otherRegions.map((reg) => ({
+  slug: reg.slug,
+  name: reg.name,
+  headline: reg.headline,
+  img: reg.heroImage || reg.cardImage || '/images/placeholders/destination-placeholder.jpg',
+  href: '/regiones/' + reg.slug,
+  bgColor: regionColorMap[reg.slug] || '#111',
+  cardClass: 'dest-region-card dest-region-card--' + reg.slug,
+  styleAttr: 'background-color:' + (regionColorMap[reg.slug] || '#111'),
+}));
+
 const sectionLinks = [
   { href: '#overview', label: 'Resumen' },
   ...(relatedTravelStyles.length > 0 ? [{ href: '#estilos', label: 'Estilos' }] : []),
@@ -151,6 +190,8 @@ const sectionLinks = [
   ...(packages.length > 0 ? [{ href: '#paquetes', label: 'Paquetes' }] : []),
   ...(tours.length > 0 ? [{ href: '#tours', label: 'Tours' }] : []),
   { href: '#faqs', label: 'FAQ' },
+  ...(sameRegionDestinations.length > 0 ? [{ href: '#region', label: 'Región' }] : []),
+  ...(otherRegions.length > 0 ? [{ href: '#regiones', label: 'Regiones' }] : []),
 ];
 ---
 
@@ -545,6 +586,101 @@ const sectionLinks = [
     </div>
   </section>
 
+  <!-- ══════════════════════════════════════════════════════
+       MÁS DESTINOS EN LA MISMA REGIÓN
+  ══════════════════════════════════════════════════════ -->
+  {sameRegionDestinations.length > 0 && (
+    <section class="destination-section dest-nearby" id="region">
+      <div class="container">
+
+        <div class="dest-nearby__head" data-reveal>
+          <div class="dest-nearby__head-left">
+            <span class="dest-nearby__eyebrow">{regionLabel}</span>
+            <h2>Más destinos en la {regionLabel}</h2>
+          </div>
+          <p class="dest-nearby__subtitle">
+            Cada destino de esta región tiene su propio carácter.
+            Explora otros lugares para armar una ruta completa.
+          </p>
+        </div>
+
+        <div class="dest-nearby__grid" data-reveal-stagger>
+          {nearbyCards.map((card) => (
+            <a href={card.href} class="dest-nearby-card">
+              <div class="dest-nearby-card__img-wrap">
+                <img src={card.img} alt={card.name} loading="lazy" />
+                <span class="dest-nearby-card__region">{regionLabel}</span>
+              </div>
+              <div class="dest-nearby-card__body">
+                <h3>{card.name}</h3>
+                {card.desc && <p>{card.desc}</p>}
+                {card.meta && <small>{card.meta}</small>}
+                <b class="dest-nearby-card__cta">Explorar destino <span>→</span></b>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <div class="dest-nearby__footer" data-reveal>
+          <a href="/destinos" class="dest-nearby__all-link">
+            Ver todos los destinos del Perú
+            <span>→</span>
+          </a>
+        </div>
+
+      </div>
+    </section>
+  )}
+
+  <!-- ══════════════════════════════════════════════════════
+       OTRAS REGIONES
+  ══════════════════════════════════════════════════════ -->
+  {otherRegions.length > 0 && (
+    <section class="dest-regions" id="regiones">
+      <div class="dest-regions__inner">
+
+        <div class="container dest-regions__head" data-reveal>
+          <span class="dest-regions__eyebrow">Perú por regiones</span>
+          <h2>Descubre otras regiones</h2>
+          <p>
+            El Perú tiene tres territorios distintos: costa, sierra y selva.
+            Cada uno guarda experiencias que no se parecen a ninguna otra.
+          </p>
+        </div>
+
+        <div class="dest-regions__grid">
+          {regionCards.map((card) => (
+            <a
+              href={card.href}
+              class={card.cardClass}
+              style={card.styleAttr}
+              data-reveal
+            >
+              <img
+                class="dest-region-card__img"
+                src={card.img}
+                alt={card.name}
+                loading="lazy"
+              />
+              <div class="dest-region-card__overlay" aria-hidden="true"></div>
+
+              <div class="dest-region-card__body">
+                <span class="dest-region-card__label">Región del Perú</span>
+                <h3 class="dest-region-card__name">{card.name}</h3>
+                <p class="dest-region-card__headline">{card.headline}</p>
+                <span class="dest-region-card__cta">
+                  Explorar región
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+
+      </div>
+    </section>
+  )}
+
   <section class="destination-final-cta">
     <div class="container destination-final-cta__inner" data-reveal>
       <div class="destination-final-cta__left">
@@ -660,7 +796,7 @@ const sectionLinks = [
 
   const carousels = document.querySelectorAll<HTMLElement>('[data-carousel]');
 
-  carousels.forEach((carousel) => {
+  carousels.forEach((carousel, carouselIndex) => {
     const name = carousel.dataset.carousel;
     const track = carousel.querySelector<HTMLElement>('[data-carousel-track]');
     const prev = document.querySelector<HTMLButtonElement>(`[data-carousel-prev="${name}"]`);
@@ -668,43 +804,112 @@ const sectionLinks = [
 
     if (!track || !name) return;
 
+    /* ── Dirección alternada por sección: 1 = derecha→izquierda, -1 = izquierda→derecha ── */
+    const direction = carouselIndex % 2 === 0 ? 1 : -1;
+    const AUTO_INTERVAL = 3500;
+
     const getStep = () => {
       const firstSlide = track.querySelector<HTMLElement>('.destination-carousel__slide');
       if (!firstSlide) return 320;
-
       const styles = window.getComputedStyle(track);
-      const gap = Number.parseFloat(styles.columnGap || styles.gap || '18');
-
+      const gap = Number.parseFloat(styles.columnGap || styles.gap || '24');
       return firstSlide.offsetWidth + gap;
     };
 
     const updateButtons = () => {
       if (!prev || !next) return;
-
       const maxScroll = track.scrollWidth - track.clientWidth;
-      const current = track.scrollLeft;
-
-      prev.disabled = current <= 4;
-      next.disabled = current >= maxScroll - 4;
+      prev.disabled = track.scrollLeft <= 4;
+      next.disabled = track.scrollLeft >= maxScroll - 4;
     };
 
-    prev?.addEventListener('click', () => {
-      track.scrollBy({
-        left: -getStep(),
-        behavior: 'smooth',
+    /* Para izquierda→derecha: iniciar al final */
+    if (direction === -1) {
+      requestAnimationFrame(() => {
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        track.scrollTo({ left: maxScroll, behavior: 'instant' as ScrollBehavior });
+        updateButtons();
       });
-    });
+    }
 
+    /* ── Auto-scroll ─────────────────────────────────── */
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let paused = false;
+
+    function autoStep() {
+      const maxScroll = track!.scrollWidth - track!.clientWidth;
+      if (maxScroll <= 8) return;
+
+      if (direction === 1) {
+        /* derecha → izquierda: avanza scrollLeft */
+        if (track!.scrollLeft >= maxScroll - 8) {
+          track!.scrollTo({ left: 0, behavior: 'instant' as ScrollBehavior });
+        } else {
+          track!.scrollBy({ left: getStep(), behavior: 'smooth' });
+        }
+      } else {
+        /* izquierda → derecha: retrocede scrollLeft */
+        if (track!.scrollLeft <= 8) {
+          track!.scrollTo({ left: maxScroll, behavior: 'instant' as ScrollBehavior });
+        } else {
+          track!.scrollBy({ left: -getStep(), behavior: 'smooth' });
+        }
+      }
+    }
+
+    function startTimer() {
+      if (!paused && timer === null) {
+        timer = setInterval(autoStep, AUTO_INTERVAL);
+      }
+    }
+
+    function stopTimer() {
+      if (timer !== null) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function resetTimer() {
+      stopTimer();
+      startTimer();
+    }
+
+    /* Pausa al hacer hover */
+    carousel.addEventListener('mouseenter', () => { paused = true;  stopTimer(); });
+    carousel.addEventListener('mouseleave', () => { paused = false; startTimer(); });
+
+    /* Pausa en touch */
+    carousel.addEventListener('touchstart', () => stopTimer(), { passive: true });
+    carousel.addEventListener('touchend',   () => { setTimeout(startTimer, 1800); }, { passive: true });
+
+    /* Botones manuales: navegar y reiniciar timer */
+    prev?.addEventListener('click', () => {
+      const target = Math.max(0, track.scrollLeft - getStep());
+      track.scrollTo({ left: target, behavior: 'smooth' });
+      resetTimer();
+    });
     next?.addEventListener('click', () => {
-      track.scrollBy({
-        left: getStep(),
-        behavior: 'smooth',
-      });
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const target = Math.min(maxScroll, track.scrollLeft + getStep());
+      track.scrollTo({ left: target, behavior: 'smooth' });
+      resetTimer();
     });
 
     track.addEventListener('scroll', updateButtons, { passive: true });
-    window.addEventListener('resize', updateButtons);
+    window.addEventListener('resize', () => { updateButtons(); });
 
     updateButtons();
+
+    /* Iniciar auto-scroll cuando la sección sea visible */
+    if (prefersMotion) {
+      const ioAuto = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setTimeout(startTimer, 800);
+          ioAuto.disconnect();
+        }
+      }, { threshold: 0.25 });
+      ioAuto.observe(carousel);
+    }
   });
 </script>

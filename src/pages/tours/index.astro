@@ -1,14 +1,21 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
+import LucideIcon from '@/components/cards/LucideIcon.astro';
 import { getTours, getTravelCategories } from '@/lib/content';
+import { getSiteSettings } from '@/lib/settings';
 import { site } from '@/lib/site';
 import './TourIndex.scss';
 
 export const prerender = false;
 
-const tours = await getTours();
-const allCategories = await getTravelCategories();
+const [tours, allCategories, settings] = await Promise.all([
+  getTours(),
+  getTravelCategories(),
+  getSiteSettings(['tours_hero_video']),
+]);
+
+const toursHeroVideo = settings['tours_hero_video'] || '';
 
 const activeCategorySlugs = new Set(tours.flatMap((t) => t.categorySlugs || []));
 const activeCategories = allCategories.filter((cat) =>
@@ -16,27 +23,140 @@ const activeCategories = allCategories.filter((cat) =>
 );
 
 const uniqueDestinations = new Set(tours.flatMap((t) => t.destinations || []));
+
+// Marquee: use real destinations or editorial fallback, duplicated for seamless loop
+const baseMarquee = uniqueDestinations.size >= 5
+  ? Array.from(uniqueDestinations)
+  : ['Cusco', 'Machu Picchu', 'Lago Titicaca', 'Arequipa', 'Lima', 'Nazca', 'Iquitos', 'Valle Sagrado', 'Cañón del Colca', 'Huaraz', 'Ollantaytambo'];
+const marqueeItems = [...baseMarquee, ...baseMarquee];
+const marqueeDuration = `${Math.max(32, baseMarquee.length * 4)}s`;
+
+// Regions editorial
+const regions = [
+  {
+    slug: 'sierra',
+    name: 'Sierra',
+    tagline: 'Andes y altura',
+    description: 'Cusco, el Valle Sagrado, Machu Picchu y el Lago Titicaca. Cultura inca viva, rutas milenarias y paisajes a más de 3 000 metros sobre el mar.',
+    image: 'https://picsum.photos/seed/andesperu2024/700/950',
+    toursCount: tours.filter((t) => t.region === 'sierra').length,
+  },
+  {
+    slug: 'costa',
+    name: 'Costa',
+    tagline: 'Litoral y misterio',
+    description: 'Lima y su gastronomía de clase mundial, las enigmáticas líneas de Nazca, las pirámides de Caral y civilizaciones que precedieron a los incas.',
+    image: 'https://picsum.photos/seed/costaperu2024/700/950',
+    toursCount: tours.filter((t) => t.region === 'costa').length,
+  },
+  {
+    slug: 'selva',
+    name: 'Selva',
+    tagline: 'Amazonía viva',
+    description: 'Iquitos, el río Amazonas y el ecosistema más biodiverso del planeta. Una aventura verde e infinita que desafía todos los sentidos.',
+    image: 'https://picsum.photos/seed/amazoniaperu2024/700/950',
+    toursCount: tours.filter((t) => t.region === 'selva').length,
+  },
+];
+
+// Tours grouped by travel category (from DB travel_categories table)
+const categoryGroups = activeCategories
+  .map((cat) => ({
+    ...cat,
+    tours: tours.filter((t) => t.categorySlugs?.includes(cat.slug)),
+  }))
+  .filter((g) => g.tours.length > 0);
+
+// Process steps
+const steps = [
+  {
+    num: '01',
+    icon: 'search',
+    title: 'Elige tu experiencia',
+    description: 'Navega el catálogo y filtra por región, tipo de tour o duración. Hay salidas de medio día hasta tres jornadas completas.',
+  },
+  {
+    num: '02',
+    icon: 'message-circle',
+    title: 'Coordina los detalles',
+    description: 'Un asesor de Nuna Terra te responde en menos de 24 horas para confirmar disponibilidad y ajustar cualquier detalle.',
+  },
+  {
+    num: '03',
+    icon: 'compass',
+    title: 'Vive el Perú',
+    description: 'Guía local certificado, transporte cómodo y entradas incluidas. Tú solo llegas — nosotros nos encargamos del resto.',
+  },
+];
+
+// Trust items
+const trustItems = [
+  {
+    icon: 'compass',
+    title: 'Guías con historia propia',
+    description: 'No leemos guiones. Nuestros guías crecieron o trabajaron durante años en cada destino. Conocen atajos, historias y perspectivas que ningún libro tiene.',
+  },
+  {
+    icon: 'shield',
+    title: 'Precio claro, sin sorpresas',
+    description: 'Lo que ves es lo que pagas. Todo —transporte, guía y entradas— está detallado antes de reservar. Sin cargos extra al llegar.',
+  },
+  {
+    icon: 'users',
+    title: 'Grupos pequeños',
+    description: 'Máximo 12 personas por salida. Una experiencia real, no una excursión masiva donde eres un número más en la fila.',
+  },
+  {
+    icon: 'clock',
+    title: 'Puntualidad como norma',
+    description: 'Recojo en tu hotel a la hora acordada. Vehículos modernos con AC y conductores que conocen cada curva de la ruta.',
+  },
+];
 ---
 
 <BaseLayout
   title="Tours por Perú | Nuna Terra Perú"
   description="Experiencias de un día para descubrir los destinos más emblemáticos del Perú con guías, transporte y organización incluidos."
 >
-  <!-- HERO -->
-  <section class="tri-hero" aria-label="Tours y experiencias">
-    <div class="tri-hero__left">
+
+  <!-- ══════════════════════════════════════════════════════════
+       HERO — full-bleed, cinematic
+  ══════════════════════════════════════════════════════════ -->
+  <section class="tri-hero" aria-label="Tours y experiencias en Perú">
+    {toursHeroVideo ? (
+      <video
+        class="tri-hero__bg"
+        src={toursHeroVideo}
+        autoplay
+        muted
+        loop
+        playsinline
+        poster="/images/tours-hero.jpg"
+      />
+    ) : (
+      <img
+        class="tri-hero__bg"
+        src="/images/tours-hero.jpg"
+        alt="Viajeros en una ruta de montaña en el Perú"
+        loading="eager"
+        fetchpriority="high"
+      />
+    )}
+    <div class="tri-hero__overlay" aria-hidden="true"></div>
+
+    <div class="container tri-hero__content">
       <p class="tri-hero__eyebrow">
-        <span class="tri-hero__eyebrow-dot" aria-hidden="true"></span>
+        <span class="tri-hero__dot" aria-hidden="true"></span>
         Tours y experiencias
       </p>
 
       <h1 class="tri-hero__title">
-        Vive el Perú<br /><em>en un día</em>
+        Vive el Perú<br /><em>en cada jornada</em>
       </h1>
 
       <p class="tri-hero__subtitle">
-        Excursiones organizadas con transporte, guía y entrada incluidos.
-        Perfectas para aprovechar cada jornada con claridad y sin complicaciones.
+        Excursiones con transporte, guía local y entradas incluidas.
+        Organizadas para que tú solo disfrutes.
       </p>
 
       <div class="tri-hero__actions">
@@ -54,17 +174,80 @@ const uniqueDestinations = new Set(tours.flatMap((t) => t.destinations || []));
       </div>
     </div>
 
-    <div class="tri-hero__right" aria-hidden="true">
-      <img
-        src="/images/tours-hero.jpg"
-        alt="Tour en el Perú — paisaje de montaña con viajeros"
-        loading="eager"
-        fetchpriority="high"
-      />
+    <div class="tri-hero__scroll" aria-hidden="true">
+      <span class="tri-hero__scroll-line"></span>
     </div>
   </section>
 
-  <!-- STATS BAR -->
+  <!-- ══════════════════════════════════════════════════════════
+       MARQUEE — destination ticker
+  ══════════════════════════════════════════════════════════ -->
+  <div class="tri-marquee" aria-hidden="true">
+    <div class="tri-marquee__track" style={`--duration: ${marqueeDuration}`}>
+      {marqueeItems.map((dest) => (
+        <>
+          <span class="tri-marquee__item">{dest}</span>
+          <span class="tri-marquee__sep">✦</span>
+        </>
+      ))}
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       REGIONS — El Perú que te espera
+  ══════════════════════════════════════════════════════════ -->
+  <section class="tri-regions" aria-labelledby="tri-regions-title">
+    <div class="container">
+
+      <div class="tri-regions__head">
+        <p class="tri-regions__eyebrow">Destinos</p>
+        <h2 class="tri-regions__title" id="tri-regions-title">
+          El Perú que te espera
+        </h2>
+        <p class="tri-regions__subtitle">
+          Tres regiones, tres mundos distintos. Cada una con su carácter,
+          su ritmo y paisajes que no se parecen a nada que hayas visto antes.
+        </p>
+      </div>
+
+      <div class="tri-regions__grid">
+        {regions.map((region, i) => (
+          <article
+            class="tri-region-card reveal-item"
+            data-delay={i * 100}
+          >
+            <div class="tri-region-card__media">
+              <img
+                src={region.image}
+                alt={`${region.name} — ${region.tagline}`}
+                loading="lazy"
+                class="tri-region-card__img"
+              />
+              <div class="tri-region-card__shade" aria-hidden="true"></div>
+            </div>
+            <div class="tri-region-card__body">
+              <p class="tri-region-card__tagline">{region.tagline}</p>
+              <h3 class="tri-region-card__name">{region.name}</h3>
+              <p class="tri-region-card__desc">{region.description}</p>
+              {region.toursCount > 0 && (
+                <p class="tri-region-card__count">
+                  {region.toursCount} {region.toursCount === 1 ? 'tour' : 'tours'} disponibles
+                </p>
+              )}
+              <a href="#catalogo" class="tri-region-card__cta" aria-label={`Ver tours en ${region.name}`}>
+                Explorar →
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       STATS BAR
+  ══════════════════════════════════════════════════════════ -->
   <div class="tri-stats" aria-label="Cifras del catálogo">
     <div class="container tri-stats__inner">
       <div class="tri-stat">
@@ -85,123 +268,444 @@ const uniqueDestinations = new Set(tours.flatMap((t) => t.destinations || []));
         <strong>1–3</strong>
         <span>Días de duración</span>
       </div>
+      <div class="tri-stat">
+        <strong>≤12</strong>
+        <span>Personas por grupo</span>
+      </div>
     </div>
   </div>
 
-  <!-- CATALOG -->
-  <section class="tri-catalog" id="catalogo" aria-labelledby="tri-catalog-title">
-    <div class="container">
+  <!-- ══════════════════════════════════════════════════════════
+       CATALOG — one section per travel category
+  ══════════════════════════════════════════════════════════ -->
+  <div class="tri-catalog-wrap" id="catalogo">
 
+    <!-- Section heading -->
+    <div class="container">
       <div class="tri-catalog__head">
-        <h2 class="tri-catalog__title" id="tri-catalog-title">
-          Encuentra tu tour ideal
-        </h2>
+        <div class="tri-catalog__head-left">
+          <p class="tri-catalog__eyebrow">Catálogo completo</p>
+          <h2 class="tri-catalog__title" id="tri-catalog-title">
+            Encuentra tu experiencia
+          </h2>
+        </div>
         <p class="tri-catalog__subtitle">
-          Experiencias cortas y bien organizadas para aprovechar cada día de tu viaje por el Perú.
+          Cada estilo de viaje tiene su propio ritmo. Elige la experiencia
+          que más te identifica y descubre las opciones disponibles.
         </p>
       </div>
+    </div>
 
-      <!-- Filter pills -->
-      {activeCategories.length > 0 && (
-        <div class="tri-filter" role="navigation" aria-label="Filtrar por estilo">
-          <button class="tri-pill is-active" data-filter="all">Todos</button>
-          {activeCategories.map((cat) => (
-            <button class="tri-pill" data-filter={cat.slug}>
-              {cat.name}
-            </button>
-          ))}
+    <!-- Filter bar — sticky jump nav between categories -->
+    {categoryGroups.length > 1 && (
+      <div class="tri-filter-bar" aria-label="Filtrar por estilo de tour">
+        <div class="container">
+          <nav class="tri-filter-pills">
+            {categoryGroups.map((group) => (
+              <a
+                href={`#tcat-section-${group.slug}`}
+                class="tri-filter-pill"
+                data-filter={group.slug}
+              >
+                {group.name}
+              </a>
+            ))}
+          </nav>
         </div>
-      )}
+      </div>
+    )}
 
-      <!-- Tour grid -->
-      <div class="tri-grid" id="tri-grid">
-        {tours.map((tour, i) => (
-          <div
-            class={`tri-card-wrap${i === 0 ? ' tri-card-wrap--featured' : ''}`}
-            data-categories={tour.categorySlugs?.join(' ') || ''}
+    <!-- Category sections -->
+    {categoryGroups.length > 0 ? (
+      <div class="tcat-list">
+        {categoryGroups.map((group, gi) => (
+          <section
+            class="tcat-section"
+            id={`tcat-section-${group.slug}`}
+            data-section-index={gi}
+            aria-labelledby={`tcat-title-${group.slug}`}
           >
-            <ProductCard product={tour} />
-          </div>
-        ))}
+            {group.heroImage && (
+              <div class="tcat-section__bg" aria-hidden="true">
+                <img src={group.heroImage} alt="" loading="lazy" />
+              </div>
+            )}
 
-        <!-- Empty state -->
-        <div class="tri-empty" id="tri-empty" aria-live="polite">
+            <div class="container">
+              <div class="tcat-layout">
+
+                <!-- LEFT — sticky category intro -->
+                <div class="tcat-intro" data-section-index={gi}>
+                  <span class="tcat-seq" aria-hidden="true">
+                    {String(gi + 1).padStart(2, '0')}
+                  </span>
+
+                  <p class="tcat-intro__eyebrow">Estilo de viaje</p>
+
+                  <div class="tcat-icon-wrap" aria-hidden="true">
+                    <LucideIcon
+                      name={group.icon || 'compass'}
+                      size={22}
+                      class="tcat-icon"
+                    />
+                  </div>
+
+                  <div class="tcat-divider" aria-hidden="true"></div>
+
+                  <h3 class="tcat-name" id={`tcat-title-${group.slug}`}>
+                    {group.name}
+                  </h3>
+
+                  {group.description && (
+                    <p class="tcat-desc">{group.description}</p>
+                  )}
+
+                  <div class="tcat-count">
+                    <strong class="tcat-count__num">{group.tours.length}</strong>
+                    <span>{group.tours.length === 1 ? 'tour' : 'tours'} disponibles</span>
+                  </div>
+                </div>
+
+                <!-- RIGHT — tours carousel -->
+                <div class="tcat-carousel-outer" data-carousel-id={group.slug}>
+                  <button
+                    class="tcat-nav tcat-nav--prev"
+                    aria-label="Tour anterior"
+                    type="button"
+                    disabled
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                  </button>
+
+                  <div class="tcat-tours" id={`tcat-tours-${group.slug}`}>
+                    {group.tours.map((tour, ti) => (
+                      <div
+                        class={`tcat-card-wrap${group.tours.length === 1 ? ' tcat-card-wrap--wide' : ''}`}
+                        data-card-i={ti}
+                      >
+                        <ProductCard product={tour} />
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    class="tcat-nav tcat-nav--next"
+                    aria-label="Siguiente tour"
+                    type="button"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </button>
+
+                  <div class="tcat-progress" aria-hidden="true">
+                    <div class="tcat-progress__track">
+                      <div class="tcat-progress__fill"></div>
+                    </div>
+                    <span class="tcat-progress__count"></span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <div class="container">
+        <div class="tri-empty">
           <div class="tri-empty__icon" aria-hidden="true">⌖</div>
-          <h3 class="tri-empty__title">Sin tours en esta categoría</h3>
+          <h3 class="tri-empty__title">Catálogo en preparación</h3>
           <p class="tri-empty__text">
-            Prueba con otro estilo o contacta para un itinerario personalizado.
+            Muy pronto tendremos experiencias disponibles. Contáctanos para más información.
           </p>
         </div>
       </div>
+    )}
 
-      <!-- CTA strip -->
-      <div class="tri-cta">
-        <div>
-          <h3 class="tri-cta__title">¿No encuentras el tour que buscas?</h3>
-          <p class="tri-cta__text">
-            Diseñamos excursiones a medida según tus días disponibles, destinos de interés y número de personas.
-          </p>
-        </div>
-        <a href="/contacto" class="tri-cta__btn">
-          Diseñar mi tour →
-        </a>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       HOW IT WORKS
+  ══════════════════════════════════════════════════════════ -->
+  <section class="tri-process" aria-labelledby="tri-process-title">
+    <div class="container">
+
+      <div class="tri-process__head">
+        <p class="tri-process__eyebrow">Simple por diseño</p>
+        <h2 class="tri-process__title" id="tri-process-title">
+          Cómo funciona
+        </h2>
+      </div>
+
+      <div class="tri-process__steps">
+        {steps.map((step, i) => (
+          <div class="tri-step reveal-item" data-delay={i * 110}>
+            <div class="tri-step__num" aria-hidden="true">{step.num}</div>
+            <div class="tri-step__icon-wrap" aria-hidden="true">
+              <LucideIcon name={step.icon} size={22} class="tri-step__icon" />
+            </div>
+            <h3 class="tri-step__title">{step.title}</h3>
+            <p class="tri-step__desc">{step.description}</p>
+            {i < steps.length - 1 && (
+              <div class="tri-step__connector" aria-hidden="true">
+                <span class="tri-step__connector-line"></span>
+                <span class="tri-step__connector-arrow">→</span>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
     </div>
   </section>
 
+  <!-- ══════════════════════════════════════════════════════════
+       WHY NUNA TERRA
+  ══════════════════════════════════════════════════════════ -->
+  <section class="tri-trust" aria-labelledby="tri-trust-title">
+    <div class="container">
+
+      <div class="tri-trust__head">
+        <p class="tri-trust__eyebrow">Por qué elegirnos</p>
+        <h2 class="tri-trust__title" id="tri-trust-title">
+          Cada detalle tiene un porqué
+        </h2>
+      </div>
+
+      <div class="tri-trust__grid">
+        {trustItems.map((item, i) => (
+          <div class="tri-trust-item reveal-item" data-delay={i * 80}>
+            <div class="tri-trust-item__icon-wrap" aria-hidden="true">
+              <LucideIcon name={item.icon} size={20} class="tri-trust-item__icon" />
+            </div>
+            <h3 class="tri-trust-item__title">{item.title}</h3>
+            <p class="tri-trust-item__desc">{item.description}</p>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       CUSTOM TOURS CTA — full-bleed
+  ══════════════════════════════════════════════════════════ -->
+  <section class="tri-custom" aria-labelledby="tri-custom-title">
+    <div class="tri-custom__bg" aria-hidden="true">
+      <img
+        src="https://picsum.photos/seed/perucustom2024/1600/800"
+        alt=""
+        loading="lazy"
+      />
+    </div>
+    <div class="tri-custom__overlay" aria-hidden="true"></div>
+
+    <div class="container tri-custom__content">
+      <p class="tri-custom__eyebrow">Experiencias únicas</p>
+      <h2 class="tri-custom__title" id="tri-custom-title">
+        ¿Buscas algo que<br />no está en el catálogo?
+      </h2>
+      <p class="tri-custom__subtitle">
+        Diseñamos excursiones a medida según tus días, intereses y tamaño de
+        grupo. Un asesor de Nuna Terra trabaja contigo para crear la ruta perfecta.
+      </p>
+      <div class="tri-custom__actions">
+        <a href="/contacto" class="tri-custom__btn tri-custom__btn--primary">
+          Diseñar mi tour
+        </a>
+        <a
+          href={site.whatsappUrl}
+          class="tri-custom__btn tri-custom__btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Hablar por WhatsApp ↗
+        </a>
+      </div>
+    </div>
+  </section>
+
   <script is:inline>
     (() => {
-      const pills = document.querySelectorAll('.tri-pill');
-      const cards = document.querySelectorAll('.tri-card-wrap:not(.tri-empty)');
-      const emptyState = document.getElementById('tri-empty');
-      const grid = document.getElementById('tri-grid');
-
-      function applyFilter(filter) {
-        let visibleCount = 0;
-
-        cards.forEach((card) => {
-          const cats = card.dataset.categories?.split(' ').filter(Boolean) || [];
-          const show = filter === 'all' || cats.includes(filter);
-
-          if (show) {
-            card.classList.remove('is-hidden');
-            visibleCount++;
-          } else {
-            card.classList.add('is-hidden');
-          }
+      /* ── Stagger delay per card ───────────────────────── */
+      document.querySelectorAll('.tcat-tours').forEach((grid) => {
+        grid.querySelectorAll('.tcat-card-wrap').forEach((card, i) => {
+          card.style.setProperty('--card-delay', `${i * 100}ms`);
         });
+      });
 
-        // Featured class: only the first *visible* card should be featured
-        let firstVisible = true;
-        cards.forEach((card) => {
-          if (!card.classList.contains('is-hidden')) {
-            if (firstVisible && filter === 'all') {
-              card.classList.add('tri-card-wrap--featured');
-              firstVisible = false;
-            } else {
-              card.classList.remove('tri-card-wrap--featured');
-            }
-          }
-        });
+      /* ── IntersectionObserver reveals ────────────────── */
+      if ('IntersectionObserver' in window) {
+        const sectionObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const el = entry.target;
+                const delay = parseInt(el.dataset.delay || '0', 10);
+                setTimeout(() => el.classList.add('is-visible'), delay);
+                sectionObserver.unobserve(el);
+              }
+            });
+          },
+          { threshold: 0.06, rootMargin: '0px 0px -20px 0px' }
+        );
+        document.querySelectorAll('.reveal-item').forEach((el) =>
+          sectionObserver.observe(el)
+        );
 
-        if (grid) {
-          grid.classList.toggle('no-featured', filter !== 'all');
-        }
+        const introObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                introObserver.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.12 }
+        );
+        document.querySelectorAll('.tcat-intro').forEach((el) =>
+          introObserver.observe(el)
+        );
 
-        if (emptyState) {
-          emptyState.classList.toggle('is-visible', visibleCount === 0);
-        }
+        const cardObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-card-visible');
+                cardObserver.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.04, rootMargin: '0px 0px -24px 0px' }
+        );
+        document.querySelectorAll('.tcat-card-wrap').forEach((card) =>
+          cardObserver.observe(card)
+        );
+      } else {
+        document.querySelectorAll('.reveal-item').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-intro').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-card-wrap').forEach((card) => card.classList.add('is-card-visible'));
       }
 
-      pills.forEach((pill) => {
-        pill.addEventListener('click', () => {
-          const filter = pill.dataset.filter;
-          pills.forEach((p) => p.classList.remove('is-active'));
-          pill.classList.add('is-active');
-          applyFilter(filter);
+      /* ── Filter bar — sticky shadow + scroll spy ──────── */
+      const filterBar = document.querySelector('.tri-filter-bar');
+      if (filterBar) {
+        const sentinel = document.createElement('div');
+        sentinel.style.cssText = 'height:1px;pointer-events:none;position:absolute;top:0;left:0;right:0;';
+        filterBar.parentElement.style.position = 'relative';
+        filterBar.parentElement.insertBefore(sentinel, filterBar);
+
+        new IntersectionObserver(
+          ([e]) => filterBar.classList.toggle('is-stuck', !e.isIntersecting),
+          { threshold: 1 }
+        ).observe(sentinel);
+
+        const pills = document.querySelectorAll('.tri-filter-pill');
+        const sections = document.querySelectorAll('.tcat-section[id]');
+
+        sections.forEach((s) => {
+          new IntersectionObserver(
+            ([e]) => {
+              if (e.isIntersecting) {
+                const id = e.target.id;
+                pills.forEach((p) => {
+                  p.classList.toggle('is-active', p.getAttribute('href') === `#${id}`);
+                });
+              }
+            },
+            { threshold: 0.35, rootMargin: '-10% 0px -55% 0px' }
+          ).observe(s);
+        });
+      }
+
+      /* ── Carousel init ────────────────────────────────── */
+      document.querySelectorAll('.tcat-carousel-outer').forEach((outer) => {
+        const track = outer.querySelector('.tcat-tours');
+        const prevBtn = outer.querySelector('.tcat-nav--prev');
+        const nextBtn = outer.querySelector('.tcat-nav--next');
+        const fill = outer.querySelector('.tcat-progress__fill');
+        const countEl = outer.querySelector('.tcat-progress__count');
+        const cards = outer.querySelectorAll('.tcat-card-wrap');
+
+        if (!track || !cards.length) return;
+
+        const getCardWidth = () => {
+          const c = cards[0];
+          if (!c) return 300;
+          const gap = parseInt(getComputedStyle(track).gap) || 20;
+          return c.offsetWidth + gap;
+        };
+
+        const update = () => {
+          const maxScroll = track.scrollWidth - track.clientWidth;
+          if (prevBtn) prevBtn.disabled = track.scrollLeft < 4;
+          if (nextBtn) nextBtn.disabled = track.scrollLeft >= maxScroll - 4;
+
+          if (fill) {
+            const pct = maxScroll <= 0 ? 100 : (track.scrollLeft / maxScroll) * 100;
+            fill.style.width = `${Math.max(8, Math.min(100, pct))}%`;
+          }
+          if (countEl) {
+            const w = getCardWidth();
+            const idx = w > 0 ? Math.round(track.scrollLeft / w) + 1 : 1;
+            countEl.textContent = `${Math.min(idx, cards.length)} / ${cards.length}`;
+          }
+        };
+
+        const checkScrollable = () => {
+          const scrollable = track.scrollWidth > track.clientWidth + 8;
+          outer.toggleAttribute('data-scrollable', scrollable);
+          update();
+        };
+
+        prevBtn?.addEventListener('click', () => {
+          track.scrollBy({ left: -getCardWidth(), behavior: 'smooth' });
+        });
+        nextBtn?.addEventListener('click', () => {
+          track.scrollBy({ left: getCardWidth(), behavior: 'smooth' });
+        });
+        track.addEventListener('scroll', update, { passive: true });
+
+        let isDragging = false, startX = 0, startScroll = 0;
+        track.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startX = e.pageX - track.offsetLeft;
+          startScroll = track.scrollLeft;
+          track.classList.add('is-dragging');
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          track.scrollLeft = startScroll - (e.pageX - track.offsetLeft - startX);
+        });
+        window.addEventListener('mouseup', () => {
+          isDragging = false;
+          track.classList.remove('is-dragging');
+        });
+
+        checkScrollable();
+        if ('ResizeObserver' in window) {
+          new ResizeObserver(checkScrollable).observe(track);
+        }
+        countEl && (countEl.textContent = `1 / ${cards.length}`);
+      });
+
+      /* ── Smooth anchor scrolling ──────────────────────── */
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const target = document.querySelector(a.getAttribute('href'));
+          if (!target) return;
+          e.preventDefault();
+          const offset = 56;
+          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
         });
       });
     })();
   </script>
+
 </BaseLayout>

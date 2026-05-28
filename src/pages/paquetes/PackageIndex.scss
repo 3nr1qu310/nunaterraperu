@@ -1,5 +1,5 @@
 /* ============================================================
-   TOURS INDEX PAGE — full editorial redesign
+   PAQUETES INDEX PAGE — editorial redesign
 ============================================================ */
 
 $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -21,7 +21,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 /* ============================================================
    HERO — full-bleed, cinematic
 ============================================================ */
-.tri-hero {
+.pri-hero {
   position: relative;
   min-height: 100dvh;
   display: flex;
@@ -31,34 +31,34 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   color: var(--color-ivory);
 }
 
-.tri-hero__bg {
+.pri-hero__bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.72;
+  opacity: 0.68;
 }
 
-.tri-hero__overlay {
+.pri-hero__overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(37, 37, 37, 0.12) 0%,
-    rgba(37, 37, 37, 0.38) 48%,
-    rgba(37, 37, 37, 0.86) 100%
+    rgba(37, 37, 37, 0.1) 0%,
+    rgba(37, 37, 37, 0.35) 45%,
+    rgba(37, 37, 37, 0.9) 100%
   );
 }
 
-.tri-hero__content {
+.pri-hero__content {
   position: relative;
   z-index: 2;
   padding-top: 160px;
   padding-bottom: 100px;
 }
 
-.tri-hero__eyebrow {
+.pri-hero__eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -70,21 +70,21 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   margin: 0 0 22px;
 }
 
-.tri-hero__dot {
+.pri-hero__dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--color-sand);
   flex-shrink: 0;
-  animation: heroDot 2.5s ease infinite;
+  animation: priDot 2.5s ease infinite;
 }
 
-@keyframes heroDot {
+@keyframes priDot {
   0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.5); }
+  50%       { opacity: 1;    transform: scale(1.5); }
 }
 
-.tri-hero__title {
+.pri-hero__title {
   font-family: var(--font-display);
   font-size: clamp(3.2rem, 7.5vw, 6.8rem);
   font-weight: 600;
@@ -101,7 +101,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
-.tri-hero__subtitle {
+.pri-hero__subtitle {
   font-size: clamp(0.96rem, 1.45vw, 1.1rem);
   line-height: 1.78;
   color: rgba(247, 241, 231, 0.75);
@@ -110,13 +110,13 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   text-wrap: pretty;
 }
 
-.tri-hero__actions {
+.pri-hero__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.tri-hero__btn {
+.pri-hero__btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -131,13 +131,13 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     border-color 0.22s ease,
     color 0.22s ease;
 
-  &:hover { transform: translateY(-2px); }
+  &:hover  { transform: translateY(-2px); }
   &:active { transform: scale(0.98); }
 
   &--primary {
-    background: var(--color-green);
+    background: var(--color-earth);
     color: var(--color-ivory);
-    &:hover { background: var(--color-earth); }
+    &:hover { background: #6e4c35; }
   }
 
   &--ghost {
@@ -151,31 +151,31 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Scroll invitation line (bottom-right) */
-.tri-hero__scroll {
+.pri-hero__scroll {
   position: absolute;
   bottom: 44px;
   right: clamp(20px, 5vw, 72px);
   z-index: 2;
 }
 
-.tri-hero__scroll-line {
+.pri-hero__scroll-line {
   display: block;
   width: 1px;
   height: 64px;
   background: linear-gradient(to bottom, transparent, var(--color-sand));
-  animation: scrollLine 2.2s ease infinite;
+  animation: priScrollLine 2.2s ease infinite;
 }
 
-@keyframes scrollLine {
-  0% { opacity: 0; transform: scaleY(0); transform-origin: top; }
-  45% { opacity: 1; transform: scaleY(1); }
+@keyframes priScrollLine {
+  0%   { opacity: 0; transform: scaleY(0); transform-origin: top; }
+  45%  { opacity: 1; transform: scaleY(1); }
   100% { opacity: 0; transform: scaleY(1); transform-origin: bottom; }
 }
 
 /* ============================================================
    MARQUEE
 ============================================================ */
-.tri-marquee {
+.pri-marquee {
   background: var(--color-charcoal);
   padding: 14px 0;
   overflow: hidden;
@@ -183,14 +183,14 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   border-bottom: 1px solid rgba(216, 185, 130, 0.1);
 }
 
-.tri-marquee__track {
+.pri-marquee__track {
   display: flex;
   align-items: center;
   width: max-content;
   animation: marquee var(--duration, 40s) linear infinite;
 }
 
-.tri-marquee__item {
+.pri-marquee__item {
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.26em;
@@ -200,7 +200,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap;
 }
 
-.tri-marquee__sep {
+.pri-marquee__sep {
   font-size: 0.5rem;
   color: var(--color-sand);
   opacity: 0.45;
@@ -209,185 +209,25 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 
 @keyframes marquee {
   from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  to   { transform: translateX(-50%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tri-marquee__track { animation: none; }
-  .tri-hero__dot { animation: none; }
-  .tri-hero__scroll-line { animation: none; }
-}
-
-/* ============================================================
-   REGIONS — El Perú que te espera
-============================================================ */
-.tri-regions {
-  padding: 104px 0 88px;
-  background: var(--color-ivory);
-}
-
-.tri-regions__head {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-    'eyebrow .'
-    'title   subtitle';
-  gap: 10px clamp(40px, 7vw, 100px);
-  align-items: end;
-  margin-bottom: 56px;
-}
-
-.tri-regions__eyebrow {
-  grid-area: eyebrow;
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--color-green);
-  margin: 0;
-}
-
-.tri-regions__title {
-  grid-area: title;
-  font-family: var(--font-display);
-  font-size: clamp(2.6rem, 5vw, 4.2rem);
-  font-weight: 600;
-  color: var(--color-earth);
-  line-height: 0.97;
-  letter-spacing: -0.025em;
-  margin: 0;
-  text-wrap: balance;
-}
-
-.tri-regions__subtitle {
-  grid-area: subtitle;
-  font-size: 0.96rem;
-  line-height: 1.76;
-  color: rgba(37, 37, 37, 0.62);
-  margin: 0;
-  text-wrap: pretty;
-  align-self: end;
-}
-
-.tri-regions__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
-
-/* Region card */
-.tri-region-card {
-  position: relative;
-  border-radius: 22px;
-  overflow: hidden;
-  aspect-ratio: 3 / 4;
-  background: var(--color-charcoal);
-  cursor: pointer;
-  display: block;
-  transition: transform 0.5s $ease-spring;
-
-  &:hover {
-    transform: translateY(-7px);
-
-    .tri-region-card__img { opacity: 0.6; transform: scale(1.05); }
-    .tri-region-card__cta { gap: 10px; color: var(--color-ivory); }
-  }
-}
-
-.tri-region-card__media {
-  position: absolute;
-  inset: 0;
-}
-
-.tri-region-card__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.7;
-  transition:
-    transform 0.65s $ease-spring,
-    opacity 0.45s ease;
-}
-
-.tri-region-card__shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(37, 37, 37, 0.04) 0%,
-    rgba(37, 37, 37, 0.38) 45%,
-    rgba(37, 37, 37, 0.9) 100%
-  );
-}
-
-.tri-region-card__body {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  height: 100%;
-  padding: 28px 26px;
-}
-
-.tri-region-card__tagline {
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--color-sand);
-  margin: 0 0 9px;
-  opacity: 0.9;
-}
-
-.tri-region-card__name {
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 3.5vw, 2.8rem);
-  font-weight: 600;
-  color: var(--color-ivory);
-  line-height: 0.97;
-  margin: 0 0 14px;
-  letter-spacing: -0.015em;
-}
-
-.tri-region-card__desc {
-  font-size: 0.83rem;
-  line-height: 1.68;
-  color: rgba(247, 241, 231, 0.7);
-  margin: 0 0 14px;
-  text-wrap: pretty;
-}
-
-.tri-region-card__count {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(247, 241, 231, 0.42);
-  margin: 0 0 12px;
-}
-
-.tri-region-card__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--color-sand);
-  text-decoration: none;
-  transition: gap 0.22s ease, color 0.22s ease;
+  .pri-marquee__track  { animation: none; }
+  .pri-hero__dot       { animation: none; }
+  .pri-hero__scroll-line { animation: none; }
 }
 
 /* ============================================================
    STATS BAR
 ============================================================ */
-.tri-stats {
+.pri-stats {
   background: white;
   border-top: 1px solid rgba(90, 62, 43, 0.08);
   border-bottom: 1px solid rgba(90, 62, 43, 0.08);
 }
 
-.tri-stats__inner {
+.pri-stats__inner {
   display: flex;
   align-items: center;
   overflow-x: auto;
@@ -395,7 +235,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   &::-webkit-scrollbar { display: none; }
 }
 
-.tri-stat {
+.pri-stat {
   display: flex;
   align-items: baseline;
   gap: 9px;
@@ -432,13 +272,13 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 /* ============================================================
    CATALOG SECTION — category-grouped layout
 ============================================================ */
-.tri-catalog-wrap {
+.pri-catalog-wrap {
   background: var(--color-ivory);
   padding-top: 80px;
   padding-bottom: 0;
 }
 
-.tri-catalog__head {
+.pri-catalog__head {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: clamp(24px, 5vw, 64px);
@@ -446,11 +286,9 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   margin-bottom: 64px;
 }
 
-.tri-catalog__head-left {
-  min-width: 0;
-}
+.pri-catalog__head-left { min-width: 0; }
 
-.tri-catalog__eyebrow {
+.pri-catalog__eyebrow {
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.26em;
@@ -459,7 +297,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   margin: 0 0 10px;
 }
 
-.tri-catalog__title {
+.pri-catalog__title {
   font-family: var(--font-display);
   font-size: clamp(2.2rem, 4.5vw, 3.8rem);
   font-weight: 600;
@@ -470,7 +308,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   text-wrap: balance;
 }
 
-.tri-catalog__subtitle {
+.pri-catalog__subtitle {
   font-size: 0.95rem;
   line-height: 1.76;
   color: rgba(37, 37, 37, 0.62);
@@ -511,7 +349,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
-/* ── Layout: intro left + tours right ── */
+/* ── Layout: intro left + packages right ── */
 .tcat-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -584,7 +422,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   user-select: none;
 }
 
-/* Solid green icon — feels intentional and premium */
+/* Solid green icon */
 .tcat-icon-wrap {
   width: 52px;
   height: 52px;
@@ -594,7 +432,6 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0;
   box-shadow: 0 6px 20px rgba(47, 93, 80, 0.3);
 }
 
@@ -682,7 +519,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
-/* ── Tours grid ── */
+/* ── Packages grid ── */
 .tcat-tours {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -704,7 +541,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
-/* Single-tour category: landscape layout */
+/* Single-package category: landscape layout */
 .tcat-card-wrap--wide :global(.product-card) {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
@@ -723,25 +560,25 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ── Empty catalog state ── */
-.tri-empty {
+.pri-empty {
   text-align: center;
   padding: 80px 24px;
 }
 
-.tri-empty__icon {
+.pri-empty__icon {
   font-size: 2.4rem;
   margin-bottom: 16px;
   opacity: 0.38;
 }
 
-.tri-empty__title {
+.pri-empty__title {
   font-family: var(--font-display);
   font-size: 1.6rem;
   color: var(--color-earth);
   margin: 0 0 10px;
 }
 
-.tri-empty__text {
+.pri-empty__text {
   font-size: 0.9rem;
   color: rgba(37, 37, 37, 0.52);
   margin: 0;
@@ -750,17 +587,17 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 /* ============================================================
    HOW IT WORKS
 ============================================================ */
-.tri-process {
+.pri-process {
   padding: 104px 0;
   background: var(--color-charcoal);
   color: var(--color-ivory);
 }
 
-.tri-process__head {
+.pri-process__head {
   margin-bottom: 64px;
 }
 
-.tri-process__eyebrow {
+.pri-process__eyebrow {
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.26em;
@@ -769,7 +606,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   margin: 0 0 14px;
 }
 
-.tri-process__title {
+.pri-process__title {
   font-family: var(--font-display);
   font-size: clamp(2.6rem, 5vw, 4.4rem);
   font-weight: 600;
@@ -780,20 +617,19 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   text-wrap: balance;
 }
 
-.tri-process__steps {
+.pri-process__steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  position: relative;
 }
 
-.tri-step {
+.pri-step {
   position: relative;
   padding-right: 56px;
 
   &:last-child { padding-right: 0; }
 }
 
-.tri-step__num {
+.pri-step__num {
   display: block;
   font-family: var(--font-display);
   font-size: 5rem;
@@ -804,7 +640,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   letter-spacing: -0.04em;
 }
 
-.tri-step__icon-wrap {
+.pri-step__icon-wrap {
   width: 50px;
   height: 50px;
   border-radius: 15px;
@@ -816,14 +652,14 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   margin-bottom: 20px;
 }
 
-.tri-step__icon {
+.pri-step__icon {
   color: var(--color-sand);
   width: 22px;
   height: 22px;
   display: block;
 }
 
-.tri-step__title {
+.pri-step__title {
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 600;
@@ -832,7 +668,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   line-height: 1.15;
 }
 
-.tri-step__desc {
+.pri-step__desc {
   font-size: 0.88rem;
   line-height: 1.76;
   color: rgba(247, 241, 231, 0.6);
@@ -841,16 +677,13 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   text-wrap: pretty;
 }
 
-/* Arrow connector between steps */
-.tri-step__connector {
+.pri-step__connector {
   position: absolute;
   top: 74px;
   right: 14px;
-  display: flex;
-  align-items: center;
 }
 
-.tri-step__connector-arrow {
+.pri-step__connector-arrow {
   font-size: 1.1rem;
   color: rgba(216, 185, 130, 0.28);
   line-height: 1;
@@ -859,16 +692,16 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 /* ============================================================
    WHY NUNA TERRA
 ============================================================ */
-.tri-trust {
+.pri-trust {
   padding: 104px 0;
   background: var(--color-ivory);
 }
 
-.tri-trust__head {
+.pri-trust__head {
   margin-bottom: 60px;
 }
 
-.tri-trust__eyebrow {
+.pri-trust__eyebrow {
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.26em;
@@ -877,7 +710,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   margin: 0 0 14px;
 }
 
-.tri-trust__title {
+.pri-trust__title {
   font-family: var(--font-display);
   font-size: clamp(2.6rem, 5vw, 4.4rem);
   font-weight: 600;
@@ -889,7 +722,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   max-width: 580px;
 }
 
-.tri-trust__grid {
+.pri-trust__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2px;
@@ -899,7 +732,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   overflow: hidden;
 }
 
-.tri-trust-item {
+.pri-trust-item {
   padding: 44px 40px;
   background: var(--color-ivory);
   display: flex;
@@ -910,7 +743,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   &:hover { background: #fff; }
 }
 
-.tri-trust-item__icon-wrap {
+.pri-trust-item__icon-wrap {
   width: 46px;
   height: 46px;
   border-radius: 13px;
@@ -922,14 +755,14 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   flex-shrink: 0;
 }
 
-.tri-trust-item__icon {
+.pri-trust-item__icon {
   color: var(--color-green);
   width: 20px;
   height: 20px;
   display: block;
 }
 
-.tri-trust-item__title {
+.pri-trust-item__title {
   font-family: var(--font-display);
   font-size: 1.45rem;
   font-weight: 600;
@@ -938,7 +771,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   line-height: 1.12;
 }
 
-.tri-trust-item__desc {
+.pri-trust-item__desc {
   font-size: 0.88rem;
   line-height: 1.74;
   color: rgba(37, 37, 37, 0.64);
@@ -947,9 +780,9 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ============================================================
-   CUSTOM TOURS CTA — full-bleed
+   CUSTOM PACKAGE CTA — full-bleed
 ============================================================ */
-.tri-custom {
+.pri-custom {
   position: relative;
   min-height: 58dvh;
   display: flex;
@@ -959,7 +792,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   color: var(--color-ivory);
 }
 
-.tri-custom__bg {
+.pri-custom__bg {
   position: absolute;
   inset: 0;
 
@@ -971,25 +804,25 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
-.tri-custom__overlay {
+.pri-custom__overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     120deg,
-    rgba(37, 37, 37, 0.88) 0%,
+    rgba(37, 37, 37, 0.9) 0%,
     rgba(37, 37, 37, 0.55) 55%,
     rgba(37, 37, 37, 0.22) 100%
   );
 }
 
-.tri-custom__content {
+.pri-custom__content {
   position: relative;
   z-index: 1;
   padding: 88px 0;
   max-width: 640px;
 }
 
-.tri-custom__eyebrow {
+.pri-custom__eyebrow {
   display: block;
   font-size: 0.68rem;
   font-weight: 800;
@@ -999,7 +832,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   margin: 0 0 18px;
 }
 
-.tri-custom__title {
+.pri-custom__title {
   font-family: var(--font-display);
   font-size: clamp(2.6rem, 5.5vw, 4.6rem);
   font-weight: 600;
@@ -1010,7 +843,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   text-wrap: balance;
 }
 
-.tri-custom__subtitle {
+.pri-custom__subtitle {
   font-size: clamp(0.96rem, 1.45vw, 1.08rem);
   line-height: 1.78;
   color: rgba(247, 241, 231, 0.74);
@@ -1018,13 +851,13 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   text-wrap: pretty;
 }
 
-.tri-custom__actions {
+.pri-custom__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.tri-custom__btn {
+.pri-custom__btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1038,7 +871,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     background 0.22s ease,
     border-color 0.22s ease;
 
-  &:hover { transform: translateY(-2px); }
+  &:hover  { transform: translateY(-2px); }
   &:active { transform: scale(0.98); }
 
   &--primary {
@@ -1061,65 +894,37 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
    RESPONSIVE
 ============================================================ */
 @media (max-width: 1080px) {
-  .tri-process__steps {
-    gap: 0;
-  }
-
-  .tri-step {
-    padding-right: 40px;
-  }
+  .pri-step { padding-right: 40px; }
 }
 
 @media (max-width: 900px) {
-  .tri-regions__head {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'eyebrow'
-      'title'
-      'subtitle';
-    gap: 12px;
-  }
-
-  .tri-regions__subtitle {
-    max-width: 560px;
-  }
-
-  .tri-catalog__head {
+  .pri-catalog__head {
     grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  .tri-catalog__subtitle {
-    align-self: auto;
-  }
+  .pri-catalog__subtitle { align-self: auto; }
 
-  /* Category layout: stack intro above tours */
   .tcat-layout {
     grid-template-columns: 1fr;
     gap: 32px;
   }
 
-  .tcat-intro {
-    position: static;
-    /* Keep card but remove stickiness on tablet */
-  }
+  .tcat-intro { position: static; }
 
-  /* Single-card wide layout: switch to stacked */
-  .tcat-card-wrap--wide :global(.product-card) {
-    display: block;
-  }
+  .tcat-card-wrap--wide :global(.product-card) { display: block; }
 
   .tcat-card-wrap--wide :global(.product-card__media) {
     aspect-ratio: 16/9;
     min-height: auto;
   }
 
-  .tri-process__steps {
+  .pri-process__steps {
     grid-template-columns: 1fr;
     gap: 40px;
   }
 
-  .tri-step {
+  .pri-step {
     padding-right: 0;
     padding-bottom: 40px;
     border-bottom: 1px solid rgba(247, 241, 231, 0.06);
@@ -1130,62 +935,41 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     }
   }
 
-  .tri-step__connector { display: none; }
+  .pri-step__connector { display: none; }
 
-  .tri-trust__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .tri-trust-item {
-    padding: 32px 28px;
-  }
+  .pri-trust__grid   { grid-template-columns: 1fr; }
+  .pri-trust-item    { padding: 32px 28px; }
 }
 
 @media (max-width: 720px) {
-  .tri-regions__grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .tri-region-card {
-    aspect-ratio: 4 / 3;
-  }
-
-  .tcat-section {
-    padding: 56px 0 72px;
-  }
-
-  .tcat-tours {
-    grid-template-columns: 1fr;
-  }
+  .tcat-section { padding: 56px 0 72px; }
+  .tcat-tours   { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
-  .tri-hero {
+  .pri-hero {
     min-height: 68dvh;
   }
 
-  .tri-hero__content {
+  .pri-hero__content {
     padding-top: 36px;
     padding-bottom: 52px;
   }
 
-  .tri-hero__scroll { display: none; }
+  .pri-hero__scroll { display: none; }
 
-  .tri-stat {
+  .pri-stat {
     padding: 16px 24px 16px 0;
     margin-right: 24px;
   }
 
-  .tri-custom__content {
-    padding: 64px 0;
-  }
+  .pri-custom__content { padding: 64px 0; }
 }
 
 /* ============================================================
    CATEGORY FILTER BAR — sticky jump nav
 ============================================================ */
-.tri-filter-bar {
+.pri-filter-bar {
   position: sticky;
   top: 0;
   z-index: 40;
@@ -1200,7 +984,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
-.tri-filter-pills {
+.pri-filter-pills {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1210,7 +994,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   &::-webkit-scrollbar { display: none; }
 }
 
-.tri-filter-pill {
+.pri-filter-pill {
   display: inline-flex;
   align-items: center;
   padding: 8px 18px;
@@ -1232,30 +1016,32 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     transform 0.22s $ease-spring;
 
   &:hover {
-    background: rgba(47, 93, 80, 0.08);
-    color: var(--color-green);
-    border-color: rgba(47, 93, 80, 0.28);
+    background: rgba(90, 62, 43, 0.08);
+    color: var(--color-earth);
+    border-color: rgba(90, 62, 43, 0.3);
     transform: translateY(-1px);
   }
 
   &.is-active {
-    background: var(--color-green);
+    background: var(--color-earth);
     color: var(--color-ivory);
-    border-color: var(--color-green);
+    border-color: var(--color-earth);
   }
 }
 
 /* ============================================================
-   CAROUSEL WRAPPER (shared .tcat-* classes)
+   CAROUSEL WRAPPER
 ============================================================ */
 .tcat-carousel-outer {
   position: relative;
 }
 
+/* Show nav buttons when JS marks as scrollable */
 .tcat-carousel-outer[data-scrollable] .tcat-nav {
   display: flex;
 }
 
+/* .tcat-tours becomes horizontal carousel inside wrapper */
 .tcat-carousel-outer .tcat-tours {
   display: flex;
   gap: 20px;
@@ -1281,6 +1067,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   flex: 0 0 100%;
 }
 
+/* ── Nav arrow buttons ── */
 .tcat-nav {
   display: none;
   position: absolute;
@@ -1289,9 +1076,9 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 1.5px solid rgba(47, 93, 80, 0.18);
+  border: 1.5px solid rgba(90, 62, 43, 0.15);
   background: rgba(255, 255, 255, 0.97);
-  color: var(--color-green);
+  color: var(--color-earth);
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -1307,10 +1094,10 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     0 6px 24px rgba(37, 37, 37, 0.1);
 
   &:hover {
-    background: var(--color-green);
+    background: var(--color-earth);
     color: var(--color-ivory);
-    border-color: var(--color-green);
-    box-shadow: 0 8px 32px rgba(47, 93, 80, 0.28);
+    border-color: var(--color-earth);
+    box-shadow: 0 8px 32px rgba(90, 62, 43, 0.28);
     transform: scale(1.09);
   }
 
@@ -1331,6 +1118,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
+/* ── Progress track + count ── */
 .tcat-progress {
   display: flex;
   align-items: center;
@@ -1342,14 +1130,14 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   flex: 1;
   max-width: 140px;
   height: 2px;
-  background: rgba(47, 93, 80, 0.1);
+  background: rgba(90, 62, 43, 0.1);
   border-radius: 99px;
   overflow: hidden;
 }
 
 .tcat-progress__fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-green) 0%, var(--color-sand) 100%);
+  background: linear-gradient(90deg, var(--color-earth) 0%, var(--color-sand) 100%);
   border-radius: 99px;
   width: 30%;
   transition: width 0.32s ease;

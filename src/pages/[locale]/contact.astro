@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
 import { isLocale, type Locale } from '@/lib/i18n';
 import { site } from '@/lib/site';
 
@@ -14,140 +13,128 @@ export function getStaticPaths() {
 }
 
 const localeParam = Astro.params.locale;
-
-if (!isLocale(localeParam)) {
-  return Astro.redirect('/contacto');
-}
-
+if (!isLocale(localeParam)) return Astro.redirect('/contacto');
 const locale = localeParam as Locale;
 
 const copy = {
   en: {
     pageTitle: 'Contact | Nuna Terra Perú',
+    pageDesc: "We design your Peru trip from scratch. Tell us your dates, destinations and budget — we'll send a tailored proposal in under 24 hours.",
     heroEyebrow: 'Contact',
-    heroTitle: "Let's design your Peru trip together",
-    heroSubtitle: "Tell us which destinations you want to explore, how many days you have and what kind of experience you're looking for. We'll help you create a clear, organized itinerary tailored to you.",
+    heroTitle: "Let's design your trip together",
+    heroSubtitle: "Tell us which destinations you want to explore, how many days you have and what kind of experience you're looking for. Receive a personalised proposal in under 24 hours.",
     heroPrimary: 'Write on WhatsApp',
-    heroSecondary: 'Send inquiry',
-    channels: ['WhatsApp', 'Email', 'Location', 'Social media'],
-    channelDesc: 'Direct channel for inquiries, quotes and travel guidance.',
-    formTitle: 'Tell us about your next trip',
-    formSubtitle: 'The more details you share, the better we can guide you.',
-    fullName: 'Full name',
-    email: 'Email address',
-    phone: 'WhatsApp',
-    country: 'Country of residence',
-    interestType: 'Type of interest',
-    interestGeneral: 'General question',
-    interestPackage: 'Travel package',
-    interestTour: 'Tour',
-    interestCustom: 'Tailor-made trip',
-    destinationLabel: 'Destination of interest',
-    destinationDefault: 'Select a destination',
-    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazon', "I'm not sure yet"],
-    travelDate: 'Estimated travel date',
-    travelers: 'Number of travelers',
-    duration: 'Approximate duration',
-    durationDefault: 'Select duration',
-    durations: ['1 day', '2 days', '3 to 5 days', '6 to 8 days', 'More than 9 days'],
-    travelStyle: 'Travel style',
-    styleDefault: 'Select style',
-    styles: ['Family', 'Couple', 'Friends', 'Premium', 'Adventure', 'Cultural', 'Relaxed'],
-    message: 'Tell us what you would like to experience in Peru',
+    heroSecondary: 'See the form',
+    formEyebrow: 'Tell us',
+    formTitle: 'Your next adventure',
+    formLead: 'Fill in the key details and one of our specialists will send you a personalised itinerary.',
+    labelName: 'Full name',
+    placeholderName: "What's your name?",
+    labelEmail: 'Email address',
+    placeholderEmail: 'you@email.com',
+    labelPhone: 'WhatsApp',
+    placeholderPhone: '+1 000 000 0000',
+    labelDestination: 'Where do you want to go?',
+    placeholderDestination: 'Select a destination',
+    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazon', 'Multiple destinations', "I'm not sure yet"],
+    labelDate: 'Estimated travel date',
+    labelTravelers: 'Number of travelers',
+    placeholderTravelers: 'How many are going?',
+    labelMessage: 'Message',
+    placeholderMessage: "Tell us what experiences you're looking for, whether you have fixed dates, a budget or any special requirement...",
     consent: 'I agree to be contacted by Nuna Terra Perú.',
-    submit: 'Request a travel proposal',
-    sending: 'Sending inquiry...',
-    success: 'Your inquiry was sent successfully. We will contact you soon.',
-    error: 'Could not send the inquiry. Write to us on WhatsApp or try again.',
-    sideTitle: 'Personalized attention',
-    sideDesc: 'Our team will review your inquiry and guide you with a proposal based on your dates, destinations and interests.',
+    submit: 'Request a proposal',
+    sending: 'Sending request…',
+    errorMsg: 'Could not send. Write to us on WhatsApp or try again.',
+    infoTitle: 'Personalised attention',
+    infoDesc: 'Each trip is designed from scratch by our local team in Peru — certified guides, exclusive routes and support at every stage of your adventure.',
+    infoBadge: 'Response within 24 h',
+    h1: ['Certified local guides', 'Flexible, tailor-made itineraries', 'Secure bookings & 24/7 assistance'],
+    successTitle: 'Request received!',
+    successP1: 'Thank you for writing to us. One of our specialists will review your inquiry and get in touch within 24 hours.',
+    successP2: 'Check your inbox — we sent you a confirmation email.',
+    successWhatsApp: 'Chat on WhatsApp now',
   },
   pt: {
     pageTitle: 'Contato | Nuna Terra Perú',
+    pageDesc: 'Desenhamos sua viagem pelo Peru do zero. Conte-nos suas datas, destinos e orçamento — enviamos uma proposta personalizada em menos de 24 horas.',
     heroEyebrow: 'Contato',
-    heroTitle: 'Vamos desenhar sua viagem pelo Peru juntos',
-    heroSubtitle: 'Conte-nos quais destinos você quer conhecer, quantos dias você tem e que tipo de experiência está buscando. Vamos ajudá-lo a criar um roteiro claro, organizado e adaptado a você.',
+    heroTitle: 'Vamos desenhar sua viagem juntos',
+    heroSubtitle: 'Conte-nos quais destinos você quer conhecer, quantos dias você tem e que tipo de experiência está buscando. Receba uma proposta personalizada em menos de 24 horas.',
     heroPrimary: 'Escrever pelo WhatsApp',
-    heroSecondary: 'Enviar consulta',
-    channels: ['WhatsApp', 'E-mail', 'Localização', 'Redes sociais'],
-    channelDesc: 'Canal direto para consultas, cotações e orientação de viagem.',
-    formTitle: 'Conte-nos sobre sua próxima viagem',
-    formSubtitle: 'Quanto mais detalhes você compartilhar, melhor poderemos orientá-lo.',
-    fullName: 'Nome completo',
-    email: 'Endereço de e-mail',
-    phone: 'WhatsApp',
-    country: 'País de residência',
-    interestType: 'Tipo de interesse',
-    interestGeneral: 'Pergunta geral',
-    interestPackage: 'Pacote turístico',
-    interestTour: 'Tour',
-    interestCustom: 'Viagem sob medida',
-    destinationLabel: 'Destino de interesse',
-    destinationDefault: 'Selecione um destino',
-    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazônia', 'Ainda não sei'],
-    travelDate: 'Data estimada de viagem',
-    travelers: 'Número de viajantes',
-    duration: 'Duração aproximada',
-    durationDefault: 'Selecione a duração',
-    durations: ['1 dia', '2 dias', '3 a 5 dias', '6 a 8 dias', 'Mais de 9 dias'],
-    travelStyle: 'Estilo de viagem',
-    styleDefault: 'Selecione o estilo',
-    styles: ['Familiar', 'Casal', 'Amigos', 'Premium', 'Aventura', 'Cultural', 'Relaxado'],
-    message: 'Conte-nos o que você gostaria de vivenciar no Peru',
+    heroSecondary: 'Ver o formulário',
+    formEyebrow: 'Conte-nos',
+    formTitle: 'Sua próxima aventura',
+    formLead: 'Preencha os dados principais e um de nossos especialistas enviará um roteiro personalizado.',
+    labelName: 'Nome completo',
+    placeholderName: 'Como você se chama?',
+    labelEmail: 'Endereço de e-mail',
+    placeholderEmail: 'voce@email.com',
+    labelPhone: 'WhatsApp',
+    placeholderPhone: '+55 00 00000-0000',
+    labelDestination: 'Para onde você quer ir?',
+    placeholderDestination: 'Selecione um destino',
+    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazônia', 'Vários destinos', 'Ainda não sei'],
+    labelDate: 'Data estimada de viagem',
+    labelTravelers: 'Número de viajantes',
+    placeholderTravelers: 'Quantos vão?',
+    labelMessage: 'Mensagem',
+    placeholderMessage: 'Conte-nos que experiências você busca, se tem datas fixas, orçamento ou algum requisito especial…',
     consent: 'Concordo em ser contatado pela Nuna Terra Perú.',
-    submit: 'Solicitar proposta de viagem',
-    sending: 'Enviando consulta...',
-    success: 'Sua consulta foi enviada com sucesso. Entraremos em contato em breve.',
-    error: 'Não foi possível enviar a consulta. Escreva-nos pelo WhatsApp ou tente novamente.',
-    sideTitle: 'Atenção personalizada',
-    sideDesc: 'Nossa equipe analisará sua consulta e o orientará com uma proposta de acordo com suas datas, destinos e interesses.',
+    submit: 'Solicitar proposta',
+    sending: 'Enviando solicitação…',
+    errorMsg: 'Não foi possível enviar. Escreva-nos pelo WhatsApp ou tente novamente.',
+    infoTitle: 'Atenção personalizada',
+    infoDesc: 'Cada viagem é projetada do zero pela nossa equipe local no Peru — guias certificados, rotas exclusivas e suporte em cada etapa da sua aventura.',
+    infoBadge: 'Resposta em menos de 24 h',
+    h1: ['Guias locais certificados', 'Roteiros flexíveis e personalizados', 'Reservas seguras e assistência 24/7'],
+    successTitle: 'Solicitação recebida!',
+    successP1: 'Obrigado por nos escrever. Um de nossos especialistas revisará sua consulta e entrará em contato em menos de 24 horas.',
+    successP2: 'Verifique sua caixa de entrada — enviamos um e-mail de confirmação.',
+    successWhatsApp: 'Conversar pelo WhatsApp agora',
   },
   fr: {
     pageTitle: 'Contact | Nuna Terra Perú',
+    pageDesc: 'Nous concevons votre voyage au Pérou de A à Z. Parlez-nous de vos dates, destinations et budget — nous vous envoyons une proposition sur mesure en moins de 24 heures.',
     heroEyebrow: 'Contact',
-    heroTitle: 'Créons ensemble votre voyage au Pérou',
-    heroSubtitle: "Dites-nous quelles destinations vous souhaitez découvrir, combien de jours vous avez et quel type d'expérience vous recherchez. Nous vous aiderons à créer un itinéraire clair, organisé et adapté à vous.",
+    heroTitle: 'Créons ensemble votre voyage',
+    heroSubtitle: "Dites-nous quelles destinations vous souhaitez découvrir, combien de jours vous avez et quel type d'expérience vous recherchez. Recevez une proposition personnalisée en moins de 24 heures.",
     heroPrimary: 'Écrire sur WhatsApp',
-    heroSecondary: 'Envoyer une demande',
-    channels: ['WhatsApp', 'E-mail', 'Localisation', 'Réseaux sociaux'],
-    channelDesc: 'Canal direct pour les demandes, devis et conseils de voyage.',
-    formTitle: 'Parlez-nous de votre prochain voyage',
-    formSubtitle: 'Plus vous nous donnez de détails, mieux nous pourrons vous guider.',
-    fullName: 'Nom complet',
-    email: 'Adresse e-mail',
-    phone: 'WhatsApp',
-    country: 'Pays de résidence',
-    interestType: "Type d'intérêt",
-    interestGeneral: 'Question générale',
-    interestPackage: 'Forfait touristique',
-    interestTour: 'Tour',
-    interestCustom: 'Voyage sur mesure',
-    destinationLabel: "Destination d'intérêt",
-    destinationDefault: 'Choisir une destination',
-    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazonie', 'Je ne sais pas encore'],
-    travelDate: 'Date de voyage estimée',
-    travelers: 'Nombre de voyageurs',
-    duration: 'Durée approximative',
-    durationDefault: 'Choisir la durée',
-    durations: ['1 jour', '2 jours', '3 à 5 jours', '6 à 8 jours', 'Plus de 9 jours'],
-    travelStyle: 'Style de voyage',
-    styleDefault: 'Choisir le style',
-    styles: ['Famille', 'Couple', 'Amis', 'Premium', 'Aventure', 'Culturel', 'Détendu'],
-    message: 'Dites-nous ce que vous aimeriez vivre au Pérou',
-    consent: 'J\'accepte d\'être contacté par Nuna Terra Perú.',
-    submit: 'Demander une proposition de voyage',
-    sending: 'Envoi de la demande...',
-    success: 'Votre demande a été envoyée avec succès. Nous vous contacterons bientôt.',
-    error: 'Impossible d\'envoyer la demande. Écrivez-nous sur WhatsApp ou réessayez.',
-    sideTitle: 'Attention personnalisée',
-    sideDesc: 'Notre équipe examinera votre demande et vous guidera avec une proposition selon vos dates, destinations et intérêts.',
+    heroSecondary: 'Voir le formulaire',
+    formEyebrow: 'Parlez-nous',
+    formTitle: 'Votre prochaine aventure',
+    formLead: 'Remplissez les informations essentielles et un de nos spécialistes vous enverra un itinéraire personnalisé.',
+    labelName: 'Nom complet',
+    placeholderName: 'Comment vous appelez-vous ?',
+    labelEmail: 'Adresse e-mail',
+    placeholderEmail: 'vous@email.com',
+    labelPhone: 'WhatsApp',
+    placeholderPhone: '+33 0 00 00 00 00',
+    labelDestination: 'Où voulez-vous aller ?',
+    placeholderDestination: 'Choisir une destination',
+    destinations: ['Cusco', 'Machu Picchu', 'Lima', 'Ica', 'Arequipa', 'Puno', 'Amazonie', 'Plusieurs destinations', 'Je ne sais pas encore'],
+    labelDate: 'Date de voyage estimée',
+    labelTravelers: 'Nombre de voyageurs',
+    placeholderTravelers: 'Combien partez-vous ?',
+    labelMessage: 'Message',
+    placeholderMessage: "Dites-nous quelles expériences vous recherchez, si vous avez des dates fixes, un budget ou des besoins particuliers…",
+    consent: "J'accepte d'être contacté par Nuna Terra Perú.",
+    submit: 'Demander une proposition',
+    sending: 'Envoi de la demande…',
+    errorMsg: "Impossible d'envoyer. Écrivez-nous sur WhatsApp ou réessayez.",
+    infoTitle: 'Attention personnalisée',
+    infoDesc: "Chaque voyage est conçu de A à Z par notre équipe locale au Pérou — guides certifiés, circuits exclusifs et accompagnement à chaque étape de votre aventure.",
+    infoBadge: 'Réponse en moins de 24 h',
+    h1: ['Guides locaux certifiés', 'Itinéraires flexibles et sur mesure', 'Réservations sécurisées & assistance 24/7'],
+    successTitle: 'Demande reçue !',
+    successP1: 'Merci de nous avoir écrit. Un de nos spécialistes examinera votre demande et vous contactera sous 24 heures.',
+    successP2: 'Vérifiez votre boîte de réception — nous vous avons envoyé un e-mail de confirmation.',
+    successWhatsApp: 'Chatter sur WhatsApp maintenant',
   },
 }[locale];
-
-const contactHref = `/${locale}/contact`;
 ---
 
-<BaseLayout title={copy.pageTitle} description={copy.heroSubtitle}>
+<BaseLayout title={copy.pageTitle} description={copy.pageDesc}>
   <Hero
     eyebrow={copy.heroEyebrow}
     title={copy.heroTitle}
@@ -155,121 +142,483 @@ const contactHref = `/${locale}/contact`;
     image="/images/contact-hero.jpg"
     primaryText={copy.heroPrimary}
     primaryHref={site.whatsappUrl}
-    secondaryText={copy.heroSecondary}
-    secondaryHref="#formulario"
   />
 
-  <section class="section section--tight">
-    <div class="container grid grid--4">
-      {copy.channels.map((item) => (
-        <div class="card contact-card">
-          <h3>{item}</h3>
-          <p>{copy.channelDesc}</p>
+  <section class="contact-section" id="formulario">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- Form column -->
+        <div class="form-col">
+          <header class="form-header">
+            <p class="eyebrow">{copy.formEyebrow}</p>
+            <h2 class="h2 form-title">{copy.formTitle}</h2>
+            <p class="lead form-lead">{copy.formLead}</p>
+          </header>
+
+          <form class="lead-form" id="lead-form" novalidate>
+            <div class="field">
+              <label for="full_name">{copy.labelName} <span class="req">*</span></label>
+              <input id="full_name" name="full_name" autocomplete="name" placeholder={copy.placeholderName} required />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="email">{copy.labelEmail} <span class="req">*</span></label>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder={copy.placeholderEmail} required />
+              </div>
+              <div class="field">
+                <label for="phone">{copy.labelPhone} <span class="req">*</span></label>
+                <input id="phone" name="phone" autocomplete="tel" placeholder={copy.placeholderPhone} required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="destinations_interest">{copy.labelDestination}</label>
+              <select id="destinations_interest" name="destinations_interest">
+                <option value="">{copy.placeholderDestination}</option>
+                {copy.destinations.map((d: string) => <option>{d}</option>)}
+              </select>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="travel_date">{copy.labelDate}</label>
+                <input id="travel_date" name="travel_date" type="date" />
+              </div>
+              <div class="field">
+                <label for="number_of_people">{copy.labelTravelers}</label>
+                <input id="number_of_people" name="number_of_people" type="number" min="1" max="50" placeholder={copy.placeholderTravelers} />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="message">{copy.labelMessage}</label>
+              <textarea id="message" name="message" rows="4" placeholder={copy.placeholderMessage}></textarea>
+            </div>
+
+            <label class="consent-label">
+              <input name="consent" type="checkbox" required />
+              <span>{copy.consent}</span>
+            </label>
+
+            <input type="hidden" name="source" value="contact_page" />
+            <input type="hidden" name="locale" value={locale} />
+
+            <button class="btn btn--primary btn--submit" type="submit">
+              {copy.submit}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+
+            <p class="form-status" id="form-status" aria-live="polite"></p>
+          </form>
+
+          <div class="success-panel" id="success-panel" hidden>
+            <div class="success-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3>{copy.successTitle}</h3>
+            <p>{copy.successP1}</p>
+            <p class="success-check-email">{copy.successP2}</p>
+            <a class="btn btn--outline-dark" href={site.whatsappUrl} target="_blank" rel="noopener">{copy.successWhatsApp}</a>
+          </div>
         </div>
-      ))}
-    </div>
-  </section>
 
-  <section class="section" id="formulario">
-    <div class="container contact-layout">
-      <div>
-        <SectionHeading title={copy.formTitle} subtitle={copy.formSubtitle} />
+        <!-- Info panel -->
+        <aside class="info-panel">
+          <div class="info-panel__inner">
+            <span class="info-badge">{copy.infoBadge}</span>
+            <h3 class="info-title">{copy.infoTitle}</h3>
+            <p class="info-desc">{copy.infoDesc}</p>
 
-        <form class="form" id="lead-form">
-          <input name="full_name" placeholder={copy.fullName} required />
-          <input name="email" type="email" placeholder={copy.email} />
-          <input name="phone" placeholder={copy.phone} required />
-          <input name="country" placeholder={copy.country} />
+            <ul class="info-contacts" role="list">
+              <li>
+                <a class="info-contact" href={site.whatsappUrl} target="_blank" rel="noopener">
+                  <span class="info-contact__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  </span>
+                  <div>
+                    <strong>WhatsApp</strong>
+                    <span>{site.whatsapp}</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a class="info-contact" href={`mailto:${site.email}`}>
+                  <span class="info-contact__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  </span>
+                  <div>
+                    <strong>Email</strong>
+                    <span>{site.email}</span>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <span class="info-contact info-contact--static">
+                  <span class="info-contact__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </span>
+                  <div>
+                    <strong>Location</strong>
+                    <span>{site.location}</span>
+                  </div>
+                </span>
+              </li>
+            </ul>
 
-          <select name="interest_type">
-            <option value="general_question">{copy.interestType}</option>
-            <option value="package">{copy.interestPackage}</option>
-            <option value="tour">{copy.interestTour}</option>
-            <option value="custom_trip">{copy.interestCustom}</option>
-          </select>
+            <ul class="info-highlights" role="list">
+              {copy.h1.map((item: string) => (
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
 
-          <select name="destinations_interest">
-            <option value="">{copy.destinationDefault}</option>
-            {copy.destinations.map((d) => <option>{d}</option>)}
-          </select>
-
-          <input name="travel_date" type="date" placeholder={copy.travelDate} />
-          <input name="number_of_people" type="number" min="1" placeholder={copy.travelers} />
-
-          <select name="duration_range">
-            <option value="">{copy.durationDefault}</option>
-            {copy.durations.map((d) => <option>{d}</option>)}
-          </select>
-
-          <select name="travel_style">
-            <option value="">{copy.styleDefault}</option>
-            {copy.styles.map((s) => <option>{s}</option>)}
-          </select>
-
-          <textarea name="message" rows="5" placeholder={copy.message}></textarea>
-
-          <label>
-            <input name="consent" type="checkbox" required />
-            {copy.consent}
-          </label>
-
-          <input type="hidden" name="source" value="contact_page" />
-          <input type="hidden" name="locale" value={locale} />
-
-          <button class="btn btn--primary" type="submit">{copy.submit}</button>
-          <p class="form-message" id="form-message" aria-live="polite"></p>
-        </form>
       </div>
-
-      <aside class="side">
-        <h3>{copy.sideTitle}</h3>
-        <p>{copy.sideDesc}</p>
-        <p>{site.whatsapp}</p>
-        <p>{site.email}</p>
-        <p>{site.location}</p>
-      </aside>
     </div>
   </section>
 </BaseLayout>
 
 <style lang="scss">
-  .contact-card { padding: 24px; }
-  .contact-card h3 { font-family: var(--font-display); font-size: 1.8rem; color: var(--color-earth); margin: 0; }
-  .contact-layout { display: grid; grid-template-columns: 1fr 350px; gap: 34px; align-items: start; }
-  .form { display: grid; gap: 14px; }
-  .form-message { font-weight: 700; color: var(--color-green); margin: 4px 0 0; }
-  .form input, .form select, .form textarea { width: 100%; border: 1px solid rgba(90,62,43,.18); border-radius: 16px; background: white; padding: 14px 16px; }
-  .form input:focus, .form textarea:focus, .form select:focus { outline: 2px solid rgba(47,93,80,.25); border-color: var(--color-green); }
-  .side { position: sticky; top: 130px; background: var(--color-earth); color: var(--color-ivory); padding: 28px; border-radius: var(--radius-md); }
-  .side h3 { font-family: var(--font-display); font-size: 2rem; margin: 0 0 10px; color: var(--color-ivory); }
-  @media (max-width: 900px) {
-    .contact-layout { grid-template-columns: 1fr; }
-    .side { position: static; }
+.contact-section {
+  padding: 96px 0 120px;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 20%, rgba(47,93,80,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 10% 80%, rgba(216,185,130,.08) 0%, transparent 55%),
+    var(--color-ivory);
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 52px;
+  align-items: start;
+}
+
+.form-col { min-width: 0; }
+.form-header { margin-bottom: 40px; }
+.form-title  { margin: 8px 0 14px; }
+.form-lead   { margin: 0; }
+
+.lead-form { display: grid; gap: 20px; }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.field label {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--color-earth);
+  letter-spacing: .01em;
+}
+
+.req { color: var(--color-green); font-weight: 700; }
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid rgba(90,62,43,.18);
+  border-radius: 12px;
+  background: #fff;
+  padding: 13px 16px;
+  color: var(--color-charcoal);
+  font-size: .93rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A3E2B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.field textarea { resize: vertical; min-height: 110px; }
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--color-green);
+  box-shadow: 0 0 0 3px rgba(47,93,80,.1);
+}
+
+.field input::placeholder,
+.field textarea::placeholder { color: rgba(37,37,37,.35); }
+
+.consent-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: .84rem;
+  color: rgba(37,37,37,.7);
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.consent-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1px solid rgba(90,62,43,.25);
+  border-radius: 5px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: var(--color-green);
+}
+
+.btn--submit {
+  width: fit-content;
+  padding: 15px 32px;
+  font-size: .95rem;
+  gap: 10px;
+}
+
+.btn--submit svg { transition: transform var(--transition); }
+.btn--submit:hover svg { transform: translateX(4px); }
+
+.form-status {
+  font-size: .88rem;
+  font-weight: 600;
+  min-height: 1.4em;
+  color: var(--color-green);
+  margin: 0;
+  &.is-error   { color: #9a2f1a; }
+  &.is-loading { color: rgba(37,37,37,.5); font-weight: 400; }
+}
+
+.success-panel {
+  padding: 48px 40px;
+  background: white;
+  border: 1px solid rgba(47,93,80,.15);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(47,93,80,.08);
+  text-align: center;
+  &[hidden] { display: none; }
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(47,93,80,.1);
+  color: var(--color-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.success-panel h3 {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: var(--color-earth);
+  margin: 0 0 14px;
+}
+
+.success-panel p {
+  color: rgba(37,37,37,.72);
+  max-width: 440px;
+  margin: 0 auto 10px;
+  line-height: 1.7;
+}
+
+.success-check-email {
+  font-size: .86rem;
+  color: var(--color-green);
+  font-weight: 500;
+  margin-bottom: 28px !important;
+}
+
+.info-panel { position: sticky; top: 120px; }
+
+.info-panel__inner {
+  background: var(--color-earth);
+  color: var(--color-ivory);
+  border-radius: 20px;
+  padding: 36px 32px;
+  box-shadow: 0 24px 60px rgba(90,62,43,.28);
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: .5;
+    border-radius: inherit;
   }
+}
+
+.info-badge {
+  display: inline-block;
+  background: rgba(216,185,130,.18);
+  border: 1px solid rgba(216,185,130,.3);
+  color: var(--color-sand);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 22px;
+}
+
+.info-title {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  line-height: 1.1;
+  color: var(--color-ivory);
+  margin: 0 0 14px;
+}
+
+.info-desc {
+  font-size: .88rem;
+  line-height: 1.7;
+  color: rgba(247,241,231,.72);
+  margin: 0 0 28px;
+}
+
+.info-contacts {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-contact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(247,241,231,.07);
+  border: 1px solid rgba(247,241,231,.1);
+  text-decoration: none;
+  color: var(--color-ivory);
+  transition: background var(--transition), border-color var(--transition);
+  &:is(a):hover {
+    background: rgba(247,241,231,.13);
+    border-color: rgba(247,241,231,.2);
+  }
+}
+
+.info-contact--static { cursor: default; }
+
+.info-contact__icon {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  background: rgba(216,185,130,.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-sand);
+}
+
+.info-contact div { display: flex; flex-direction: column; gap: 2px; }
+
+.info-contact strong {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--color-sand);
+}
+
+.info-contact span {
+  font-size: .87rem;
+  color: rgba(247,241,231,.8);
+}
+
+.info-highlights {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(247,241,231,.1);
+}
+
+.info-highlights li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .86rem;
+  color: rgba(247,241,231,.8);
+  svg { flex-shrink: 0; color: var(--color-sand); }
+}
+
+@media (max-width: 1024px) {
+  .contact-grid { grid-template-columns: 1fr 320px; gap: 36px; }
+}
+
+@media (max-width: 860px) {
+  .contact-section { padding: 72px 0 96px; }
+  .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+  .info-panel { position: static; order: -1; }
+  .info-panel__inner { padding: 28px 24px; }
+}
+
+@media (max-width: 560px) {
+  .field-row { grid-template-columns: 1fr; }
+  .form-header { margin-bottom: 28px; }
+  .success-panel { padding: 36px 24px; }
+}
 </style>
 
-<script is:inline define:vars={{ sending: copy.sending, success: copy.success, error: copy.error }}>
+<script is:inline define:vars={{ sendingMsg: copy.sending, errorMsg: copy.errorMsg }}>
   const form = document.querySelector('#lead-form');
-  const message = document.querySelector('#form-message');
+  const statusEl = document.querySelector('#form-status');
+  const successPanel = document.querySelector('#success-panel');
 
-  form?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
-    message.textContent = sending;
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!statusEl) return;
+
+    statusEl.className = 'form-status is-loading';
+    statusEl.textContent = sendingMsg;
+
+    const payload = Object.fromEntries(new FormData(form).entries());
 
     try {
-      const response = await fetch('/api/leads', {
+      const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.message || 'Error');
-      message.textContent = success;
-      form.reset();
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.message || 'Error');
+
+      form.hidden = true;
+      if (successPanel) successPanel.hidden = false;
+      statusEl.textContent = '';
     } catch {
-      message.textContent = error;
+      statusEl.className = 'form-status is-error';
+      statusEl.textContent = errorMsg;
     }
   });
 </script>

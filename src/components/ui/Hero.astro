@@ -1,9 +1,42 @@
 ---
-interface Props { eyebrow?: string; title: string; subtitle?: string; image?: string; primaryText?: string; primaryHref?: string; secondaryText?: string; secondaryHref?: string; }
-const { eyebrow, title, subtitle, image = '/images/hero-default.jpg', primaryText, primaryHref = '#', secondaryText, secondaryHref = '#' } = Astro.props;
+interface Props {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  image?: string;
+  /** URL de video para usar como fondo. Si se provee, reemplaza la imagen. */
+  video?: string;
+  primaryText?: string;
+  primaryHref?: string;
+  secondaryText?: string;
+  secondaryHref?: string;
+}
+const {
+  eyebrow,
+  title,
+  subtitle,
+  image = '/images/hero-default.jpg',
+  video,
+  primaryText,
+  primaryHref = '#',
+  secondaryText,
+  secondaryHref = '#',
+} = Astro.props;
 ---
 <section class="hero">
-  <img class="hero__bg" src={image} alt="Paisaje de Perú" loading="eager" />
+  {video ? (
+    <video
+      class="hero__bg"
+      src={video}
+      autoplay
+      muted
+      loop
+      playsinline
+      poster={image}
+    />
+  ) : (
+    <img class="hero__bg" src={image} alt="Paisaje de Perú" loading="eager" />
+  )}
   <div class="container hero__content fade-up">
     {eyebrow && <p class="eyebrow">{eyebrow}</p>}
     <h1 class="h1">{title}</h1>

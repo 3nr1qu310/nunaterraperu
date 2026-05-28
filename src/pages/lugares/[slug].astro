@@ -4,10 +4,10 @@ import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
 
 import {
-  getAllPlaces,
   getPlaceBySlug,
   getProductsByPlaceSlug,
 } from '@/lib/content';
+import { buildWaUrl, lugarMessage } from '@/lib/whatsapp';
 
 import './LugarDetail.scss';
 
@@ -30,6 +30,10 @@ const heroImage =
   place.heroImage ||
   place.cardImage ||
   '/images/placeholders/destination-placeholder.jpg';
+
+const waMsg = lugarMessage(place);
+const waUrl1 = buildWaUrl('51963797348', waMsg);
+const waUrl2 = buildWaUrl('51910757386', waMsg);
 ---
 
 <BaseLayout
@@ -75,8 +79,13 @@ const heroImage =
         <a href="#informacion" class="lugar-btn lugar-btn--primary">
           Conocer más
         </a>
-        <a href="/contacto" class="lugar-btn lugar-btn--ghost">
-          Diseñar mi viaje
+        <a
+          href={waUrl1}
+          class="lugar-btn lugar-btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp ↗
         </a>
       </div>
     </div>
@@ -253,12 +262,30 @@ const heroImage =
           subtitle="Rutas completas que pasan por este lugar, organizadas para que aproveches cada momento."
           align="left"
         />
-        <div class="lugar-products__scroll">
-          {packages.map((product) => (
-            <div class="lugar-products__item">
-              <ProductCard product={product} />
+        <div class="lugar-carousel-outer" data-carousel="packages">
+          <button class="lugar-nav lugar-nav--prev" aria-label="Paquete anterior" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+          <div class="lugar-products__scroll">
+            {packages.map((product) => (
+              <div class="lugar-products__item">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+          <button class="lugar-nav lugar-nav--next" aria-label="Siguiente paquete" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+          <div class="lugar-scroll-footer" aria-hidden="true">
+            <div class="lugar-scroll-track">
+              <div class="lugar-scroll-fill"></div>
             </div>
-          ))}
+            <span class="lugar-scroll-count"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -274,12 +301,30 @@ const heroImage =
           subtitle="Experiencias cortas y enfocadas en este lugar, con guía y acompañamiento especializado."
           align="left"
         />
-        <div class="lugar-products__scroll">
-          {tours.map((product) => (
-            <div class="lugar-products__item">
-              <ProductCard product={product} />
+        <div class="lugar-carousel-outer" data-carousel="tours">
+          <button class="lugar-nav lugar-nav--prev" aria-label="Tour anterior" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+          <div class="lugar-products__scroll">
+            {tours.map((product) => (
+              <div class="lugar-products__item">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+          <button class="lugar-nav lugar-nav--next" aria-label="Siguiente tour" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+          <div class="lugar-scroll-footer" aria-hidden="true">
+            <div class="lugar-scroll-track">
+              <div class="lugar-scroll-fill"></div>
             </div>
-          ))}
+            <span class="lugar-scroll-count"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -298,10 +343,91 @@ const heroImage =
         <a href="/contacto" class="lugar-btn lugar-btn--primary">
           Comenzar a planear
         </a>
-        <a href="/contacto" class="lugar-btn lugar-btn--ghost">
-          Hablar con un asesor
+        <a
+          href={waUrl1}
+          class="lugar-btn lugar-btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp · 963 797 348 ↗
+        </a>
+        <a
+          href={waUrl2}
+          class="lugar-btn lugar-btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp · 910 757 386 ↗
         </a>
       </div>
     </div>
   </section>
+
+  <script is:inline>
+    (() => {
+      document.querySelectorAll('.lugar-carousel-outer').forEach((outer) => {
+        const track = outer.querySelector('.lugar-products__scroll');
+        const prevBtn = outer.querySelector('.lugar-nav--prev');
+        const nextBtn = outer.querySelector('.lugar-nav--next');
+        const fill = outer.querySelector('.lugar-scroll-fill');
+        const countEl = outer.querySelector('.lugar-scroll-count');
+        const items = outer.querySelectorAll('.lugar-products__item');
+
+        if (!track || !items.length) return;
+
+        const getItemWidth = () => {
+          const item = items[0];
+          if (!item) return 300;
+          const gap = parseInt(getComputedStyle(track).gap) || 22;
+          return item.offsetWidth + gap;
+        };
+
+        const update = () => {
+          const maxScroll = track.scrollWidth - track.clientWidth;
+          if (prevBtn) prevBtn.disabled = track.scrollLeft < 4;
+          if (nextBtn) nextBtn.disabled = track.scrollLeft >= maxScroll - 4;
+          if (fill) {
+            const pct = maxScroll <= 0 ? 100 : (track.scrollLeft / maxScroll) * 100;
+            fill.style.width = `${Math.max(8, Math.min(100, pct))}%`;
+          }
+          if (countEl) {
+            const w = getItemWidth();
+            const idx = w > 0 ? Math.round(track.scrollLeft / w) + 1 : 1;
+            countEl.textContent = `${Math.min(idx, items.length)} / ${items.length}`;
+          }
+        };
+
+        const checkScrollable = () => {
+          const scrollable = track.scrollWidth > track.clientWidth + 8;
+          outer.toggleAttribute('data-scrollable', scrollable);
+          update();
+        };
+
+        prevBtn?.addEventListener('click', () => track.scrollBy({ left: -getItemWidth(), behavior: 'smooth' }));
+        nextBtn?.addEventListener('click', () => track.scrollBy({ left: getItemWidth(), behavior: 'smooth' }));
+        track.addEventListener('scroll', update, { passive: true });
+
+        let isDragging = false, startX = 0, startScroll = 0;
+        track.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startX = e.pageX - track.offsetLeft;
+          startScroll = track.scrollLeft;
+          track.classList.add('is-dragging');
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          track.scrollLeft = startScroll - (e.pageX - track.offsetLeft - startX);
+        });
+        window.addEventListener('mouseup', () => {
+          isDragging = false;
+          track.classList.remove('is-dragging');
+        });
+
+        checkScrollable();
+        if ('ResizeObserver' in window) new ResizeObserver(checkScrollable).observe(track);
+        countEl && (countEl.textContent = `1 / ${items.length}`);
+      });
+    })();
+  </script>
 </BaseLayout>

@@ -48,6 +48,7 @@ const routeMap = {
     packages: 'paquetes',
     tours: 'tours',
     destinations: 'destinos',
+    regions: 'regiones',
     about: 'nosotros',
     contact: 'contacto',
   },
@@ -55,6 +56,7 @@ const routeMap = {
     packages: 'packages',
     tours: 'tours',
     destinations: 'destinations',
+    regions: 'regions',
     about: 'about',
     contact: 'contact',
   },
@@ -62,6 +64,7 @@ const routeMap = {
     packages: 'packages',
     tours: 'tours',
     destinations: 'destinations',
+    regions: 'regions',
     about: 'about',
     contact: 'contact',
   },
@@ -69,6 +72,7 @@ const routeMap = {
     packages: 'packages',
     tours: 'tours',
     destinations: 'destinations',
+    regions: 'regions',
     about: 'about',
     contact: 'contact',
   },
@@ -82,6 +86,9 @@ const normalizedToRouteKey: Record<string, keyof typeof routeMap.es> = {
 
   destinos: 'destinations',
   destinations: 'destinations',
+
+  regiones: 'regions',
+  regions: 'regions',
 
   nosotros: 'about',
   about: 'about',

@@ -3,6 +3,14 @@ import { supabaseAdminClient } from './admin-client';
 export const MEDIA_BUCKET = 'nuna-terra';
 export const MEDIA_FOLDER = 'media';
 
+// Límites de tamaño de archivo
+export const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
+export const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500 MB
+
+// Tipos de archivo permitidos
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+export const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
+
 export type MediaItem = {
   id: string;
   file_name: string;
@@ -48,8 +56,21 @@ export async function listMedia(search = ''): Promise<MediaItem[]> {
 }
 
 export async function uploadMedia(file: File): Promise<MediaItem> {
-  if (!file) throw new Error('Selecciona una imagen.');
-  if (!file.type.startsWith('image/')) throw new Error('Solo se permiten imágenes.');
+  if (!file) throw new Error('Selecciona una imagen o video.');
+  
+  const isImage = file.type.startsWith('image/');
+  const isVideo = file.type.startsWith('video/');
+  
+  if (!isImage && !isVideo) {
+    throw new Error('Solo se permiten imágenes (JPG, PNG, WebP, GIF) o videos (MP4, WebM).');
+  }
+  
+  // Validar tamaño máximo
+  const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+  if (file.size > maxSize) {
+    const maxMB = maxSize / (1024 * 1024);
+    throw new Error(`El archivo es muy grande. Máximo ${maxMB}MB.`);
+  }
 
   const safeName = sanitizeFileName(file.name);
   const filePath = `${MEDIA_FOLDER}/${Date.now()}-${safeName}`;

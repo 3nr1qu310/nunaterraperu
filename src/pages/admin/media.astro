@@ -7,9 +7,9 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
     <div class="media-page__top">
       <div>
         <p class="eyebrow">Biblioteca de medios</p>
-        <h1 class="h2">Administrar imágenes</h1>
+        <h1 class="h2">Administrar imágenes y videos</h1>
         <p class="lead">
-          Sube imágenes una sola vez y reutilízalas en destinos, paquetes, tours y secciones de la web.
+          Sube imágenes y videos una sola vez y reutilízalos en destinos, paquetes, tours y secciones de la web.
         </p>
       </div>
 
@@ -23,13 +23,13 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
 
     <section class="media-upload-panel">
       <div id="dropZone" class="drop-zone">
-        <input id="fileInput" type="file" accept="image/*" multiple hidden />
+        <input id="fileInput" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple hidden />
         <div class="drop-zone__content">
           <div class="drop-zone__icon">+</div>
-          <h3>Sube una o varias imágenes</h3>
-          <p>Arrastra archivos aquí o haz clic para seleccionar.</p>
+          <h3>Sube imágenes o videos</h3>
+          <p>Imágenes: máx 10MB | Videos: máx 500MB</p>
           <button type="button" class="btn btn--primary" id="uploadTrigger">
-            Seleccionar imágenes
+            Seleccionar archivos
           </button>
         </div>
       </div>
@@ -85,10 +85,10 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
             </div>
 
             <div class="admin-field">
-              <label>Reemplazar imagen</label>
-              <input id="replaceInput" type="file" accept="image/*" />
+              <label>Reemplazar archivo</label>
+              <input id="replaceInput" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" />
               <small class="admin-muted">
-                Sube una nueva imagen para reemplazar visualmente esta. La anterior se desactivará.
+                Sube un nuevo archivo para reemplazar visualmente este. El anterior se desactivará.
               </small>
             </div>
 
@@ -328,6 +328,36 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
       flex-wrap: wrap;
     }
 
+    .video-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .media-card.is-video {
+      position: relative;
+    }
+
+    .media-sidebar__preview video {
+      width: 100%;
+      display: block;
+      max-height: 260px;
+      background: #f6f2eb;
+      border-bottom: 1px solid rgba(90, 62, 43, .08);
+    }
+
     @media (max-width: 1080px) {
       .media-layout {
         grid-template-columns: 1fr;
@@ -422,20 +452,24 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
         return;
       }
 
-      mediaGallery.innerHTML = mediaItems.map((item) => `
+      mediaGallery.innerHTML = mediaItems.map((item) => {
+        const isVideo = item.mime_type?.startsWith('video/');
+        return `
         <button
           type="button"
-          class="media-card ${item.id === selectedMediaId ? 'is-active' : ''}"
+          class="media-card ${isVideo ? 'is-video' : ''} ${item.id === selectedMediaId ? 'is-active' : ''}"
           data-media-id="${item.id}"
-          title="${item.title || item.file_name || 'Imagen'}"
+          title="${item.title || item.file_name || 'Archivo'}"
         >
+          ${isVideo ? '<span class="video-badge">▶</span>' : ''}
           <img
             src="${item.public_url}"
-            alt="${item.alt_text || item.title || item.file_name || 'Imagen'}"
+            alt="${item.alt_text || item.title || item.file_name || 'Archivo'}"
             loading="lazy"
           />
         </button>
-      `).join('');
+      `;
+      }).join('');
 
       mediaGallery.querySelectorAll<HTMLButtonElement>('[data-media-id]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -455,12 +489,36 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
         return;
       }
 
+      const isVideo = selected.mime_type?.startsWith('video/');
+      
       mediaSidebarEmpty.hidden = true;
       mediaSidebarContent.hidden = false;
 
-      selectedPreview.src = selected.public_url;
-      selectedPreview.alt = selected.alt_text || selected.title || selected.file_name || 'Imagen';
-      selectedName.textContent = selected.title || 'Imagen sin título';
+      if (isVideo) {
+        selectedPreview.style.display = 'none';
+        // Crear o actualizar elemento de video
+        let videoEl = selectedPreview.nextElementSibling as HTMLVideoElement;
+        if (!videoEl || videoEl.tagName !== 'VIDEO') {
+          videoEl = document.createElement('video');
+          videoEl.controls = true;
+          videoEl.style.width = '100%';
+          videoEl.style.height = 'auto';
+          selectedPreview.parentNode.insertBefore(videoEl, selectedPreview.nextSibling);
+        }
+        videoEl.src = selected.public_url;
+        videoEl.style.display = 'block';
+      } else {
+        selectedPreview.style.display = 'block';
+        selectedPreview.src = selected.public_url;
+        selectedPreview.alt = selected.alt_text || selected.title || selected.file_name || 'Imagen';
+        // Ocultar video si existe
+        let videoEl = selectedPreview.nextElementSibling as HTMLVideoElement;
+        if (videoEl && videoEl.tagName === 'VIDEO') {
+          videoEl.style.display = 'none';
+        }
+      }
+      
+      selectedName.textContent = selected.title || 'Archivo sin título';
       selectedFileName.textContent = selected.file_name || '';
       metaTitle.value = selected.title || '';
       metaAlt.value = selected.alt_text || '';
@@ -470,10 +528,14 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
     }
 
     async function handleFiles(files: FileList | null) {
-      const validFiles = [...files].filter((file) => file.type.startsWith('image/'));
+      const validFiles = [...files].filter((file) => {
+        const isImage = file.type.startsWith('image/');
+        const isVideo = file.type.startsWith('video/');
+        return isImage || isVideo;
+      });
 
       if (!validFiles.length) {
-        notify('Selecciona imágenes válidas.', 'error');
+        notify('Selecciona imágenes o videos válidos.', 'error');
         return;
       }
 
@@ -547,7 +609,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
 
       const selected = getSelectedMedia();
       if (!selected) {
-        notify('Selecciona una imagen.', 'error');
+        notify('Selecciona un archivo.', 'error');
         return;
       }
 
@@ -558,13 +620,13 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
           caption: metaCaption.value || '',
         });
 
-        notify('Datos de imagen actualizados.', 'success');
+        notify('Datos del archivo actualizados.', 'success');
         await loadGallery(mediaSearch.value || '');
         selectedMediaId = selected.id;
         renderSidebar();
       } catch (error) {
         console.error(error);
-        notify(error.message || 'No se pudo actualizar la imagen.', 'error');
+        notify(error.message || 'No se pudo actualizar el archivo.', 'error');
       }
     });
 
@@ -583,17 +645,17 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
       const selected = getSelectedMedia();
       if (!selected) return;
 
-      const confirmDeactivate = window.confirm('¿Deseas desactivar esta imagen?');
+      const confirmDeactivate = window.confirm('¿Deseas desactivar este archivo?');
       if (!confirmDeactivate) return;
 
       try {
         await deactivateMedia(selected.id);
-        notify('Imagen desactivada.', 'success');
+        notify('Archivo desactivado.', 'success');
         selectedMediaId = null;
         await loadGallery(mediaSearch.value || '');
       } catch (error) {
         console.error(error);
-        notify(error.message || 'No se pudo desactivar la imagen.', 'error');
+        notify(error.message || 'No se pudo desactivar el archivo.', 'error');
       }
     });
 
@@ -604,7 +666,7 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
       if (!selected || !file) return;
 
       const confirmReplace = window.confirm(
-        'Se subirá una nueva imagen y la actual se desactivará. ¿Deseas continuar?'
+        'Se subirá un nuevo archivo y el actual se desactivará. ¿Deseas continuar?'
       );
 
       if (!confirmReplace) {
@@ -616,12 +678,12 @@ import AdminLayout from '@/components/admin/AdminLayout.astro';
         const newMedia = await uploadMedia(file);
         await deactivateMedia(selected.id);
 
-        notify('Imagen reemplazada correctamente.', 'success');
+        notify('Archivo reemplazado correctamente.', 'success');
         selectedMediaId = newMedia.id;
         await loadGallery(mediaSearch.value || '');
       } catch (error) {
         console.error(error);
-        notify(error.message || 'No se pudo reemplazar la imagen.', 'error');
+        notify(error.message || 'No se pudo reemplazar el archivo.', 'error');
       } finally {
         replaceInput.value = '';
       }

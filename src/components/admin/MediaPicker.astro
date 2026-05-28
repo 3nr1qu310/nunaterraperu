@@ -1,7 +1,7 @@
 ---
 const {
   fieldName,
-  label = 'Imagen',
+  label = 'Archivo',
   helperText = '',
   initialValue = '',
 } = Astro.props;
@@ -23,15 +23,14 @@ const pickerId = `media-picker-${fieldName}`;
     {initialValue ? (
       <img src={initialValue} alt={label} />
     ) : (
-      <span>Sin imagen seleccionada</span>
+      <span>Sin archivo seleccionado</span>
     )}
   </div>
 
   <div class="media-picker-actions">
     <button type="button" class="admin-link" data-open-media={fieldName}>
-      Seleccionar imagen
+      Seleccionar archivo
     </button>
-
     <button type="button" class="admin-link" data-clear-media={fieldName}>
       Quitar
     </button>
@@ -45,9 +44,8 @@ const pickerId = `media-picker-${fieldName}`;
     <div class="media-selector__header">
       <div>
         <h3>Seleccionar archivo</h3>
-        <p class="admin-muted">Elige un archivo de la biblioteca de medios.</p>
+        <p class="admin-muted">Elige una imagen o video de la biblioteca de medios.</p>
       </div>
-
       <button type="button" class="admin-link" data-close-media={fieldName}>
         Cerrar
       </button>
@@ -59,15 +57,20 @@ const pickerId = `media-picker-${fieldName}`;
         placeholder="Buscar por nombre, título o alt text..."
         data-media-search={fieldName}
       />
+      <div class="mf-filters" data-media-filters={fieldName}>
+        <button type="button" class="mf-btn is-active" data-filter-btn="all" data-filter-field={fieldName}>Todo</button>
+        <button type="button" class="mf-btn" data-filter-btn="image" data-filter-field={fieldName}>Imágenes</button>
+        <button type="button" class="mf-btn" data-filter-btn="video" data-filter-field={fieldName}>Videos</button>
+      </div>
     </div>
 
     <div class="media-selector__body">
       <div class="media-selector__grid" data-media-grid={fieldName}>
-        <p class="admin-muted">Cargando imágenes...</p>
+        <p class="admin-muted">Cargando archivos...</p>
       </div>
 
       <aside class="media-selector__side" data-media-side={fieldName}>
-        <p class="admin-muted">Selecciona una imagen para ver sus datos.</p>
+        <p class="admin-muted">Selecciona un archivo para ver sus datos.</p>
       </aside>
     </div>
   </div>
@@ -75,27 +78,24 @@ const pickerId = `media-picker-${fieldName}`;
 
 <style>
   .media-picker-preview {
-    min-height: 170px;
+    min-height: 140px;
     border: 1px dashed rgba(90, 62, 43, .25);
-    border-radius: 18px;
+    border-radius: 16px;
     background: rgba(247, 241, 231, .65);
     display: grid;
     place-items: center;
     overflow: hidden;
   }
-
   .media-picker-preview img {
     width: 100%;
-    height: 170px;
+    height: 140px;
     object-fit: cover;
     display: block;
   }
-
   .media-picker-preview span {
     color: rgba(37, 37, 37, .65);
     font-size: 14px;
   }
-
   .media-picker-actions {
     display: flex;
     gap: 12px;
@@ -103,6 +103,7 @@ const pickerId = `media-picker-${fieldName}`;
     flex-wrap: wrap;
   }
 
+  /* ── Dialog ─────────────────────────────── */
   .media-selector-dialog {
     width: min(1120px, calc(100vw - 28px));
     border: 0;
@@ -112,17 +113,14 @@ const pickerId = `media-picker-${fieldName}`;
     color: #252525;
     box-shadow: 0 30px 90px rgba(0,0,0,.28);
   }
-
   .media-selector-dialog::backdrop {
     background: rgba(37,37,37,.58);
     backdrop-filter: blur(3px);
   }
-
   .media-selector {
     display: grid;
-    max-height: min(760px, calc(100vh - 32px));
+    max-height: min(780px, calc(100vh - 32px));
   }
-
   .media-selector__header {
     display: flex;
     justify-content: space-between;
@@ -130,25 +128,56 @@ const pickerId = `media-picker-${fieldName}`;
     padding: 22px;
     border-bottom: 1px solid rgba(90, 62, 43, .12);
   }
+  .media-selector__header h3 { margin: 0; color: #5A3E2B; }
 
-  .media-selector__header h3 {
-    margin: 0;
-    color: #5A3E2B;
-  }
-
+  /* ── Toolbar ─────────────────────────────── */
   .media-selector__toolbar {
-    padding: 16px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 22px;
     border-bottom: 1px solid rgba(90, 62, 43, .08);
   }
-
   .media-selector__toolbar input {
-    width: 100%;
+    flex: 1;
+    min-width: 180px;
     border: 1px solid rgba(90, 62, 43, .16);
     border-radius: 999px;
-    padding: 12px 16px;
+    padding: 10px 16px;
     background: #fff;
+    font-size: .88rem;
   }
 
+  /* ── Filter tabs ─────────────────────────── */
+  .mf-filters {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .mf-btn {
+    border: 1px solid rgba(90,62,43,.18);
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(37,37,37,.65);
+    font-size: .76rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .mf-btn:hover {
+    background: rgba(90,62,43,.07);
+    color: #5A3E2B;
+  }
+  .mf-btn.is-active {
+    background: #5A3E2B;
+    color: #F7F1E7;
+    border-color: #5A3E2B;
+  }
+
+  /* ── Body ────────────────────────────────── */
   .media-selector__body {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
@@ -156,7 +185,6 @@ const pickerId = `media-picker-${fieldName}`;
     padding: 0 22px 22px;
     overflow: hidden;
   }
-
   .media-selector__grid {
     columns: 4 150px;
     column-gap: 12px;
@@ -165,6 +193,7 @@ const pickerId = `media-picker-${fieldName}`;
     padding-top: 18px;
   }
 
+  /* ── Cards ───────────────────────────────── */
   .media-selector-card {
     width: 100%;
     break-inside: avoid;
@@ -178,37 +207,46 @@ const pickerId = `media-picker-${fieldName}`;
     display: block;
     transition: .2s ease;
   }
+  .media-selector-card:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(37,37,37,.16); }
+  .media-selector-card.is-active { outline: 3px solid #D8B982; outline-offset: 3px; }
+  .media-selector-card img { width: 100%; height: auto; display: block; border-radius: 16px; background: #f2ece3; }
 
-  .media-selector-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgba(37,37,37,.16);
-  }
-
-  .media-selector-card.is-active {
-    outline: 3px solid #D8B982;
-    outline-offset: 3px;
-  }
-
-  .media-selector-card img {
+  /* Video card in grid */
+  .media-video-thumb {
     width: 100%;
-    height: auto;
-    display: block;
+    aspect-ratio: 16/10;
+    background: #252525;
     border-radius: 16px;
-    background: #f2ece3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    color: #F7F1E7;
+  }
+  .media-video-thumb svg { opacity: .75; flex-shrink: 0; }
+  .media-video-name {
+    font-size: .65rem;
+    color: rgba(247,241,231,.6);
+    text-align: center;
+    word-break: break-all;
+    line-height: 1.4;
+    max-width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
+  /* ── Side panel ──────────────────────────── */
   .media-selector__side {
     border-left: 1px solid rgba(90, 62, 43, .12);
     padding: 18px 0 0 18px;
     overflow: auto;
     max-height: 560px;
   }
-
-  .media-selector-detail {
-    display: grid;
-    gap: 14px;
-  }
-
+  .media-selector-detail { display: grid; gap: 14px; }
   .media-selector-detail img {
     width: 100%;
     max-height: 220px;
@@ -216,35 +254,21 @@ const pickerId = `media-picker-${fieldName}`;
     background: #f4efe7;
     border-radius: 16px;
   }
-
-  .media-selector-detail h4 {
-    margin: 0;
-    color: #5A3E2B;
+  .media-selector-detail video {
+    width: 100%;
+    max-height: 220px;
+    border-radius: 16px;
+    background: #252525;
+    object-fit: contain;
+    display: block;
   }
-
-  .media-selector-detail p {
-    margin: 0;
-    font-size: 13px;
-    color: rgba(37,37,37,.72);
-    overflow-wrap: anywhere;
-  }
-
-  .media-selector-detail__actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
+  .media-selector-detail h4 { margin: 0; color: #5A3E2B; }
+  .media-selector-detail p { margin: 0; font-size: 13px; color: rgba(37,37,37,.72); overflow-wrap: anywhere; }
+  .media-selector-detail__actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
   @media (max-width: 860px) {
-    .media-selector__body {
-      grid-template-columns: 1fr;
-    }
-
-    .media-selector__side {
-      border-left: 0;
-      border-top: 1px solid rgba(90, 62, 43, .12);
-      padding: 18px 0 0;
-    }
+    .media-selector__body { grid-template-columns: 1fr; }
+    .media-selector__side { border-left: 0; border-top: 1px solid rgba(90, 62, 43, .12); padding: 18px 0 0; }
   }
 </style>
 
@@ -254,49 +278,153 @@ const pickerId = `media-picker-${fieldName}`;
   if (!(window as any).__nunaMediaPickerInitialized) {
     (window as any).__nunaMediaPickerInitialized = true;
 
-    const state = new Map();
+    // ── Per-picker state ──────────────────────────────
+    const state = new Map<string, { items: any[]; selectedId: string; filter: string }>();
 
-    function getPickerParts(fieldName: string) {
+    function getParts(fieldName: string) {
       return {
-        input: document.querySelector(`[data-media-input="${fieldName}"]`),
+        input:   document.querySelector(`[data-media-input="${fieldName}"]`),
         preview: document.querySelector(`[data-media-preview="${fieldName}"]`),
-        dialog: document.querySelector(`[data-media-dialog="${fieldName}"]`),
-        grid: document.querySelector(`[data-media-grid="${fieldName}"]`),
-        side: document.querySelector(`[data-media-side="${fieldName}"]`),
-        search: document.querySelector(`[data-media-search="${fieldName}"]`),
+        dialog:  document.querySelector(`[data-media-dialog="${fieldName}"]`),
+        grid:    document.querySelector(`[data-media-grid="${fieldName}"]`),
+        side:    document.querySelector(`[data-media-side="${fieldName}"]`),
+        search:  document.querySelector(`[data-media-search="${fieldName}"]`),
       };
     }
 
     function isVideoUrl(url: string) {
-      return /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(url);
+      return /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(url || '');
     }
 
+    // ── Preview (compact view in form) ───────────────
     function setValue(fieldName: string, url: string) {
-      const { input, preview } = getPickerParts(fieldName);
+      const { input, preview } = getParts(fieldName);
       const finalUrl = url || '';
 
       if (!input || !preview) return;
 
       (input as HTMLInputElement).value = finalUrl;
       input.setAttribute('value', finalUrl);
-
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('input',  { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
 
       if (!finalUrl) {
-        preview.innerHTML = '<span>Sin archivo seleccionado</span>';
-      } else if (isVideoUrl(finalUrl)) {
+        (preview as HTMLElement).innerHTML = '<span>Sin archivo seleccionado</span>';
+        return;
+      }
+
+      if (isVideoUrl(finalUrl)) {
         const filename = decodeURIComponent(finalUrl.split('/').pop()?.split('?')[0] || finalUrl);
-        preview.innerHTML = `
+        (preview as HTMLElement).innerHTML = `
           <div style="display:grid;place-items:center;gap:8px;padding:18px;text-align:center;">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5A3E2B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             <span style="font-size:12px;color:#5A3E2B;word-break:break-all;max-width:200px;">${filename}</span>
           </div>`;
       } else {
-        preview.innerHTML = `<img src="${finalUrl}" alt="Imagen seleccionada" />`;
+        (preview as HTMLElement).innerHTML = `<img src="${finalUrl}" alt="Archivo seleccionado" />`;
       }
     }
 
+    // ── Filter items ──────────────────────────────────
+    function filterItems(items: any[], filter: string) {
+      if (filter === 'video') return items.filter((i) => isVideoUrl(i.public_url || ''));
+      if (filter === 'image') return items.filter((i) => !isVideoUrl(i.public_url || ''));
+      return items;
+    }
+
+    function updateFilterButtons(fieldName: string, filter: string) {
+      const dialog = document.querySelector(`[data-media-dialog="${fieldName}"]`);
+      dialog?.querySelectorAll<HTMLElement>('[data-filter-btn]').forEach((btn) => {
+        btn.classList.toggle('is-active', btn.dataset.filterBtn === filter);
+      });
+    }
+
+    // ── Grid ─────────────────────────────────────────
+    function renderGrid(fieldName: string, items: any[]) {
+      const { grid } = getParts(fieldName);
+      const selectedId = state.get(fieldName)?.selectedId || '';
+
+      if (!grid) return;
+
+      if (!items.length) {
+        (grid as HTMLElement).innerHTML = '<p class="admin-muted" style="padding-top:12px">No hay archivos en la biblioteca.</p>';
+        renderSide(fieldName, null);
+        return;
+      }
+
+      (grid as HTMLElement).innerHTML = items.map((item) => {
+        const isVid  = isVideoUrl(item.public_url || '');
+        const active = item.id === selectedId ? 'is-active' : '';
+        const fname  = decodeURIComponent(
+          (item.public_url || '').split('/').pop()?.split('?')[0] || item.file_name || 'video'
+        );
+
+        const inner = isVid
+          ? `<div class="media-video-thumb">
+               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+               <span class="media-video-name">${fname}</span>
+             </div>`
+          : `<img src="${item.public_url}" alt="${item.alt_text || item.title || item.file_name || 'Imagen'}" loading="lazy" />`;
+
+        return `<button type="button" class="media-selector-card ${active}" data-media-item="${item.id}">${inner}</button>`;
+      }).join('');
+
+      (grid as HTMLElement).querySelectorAll('[data-media-item]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const item = items.find((m) => m.id === (button as HTMLElement).dataset.mediaItem);
+          const s = state.get(fieldName) || { items: [], selectedId: '', filter: 'all' };
+          state.set(fieldName, { ...s, selectedId: item?.id || '' });
+          renderGrid(fieldName, filterItems(s.items, s.filter));
+          renderSide(fieldName, item);
+        });
+      });
+    }
+
+    // ── Side panel ────────────────────────────────────
+    function renderSide(fieldName: string, item: any) {
+      const { side } = getParts(fieldName);
+      if (!side) return;
+
+      if (!item) {
+        (side as HTMLElement).innerHTML = '<p class="admin-muted">Selecciona un archivo para ver sus datos.</p>';
+        return;
+      }
+
+      const isVid   = isVideoUrl(item.public_url || '');
+      const preview = isVid
+        ? `<video src="${item.public_url}" muted autoplay loop playsinline controls></video>`
+        : `<img src="${item.public_url}" alt="${item.alt_text || item.title || item.file_name || 'Imagen'}" />`;
+
+      const useLabel = isVid ? 'Usar video' : 'Usar imagen';
+
+      (side as HTMLElement).innerHTML = `
+        <div class="media-selector-detail">
+          ${preview}
+          <div>
+            <h4>${item.title || item.file_name || 'Archivo'}</h4>
+            <p>${item.file_name || ''}</p>
+          </div>
+          ${item.alt_text ? `<p><strong>Alt:</strong> ${item.alt_text}</p>` : ''}
+          ${item.caption  ? `<p><strong>Caption:</strong> ${item.caption}</p>` : ''}
+          <p><strong>URL:</strong><br>${item.public_url}</p>
+          <div class="media-selector-detail__actions">
+            <button type="button" class="btn btn--primary" data-use-media="${fieldName}">${useLabel}</button>
+            <button type="button" class="admin-link" data-copy-media-url="${fieldName}">Copiar URL</button>
+          </div>
+        </div>`;
+
+      (side as HTMLElement).querySelector(`[data-use-media="${fieldName}"]`)?.addEventListener('click', () => {
+        setValue(fieldName, item.public_url);
+        (getParts(fieldName).dialog as HTMLDialogElement | null)?.close();
+      });
+
+      (side as HTMLElement).querySelector(`[data-copy-media-url="${fieldName}"]`)?.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(item.public_url);
+        notify('URL copiada.', 'success');
+      });
+    }
+
+    // ── Fetch ─────────────────────────────────────────
     async function fetchMedia(search = '') {
       let query = adminSupabase
         .from('media')
@@ -304,175 +432,95 @@ const pickerId = `media-picker-${fieldName}`;
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      const cleanSearch = search.trim();
-
-      if (cleanSearch) {
+      const clean = search.trim();
+      if (clean) {
         query = query.or(
-          `title.ilike.%${cleanSearch}%,file_name.ilike.%${cleanSearch}%,alt_text.ilike.%${cleanSearch}%`
+          `title.ilike.%${clean}%,file_name.ilike.%${clean}%,alt_text.ilike.%${clean}%`
         );
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
-
       return data || [];
     }
 
-    function renderSide(fieldName: string, item: any) {
-      const { side } = getPickerParts(fieldName);
-
-      if (!side) return;
-
-      if (!item) {
-        side.innerHTML = '<p class="admin-muted">Selecciona una imagen para ver sus datos.</p>';
-        return;
-      }
-
-      side.innerHTML = `
-        <div class="media-selector-detail">
-          <img src="${item.public_url}" alt="${item.alt_text || item.title || item.file_name || 'Imagen'}" />
-
-          <div>
-            <h4>${item.title || item.file_name || 'Imagen'}</h4>
-            <p>${item.file_name || ''}</p>
-          </div>
-
-          ${item.alt_text ? `<p><strong>Alt:</strong> ${item.alt_text}</p>` : ''}
-          ${item.caption ? `<p><strong>Caption:</strong> ${item.caption}</p>` : ''}
-
-          <p><strong>URL:</strong><br>${item.public_url}</p>
-
-          <div class="media-selector-detail__actions">
-            <button type="button" class="btn btn--primary" data-use-media="${fieldName}">
-              Usar imagen
-            </button>
-            <button type="button" class="admin-link" data-copy-media-url="${fieldName}">
-              Copiar URL
-            </button>
-          </div>
-        </div>
-      `;
-
-      side.querySelector(`[data-use-media="${fieldName}"]`)?.addEventListener('click', () => {
-        setValue(fieldName, item.public_url);
-        (getPickerParts(fieldName) as any).dialog?.close();
-      });
-
-      side.querySelector(`[data-copy-media-url="${fieldName}"]`)?.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(item.public_url);
-        notify('URL copiada.', 'success');
-      });
-    }
-
-    function renderGrid(fieldName: string, items: any[]) {
-      const { grid } = getPickerParts(fieldName);
-      const selectedId = state.get(fieldName)?.selectedId || '';
-
-      if (!grid) return;
-
-      if (!items.length) {
-        grid.innerHTML = '<p class="admin-muted">No hay imágenes en la biblioteca.</p>';
-        renderSide(fieldName, null);
-        return;
-      }
-
-      grid.innerHTML = items.map((item) => `
-        <button
-          type="button"
-          class="media-selector-card ${item.id === selectedId ? 'is-active' : ''}"
-          data-media-item="${item.id}"
-        >
-          <img
-            src="${item.public_url}"
-            alt="${item.alt_text || item.title || item.file_name || 'Imagen'}"
-            loading="lazy"
-          />
-        </button>
-      `).join('');
-
-      grid.querySelectorAll('[data-media-item]').forEach((button) => {
-        button.addEventListener('click', () => {
-          const item = items.find((media) => media.id === (button as HTMLElement).dataset.mediaItem);
-
-          state.set(fieldName, {
-            items,
-            selectedId: item?.id || '',
-          });
-
-          renderGrid(fieldName, items);
-          renderSide(fieldName, item);
-        });
-      });
-    }
-
     async function loadPicker(fieldName: string, search = '') {
-      const { grid } = getPickerParts(fieldName);
-
+      const { grid } = getParts(fieldName);
       if (!grid) return;
 
-      grid.innerHTML = '<p class="admin-muted">Cargando imágenes...</p>';
+      (grid as HTMLElement).innerHTML = '<p class="admin-muted" style="padding-top:12px">Cargando archivos...</p>';
 
       try {
         const items = await fetchMedia(search);
-
-        state.set(fieldName, {
-          items,
-          selectedId: '',
-        });
-
-        renderGrid(fieldName, items);
+        const s = state.get(fieldName) || { items: [], selectedId: '', filter: 'all' };
+        state.set(fieldName, { items, selectedId: s.selectedId, filter: s.filter || 'all' });
+        renderGrid(fieldName, filterItems(items, s.filter || 'all'));
         renderSide(fieldName, null);
-      } catch (error) {
-        console.error(error);
-        grid.innerHTML = `<p class="admin-muted">${(error as any).message || 'No se pudieron cargar las imágenes.'}</p>`;
+      } catch (err) {
+        (grid as HTMLElement).innerHTML = `<p class="admin-muted">${(err as any).message || 'No se pudieron cargar los archivos.'}</p>`;
       }
     }
 
+    // ── Global click delegation ───────────────────────
     document.addEventListener('click', async (event) => {
-      const openBtn = (event.target as HTMLElement).closest('[data-open-media]') as HTMLElement | null;
-      const closeBtn = (event.target as HTMLElement).closest('[data-close-media]') as HTMLElement | null;
-      const clearBtn = (event.target as HTMLElement).closest('[data-clear-media]') as HTMLElement | null;
+      const t = event.target as HTMLElement;
+
+      const openBtn   = t.closest('[data-open-media]')   as HTMLElement | null;
+      const closeBtn  = t.closest('[data-close-media]')  as HTMLElement | null;
+      const clearBtn  = t.closest('[data-clear-media]')  as HTMLElement | null;
+      const filterBtn = t.closest('[data-filter-btn]')   as HTMLElement | null;
 
       if (openBtn) {
-        const fieldName = openBtn.dataset.openMedia as string;
-        const { dialog, search } = getPickerParts(fieldName);
-
+        const fn = openBtn.dataset.openMedia as string;
+        const { dialog, search } = getParts(fn);
         (dialog as HTMLDialogElement | null)?.showModal();
-
         if (search) (search as HTMLInputElement).value = '';
-
-        await loadPicker(fieldName);
+        // Ensure state has filter
+        if (!state.has(fn)) state.set(fn, { items: [], selectedId: '', filter: 'all' });
+        updateFilterButtons(fn, state.get(fn)!.filter);
+        await loadPicker(fn);
       }
 
       if (closeBtn) {
-        const fieldName = closeBtn.dataset.closeMedia as string;
-        (getPickerParts(fieldName).dialog as HTMLDialogElement | null)?.close();
+        const fn = closeBtn.dataset.closeMedia as string;
+        (getParts(fn).dialog as HTMLDialogElement | null)?.close();
       }
 
       if (clearBtn) {
-        const fieldName = clearBtn.dataset.clearMedia as string;
-        setValue(fieldName, '');
+        const fn = clearBtn.dataset.clearMedia as string;
+        setValue(fn, '');
+      }
+
+      if (filterBtn) {
+        const fn     = filterBtn.dataset.filterField as string;
+        const filter = filterBtn.dataset.filterBtn   as string;
+        if (!fn) return;
+
+        const s = state.get(fn) || { items: [], selectedId: '', filter: 'all' };
+        state.set(fn, { ...s, filter });
+        updateFilterButtons(fn, filter);
+        renderGrid(fn, filterItems(s.items, filter));
+        renderSide(fn, null);
       }
     });
 
+    // ── Search input ──────────────────────────────────
     document.addEventListener('input', (event) => {
       const search = (event.target as HTMLElement).closest('[data-media-search]') as HTMLElement | null;
       if (!search) return;
 
-      const fieldName = (search as any).dataset.mediaSearch as string;
-
+      const fn = (search as any).dataset.mediaSearch as string;
       clearTimeout((search as any).__timeout);
       (search as any).__timeout = setTimeout(() => {
-        loadPicker(fieldName, (search as HTMLInputElement).value || '');
+        loadPicker(fn, (search as HTMLInputElement).value || '');
       }, 250);
     });
 
+    // ── External update (e.g. load from DB) ──────────
     document.addEventListener('media-picker:update', (event) => {
       const fields = (event as CustomEvent).detail?.fields || {};
-
-      Object.entries(fields).forEach(([fieldName, value]) => {
-        setValue(fieldName, (value as string) || '');
+      Object.entries(fields).forEach(([fn, value]) => {
+        setValue(fn, (value as string) || '');
       });
     });
   }

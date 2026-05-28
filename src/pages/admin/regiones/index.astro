@@ -131,6 +131,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
     const rows = document.querySelector('#rows');
 
     let regions = [];
+    let slugEdited = false;
 
     function getFieldValue(name: string) {
       const field = form?.querySelector(`[name="${name}"]`) as HTMLInputElement | null;
@@ -183,6 +184,7 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
     }
 
     function setForm(region: Record<string, any> = {}) {
+      slugEdited = Boolean(region.id); // Al editar, el slug ya existe; al crear, se auto-genera
       setFieldValue('id', region.id || '');
       setFieldValue('name', region.name || '');
       setFieldValue('slug', region.slug || '');
@@ -289,8 +291,15 @@ import MediaPicker from '@/components/admin/MediaPicker.astro';
     }
 
     const formEls = form!.elements as any;
+
+    // Marca el slug como editado manualmente para dejar de auto-generarlo
+    formEls.slug.addEventListener('input', () => {
+      slugEdited = true;
+    });
+
+    // Mientras el usuario no haya tocado el slug, se auto-genera desde el nombre
     formEls.name.addEventListener('input', () => {
-      if (!formEls.slug.value) {
+      if (!slugEdited) {
         formEls.slug.value = slugify(formEls.name.value);
       }
     });

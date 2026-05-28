@@ -280,7 +280,7 @@
    FIX CRÍTICO: mismo fondo que el footer, no blanco roto
 ================================ */
 .footer-bottom {
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0);
   border-top: 1px solid rgba(216, 185, 130, 0.14);
   padding: 16px 20px;
   text-align: center;
@@ -294,7 +294,7 @@
 
 .footer-bottom p {
   margin: 0;
-  color: rgba(247, 241, 231, 0.46);
+  color: var(--color-ivory);
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -305,14 +305,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: rgba(247, 241, 231, 0.28);
+  color: var(--color-ivory);
   font-size: 0.64rem;
   font-weight: 500;
   letter-spacing: 0.08em;
 }
 
 .footer-legal a {
-  color: rgba(247, 241, 231, 0.36);
+  color: var(--color-ivory);
   text-decoration: none;
   transition: color 0.22s ease;
 }

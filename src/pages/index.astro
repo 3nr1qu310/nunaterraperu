@@ -10,17 +10,21 @@ import HomeTravelStyles from '@/components/home/HomeTravelStyles.astro';
 import HomeReviews from '@/components/home/HomeReviews.astro';
 import HomeReveal from '@/components/home/HomeReveal.astro';
 import { getRegions, getDestinations, getPackages, getTours, getTravelCategories } from '@/lib/content';
+import { getSiteSettings } from '@/lib/settings';
 import { site } from '@/lib/site';
 
 export const prerender = false;
 
-const [regions, destinations, packages, tours, travelCategories] = await Promise.all([
+const [regions, destinations, packages, tours, travelCategories, settings] = await Promise.all([
   getRegions(),
   getDestinations(),
   getPackages(),
   getTours(),
   getTravelCategories(),
+  getSiteSettings(['home_hero_video']),
 ]);
+
+const homeHeroVideo = settings['home_hero_video'] || '';
 
 
 const allProducts = [...packages, ...tours];
@@ -149,6 +153,7 @@ const copy = {
     copy={copy}
     heroImage="/images/home-hero.jpg"
     heroImages={heroImages}
+    heroVideo={homeHeroVideo}
   />
 
   <HomeValueProps props={copy.props} />

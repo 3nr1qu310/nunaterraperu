@@ -160,8 +160,11 @@ const translationLabels: Record<string, string> = {
         <div id="destinationsChecks" class="check-grid"></div>
       </div>
       <div class="admin-field">
-        <label>Categorías</label>
-        <div id="categoriesChecks" class="check-grid"></div>
+        <label>Estilos de viaje</label>
+        <p class="admin-muted" style="margin:-4px 0 0;font-size:.82rem">
+          Selecciona todos los que apliquen — estos definen cómo aparece el producto en los filtros del sitio.
+        </p>
+        <div id="categoriesChecks" class="cat-tags-grid"></div>
       </div>
 
       <hr />
@@ -359,6 +362,8 @@ const translationLabels: Record<string, string> = {
 
     let destinations: any[] = [];
     let categories: any[] = [];
+    // Si hay productId, ya existe slug guardado → no auto-generar
+    let slugEdited = Boolean(productId);
 
     if (productId) {
       (document.getElementById('pageTitle') as HTMLElement).textContent = 'Editar paquete o tour';
@@ -541,12 +546,41 @@ const translationLabels: Record<string, string> = {
 
     // ── selects & checks ─────────────────────────────────────────────────────
 
+    // Mapa de iconos Lucide → emoji para los estilos de viaje
+    const ICON_EMOJI: Record<string, string> = {
+      'mountain-snow':   '🏔️',
+      'zap':             '⚡',
+      'footprints':      '👣',
+      'landmark':        '🏛️',
+      'sparkles':        '✨',
+      'users':           '👨‍👩‍👧',
+      'camera':          '📷',
+      'sun':             '☀️',
+      'utensils':        '🍽️',
+      'castle':          '🏰',
+      'leaf':            '🌿',
+      'compass':         '🧭',
+      'map':             '🗺️',
+    };
+
     function renderChecks() {
       document.querySelector('#destinationsChecks')!.innerHTML = destinations
         .map((d) => `<label class="check-item"><input type="checkbox" name="destinations" value="${d.id}" />${d.name}</label>`)
         .join('');
+
+      // Estilos de viaje — pills visuales con emoji
       document.querySelector('#categoriesChecks')!.innerHTML = categories
-        .map((c) => `<label class="check-item"><input type="checkbox" name="categories" value="${c.id}" />${c.name}</label>`)
+        .map((c) => {
+          const emoji = ICON_EMOJI[c.icon] || '🏷️';
+          return `
+            <label class="cat-tag">
+              <input type="checkbox" name="categories" value="${c.id}" />
+              <span class="cat-tag__pill">
+                <span class="cat-tag__icon">${emoji}</span>
+                <span>${c.name}</span>
+              </span>
+            </label>`;
+        })
         .join('');
     }
 
@@ -660,6 +694,7 @@ const translationLabels: Record<string, string> = {
 
       setTranslationValues(product);
       setChildTranslationValues(product);
+      slugEdited = true; // El slug vino de BD, no se debe sobreescribir con auto-fill
     }
 
     // ── load ──────────────────────────────────────────────────────────────────
@@ -713,8 +748,15 @@ const translationLabels: Record<string, string> = {
     // ── slug auto-fill ────────────────────────────────────────────────────────
 
     const formEls = form!.elements as any;
+
+    // Si el usuario edita el slug manualmente, deja de auto-generarlo
+    formEls.slug?.addEventListener('input', () => {
+      slugEdited = true;
+    });
+
+    // Mientras no se haya tocado el slug, se sincroniza con el título
     formEls.title?.addEventListener('input', () => {
-      if (!productId && !formEls.slug.value) {
+      if (!slugEdited) {
         formEls.slug.value = slugify(formEls.title.value);
       }
     });

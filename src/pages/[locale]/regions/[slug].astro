@@ -11,21 +11,29 @@ import {
   getProductsByRegion,
 } from '@/lib/content';
 
-import './RegionDetail.scss';
+import { isLocale, type Locale } from '@/lib/i18n';
+import '../../regiones/RegionDetail.scss';
 
 export const prerender = false;
 
-const slug = Astro.params.slug || '';
+const localeParam = Astro.params.locale;
+const slug        = Astro.params.slug || '';
 
-const region = await getRegionBySlug(slug);
-
-const allRegions = await getRegions();
-
-if (!region) {
-  return Astro.redirect('/destinos');
+if (!isLocale(localeParam)) {
+  return Astro.redirect('/regiones');
 }
 
-const allDestinations = await getDestinations();
+const locale = localeParam as Locale;
+
+const region = await getRegionBySlug(slug, locale);
+
+if (!region) {
+  return Astro.redirect(`/${locale}/destinations`);
+}
+
+const allRegions = await getRegions(locale);
+
+const allDestinations = await getDestinations(locale);
 
 const regionDestinations = allDestinations
   .filter((destination) => destination.region === region.slug)
@@ -35,7 +43,7 @@ const mapDestinations = allDestinations.filter(
   (d) => d.region === region.slug
 );
 
-const regionProducts = await getProductsByRegion(region.slug);
+const regionProducts = await getProductsByRegion(region.slug, locale);
 
 const packages = regionProducts.filter((product) => product.type === 'package');
 const tours    = regionProducts.filter((product) => product.type === 'tour');
@@ -55,7 +63,99 @@ const storyImage =
   region.heroImage ||
   '/images/placeholders/destination-placeholder.jpg';
 
-const pageTitle       = region.seoTitle       || `${region.name} del Perú | Nuna Terra Perú`;
+/* ─── Copy by locale ─── */
+const copyByLocale = {
+  en: {
+    eyebrow:             'Destinations in Peru',
+    exploreDestinations: 'Explore destinations',
+    designTrip:          'Design my trip',
+    contactHref:         `/${locale}/contact`,
+    mapTitle:            `Locate the destinations of ${region.name}`,
+    mapSubtitle:         `Visually explore the main destinations of ${region.name.toLowerCase()} and discover what experiences you can live in each area.`,
+    destinationsEyebrow: 'Iconic places',
+    destinationsTitle:   `Main destinations of ${region.name}`,
+    featuredLabel:       'Featured destination',
+    seeDestination:      'See destination →',
+    packagesEyebrow:     'Related experiences',
+    packagesTitle:       `Packages to experience ${region.name}`,
+    packagesSubtitle:    'Routes designed to discover the territory with organization, time and purpose.',
+    toursTitle:          'Tours to explore in less time',
+    toursSubtitle:       'Short experiences to connect with essential places in this region.',
+    storyEyebrow:        'Culture and essence',
+    storyTitle:          'A region to experience Peru from another perspective',
+    storyBody:           `Beyond its landscapes, this region invites you to connect with the identity of Peru: its paths, its people, its flavors and its way of welcoming every traveler.`,
+    ctaTitle:            `Want to discover ${region.name.toLowerCase()} your way?`,
+    ctaSubtitle:         'We design a personalized route based on your days, interests and travel style.',
+    ctaPrimary:          'Start planning',
+    ctaSecondary:        'Talk to an advisor',
+    prevPackage:         'Previous package',
+    nextPackage:         'Next package',
+    prevTour:            'Previous tour',
+    nextTour:            'Next tour',
+  },
+
+  pt: {
+    eyebrow:             'Destinos do Peru',
+    exploreDestinations: 'Explorar destinos',
+    designTrip:          'Desenhar minha viagem',
+    contactHref:         `/${locale}/contact`,
+    mapTitle:            `Localize os destinos de ${region.name}`,
+    mapSubtitle:         `Explore visualmente os principais destinos da ${region.name.toLowerCase()} do Peru e descubra que experiências você pode viver em cada zona.`,
+    destinationsEyebrow: 'Lugares emblemáticos',
+    destinationsTitle:   `Principais destinos de ${region.name}`,
+    featuredLabel:       'Destino em destaque',
+    seeDestination:      'Ver destino →',
+    packagesEyebrow:     'Experiências relacionadas',
+    packagesTitle:       `Pacotes para viver ${region.name}`,
+    packagesSubtitle:    'Roteiros criados para descobrir o território com organização, tempo e propósito.',
+    toursTitle:          'Tours para explorar em menos tempo',
+    toursSubtitle:       'Experiências curtas para conectar com lugares essenciais desta região.',
+    storyEyebrow:        'Cultura e essência',
+    storyTitle:          'Uma região para vivenciar o Peru de outra perspectiva',
+    storyBody:           `Além das suas paisagens, esta região convida a conectar com a identidade do Peru: seus caminhos, sua gente, seus sabores e sua forma de receber cada viajante.`,
+    ctaTitle:            `Quer descobrir a ${region.name.toLowerCase()} do Peru à sua maneira?`,
+    ctaSubtitle:         'Criamos um roteiro personalizado de acordo com seus dias, interesses e forma de viajar.',
+    ctaPrimary:          'Começar a planejar',
+    ctaSecondary:        'Falar com um consultor',
+    prevPackage:         'Pacote anterior',
+    nextPackage:         'Próximo pacote',
+    prevTour:            'Tour anterior',
+    nextTour:            'Próximo tour',
+  },
+
+  fr: {
+    eyebrow:             'Destinations du Pérou',
+    exploreDestinations: 'Explorer les destinations',
+    designTrip:          'Créer mon voyage',
+    contactHref:         `/${locale}/contact`,
+    mapTitle:            `Localisez les destinations de ${region.name}`,
+    mapSubtitle:         `Explorez visuellement les principales destinations de la ${region.name.toLowerCase()} du Pérou et découvrez les expériences que vous pouvez vivre dans chaque zone.`,
+    destinationsEyebrow: 'Lieux emblématiques',
+    destinationsTitle:   `Destinations principales de ${region.name}`,
+    featuredLabel:       'Destination phare',
+    seeDestination:      'Voir la destination →',
+    packagesEyebrow:     'Expériences associées',
+    packagesTitle:       `Forfaits pour vivre ${region.name}`,
+    packagesSubtitle:    'Des itinéraires conçus pour découvrir le territoire avec organisation, temps et sens.',
+    toursTitle:          'Tours à explorer en moins de temps',
+    toursSubtitle:       "De courtes expériences pour se connecter avec les lieux essentiels de cette région.",
+    storyEyebrow:        'Culture et essence',
+    storyTitle:          'Une région pour vivre le Pérou sous un autre angle',
+    storyBody:           `Au-delà de ses paysages, cette région invite à se connecter avec l'identité du Pérou : ses chemins, ses habitants, ses saveurs et sa façon d'accueillir chaque voyageur.`,
+    ctaTitle:            `Vous souhaitez découvrir la ${region.name.toLowerCase()} du Pérou à votre façon ?`,
+    ctaSubtitle:         "Nous concevons un itinéraire personnalisé en fonction de vos jours, de vos centres d'intérêt et de votre style de voyage.",
+    ctaPrimary:          'Commencer à planifier',
+    ctaSecondary:        'Parler à un conseiller',
+    prevPackage:         'Forfait précédent',
+    nextPackage:         'Forfait suivant',
+    prevTour:            'Tour précédent',
+    nextTour:            'Tour suivant',
+  },
+};
+
+const copy = copyByLocale[locale];
+
+const pageTitle       = region.seoTitle       || `${region.name} | Nuna Terra Perú`;
 const pageDescription = region.seoDescription || region.description || region.headline;
 ---
 
@@ -74,30 +174,30 @@ const pageDescription = region.seoDescription || region.description || region.he
     <div class="region-hero__overlay"></div>
 
     <div class="container region-hero__content">
-      <p class="region-hero__eyebrow">Destinos del Perú</p>
+      <p class="region-hero__eyebrow">{copy.eyebrow}</p>
 
-      <h1>{region.name} del Perú</h1>
+      <h1>{region.name}</h1>
 
       <p>{region.headline || region.description}</p>
 
       <div class="region-hero__actions">
         <a href="#destinos" class="region-btn region-btn--primary">
-          Explorar destinos
+          {copy.exploreDestinations}
         </a>
 
-        <a href="/contacto" class="region-btn region-btn--ghost">
-          Diseñar mi viaje
+        <a href={copy.contactHref} class="region-btn region-btn--ghost">
+          {copy.designTrip}
         </a>
       </div>
     </div>
   </section>
 
-  <!-- QUOTE — uses region.description as large pull text -->
+  <!-- QUOTE -->
   <section class="region-quote" data-animate="fade-up">
     <div class="container region-quote__inner">
       <p>
         "{region.description ||
-          `La ${region.name.toLowerCase()} del Perú reúne paisajes, cultura y experiencias que revelan una forma profunda de vivir el país.`}"
+          `${region.name} brings together landscapes, culture and experiences that reveal a deep way of living the country.`}"
       </p>
     </div>
   </section>
@@ -109,8 +209,8 @@ const pageDescription = region.seoDescription || region.description || region.he
         destinations={mapDestinations}
         region={region.slug}
         allRegions={allRegions}
-        title={`Ubica los destinos de ${region.name}`}
-        subtitle={`Explora visualmente los principales destinos de la ${region.name.toLowerCase()} del Perú y descubre qué experiencias puedes vivir en cada zona.`}
+        title={copy.mapTitle}
+        subtitle={copy.mapSubtitle}
       />
     </div>
   </section>
@@ -119,8 +219,8 @@ const pageDescription = region.seoDescription || region.description || region.he
   <section class="region-section region-destinations" id="destinos">
     <div class="container">
       <SectionHeading
-        eyebrow="Lugares emblemáticos"
-        title={`Destinos principales de ${region.name}`}
+        eyebrow={copy.destinationsEyebrow}
+        title={copy.destinationsTitle}
         subtitle={region.description}
         align="left"
       />
@@ -129,7 +229,7 @@ const pageDescription = region.seoDescription || region.description || region.he
         <div class="region-destinations__layout" data-animate="fade-up">
           {featuredDestination && (
             <article class="region-destination-main">
-              <a href={`/destinos/${featuredDestination.slug}`}>
+              <a href={`/${locale}/destinations/${featuredDestination.slug}`}>
                 <img
                   src={featuredDestination.cardImage || featuredDestination.heroImage || '/images/placeholders/destination-placeholder.jpg'}
                   alt={featuredDestination.name}
@@ -137,14 +237,14 @@ const pageDescription = region.seoDescription || region.description || region.he
                 />
 
                 <div>
-                  <span>Destino destacado</span>
+                  <span>{copy.featuredLabel}</span>
                   <h3>{featuredDestination.name}</h3>
                   <p>
                     {featuredDestination.subtitle ||
                       featuredDestination.shortDescription ||
                       featuredDestination.description}
                   </p>
-                  <b>Ver destino →</b>
+                  <b>{copy.seeDestination}</b>
                 </div>
               </a>
             </article>
@@ -153,7 +253,7 @@ const pageDescription = region.seoDescription || region.description || region.he
           <div class="region-destination-list">
             {secondaryDestinations.map((destination) => (
               <article class="region-destination-mini">
-                <a href={`/destinos/${destination.slug}`}>
+                <a href={`/${locale}/destinations/${destination.slug}`}>
                   <img
                     src={destination.cardImage || destination.heroImage || '/images/placeholders/destination-placeholder.jpg'}
                     alt={destination.name}
@@ -163,7 +263,7 @@ const pageDescription = region.seoDescription || region.description || region.he
                   <div>
                     <h3>{destination.name}</h3>
                     <span>{destination.region}</span>
-                    <b>Ver destino →</b>
+                    <b>{copy.seeDestination}</b>
                   </div>
                 </a>
               </article>
@@ -179,9 +279,9 @@ const pageDescription = region.seoDescription || region.description || region.he
     <section class="region-section region-products" id="experiencias" data-animate="fade-up">
       <div class="container">
         <SectionHeading
-          eyebrow="Experiencias relacionadas"
-          title={`Paquetes para vivir ${region.name}`}
-          subtitle="Rutas diseñadas para descubrir el territorio con organización, tiempo y sentido."
+          eyebrow={copy.packagesEyebrow}
+          title={copy.packagesTitle}
+          subtitle={copy.packagesSubtitle}
           centered
         />
 
@@ -198,7 +298,7 @@ const pageDescription = region.seoDescription || region.description || region.he
             <button
               class="region-carousel__arrow"
               data-prev
-              aria-label="Paquete anterior"
+              aria-label={copy.prevPackage}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="15 18 9 12 15 6"/>
@@ -210,7 +310,7 @@ const pageDescription = region.seoDescription || region.description || region.he
             <button
               class="region-carousel__arrow"
               data-next
-              aria-label="Paquete siguiente"
+              aria-label={copy.nextPackage}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="9 18 15 12 9 6"/>
@@ -227,8 +327,8 @@ const pageDescription = region.seoDescription || region.description || region.he
     <section class="region-section region-tours" data-animate="fade-up">
       <div class="container">
         <SectionHeading
-          title="Tours para explorar en menos tiempo"
-          subtitle="Experiencias cortas para conectar con lugares esenciales de esta región."
+          title={copy.toursTitle}
+          subtitle={copy.toursSubtitle}
           align="left"
         />
 
@@ -245,7 +345,7 @@ const pageDescription = region.seoDescription || region.description || region.he
             <button
               class="region-carousel__arrow"
               data-prev
-              aria-label="Tour anterior"
+              aria-label={copy.prevTour}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="15 18 9 12 15 6"/>
@@ -257,7 +357,7 @@ const pageDescription = region.seoDescription || region.description || region.he
             <button
               class="region-carousel__arrow"
               data-next
-              aria-label="Tour siguiente"
+              aria-label={copy.nextTour}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="9 18 15 12 9 6"/>
@@ -269,7 +369,7 @@ const pageDescription = region.seoDescription || region.description || region.he
     </section>
   )}
 
-  <!-- STORY — uses region.description + headline -->
+  <!-- STORY -->
   <section class="region-story">
     <div class="container region-story__grid">
       <div class="region-story__image" data-animate="slide-left">
@@ -277,14 +377,12 @@ const pageDescription = region.seoDescription || region.description || region.he
       </div>
 
       <div class="region-story__content" data-animate="slide-right">
-        <p class="eyebrow">Cultura y esencia</p>
+        <p class="eyebrow">{copy.storyEyebrow}</p>
 
-        <h2>Una región para vivir el Perú desde otra perspectiva</h2>
+        <h2>{copy.storyTitle}</h2>
 
         <p>
-          {region.description ||
-            `Más allá de sus paisajes, esta región invita a conectar con la identidad del Perú:
-            sus caminos, su gente, sus sabores y su manera de recibir a cada viajero.`}
+          {region.description || copy.storyBody}
         </p>
 
         {region.headline && (
@@ -297,16 +395,16 @@ const pageDescription = region.seoDescription || region.description || region.he
   <!-- FINAL CTA -->
   <section class="region-final-cta" data-animate="fade-up">
     <div class="container region-final-cta__inner">
-      <h2>¿Quieres descubrir la {region.name.toLowerCase()} del Perú a tu manera?</h2>
-      <p>Diseñamos una ruta personalizada según tus días, intereses y forma de viajar.</p>
+      <h2>{copy.ctaTitle}</h2>
+      <p>{copy.ctaSubtitle}</p>
 
       <div>
-        <a href="/contacto" class="region-btn region-btn--primary">
-          Comenzar a planear
+        <a href={copy.contactHref} class="region-btn region-btn--primary">
+          {copy.ctaPrimary}
         </a>
 
-        <a href="/contacto" class="region-btn region-btn--ghost">
-          Hablar con un asesor
+        <a href={copy.contactHref} class="region-btn region-btn--ghost">
+          {copy.ctaSecondary}
         </a>
       </div>
     </div>
@@ -380,7 +478,6 @@ class Carousel {
   private setup(): void {
     const pv = this.perView();
 
-    /* If all slides fit, switch track to grid and hide controls */
     if (this.slides.length <= pv) {
       this.track.style.display = 'grid';
       this.track.style.gridTemplateColumns = `repeat(${this.slides.length}, 1fr)`;
@@ -405,7 +502,7 @@ class Carousel {
     for (let i = 0; i < total; i++) {
       const btn = document.createElement('button');
       btn.className = 'region-carousel__dot';
-      btn.setAttribute('aria-label', `Ir a elemento ${i + 1}`);
+      btn.setAttribute('aria-label', `${i + 1}`);
       btn.addEventListener('click', () => { this.go(i); this.resetTimer(); });
       this.dots.appendChild(btn);
     }
@@ -444,7 +541,6 @@ class Carousel {
     this.prevBtn?.addEventListener('click', () => { this.prev(); this.resetTimer(); });
     this.nextBtn?.addEventListener('click', () => { this.next(); this.resetTimer(); });
 
-    /* Pause on hover / focus */
     this.el.addEventListener('mouseenter', () => this.stopTimer());
     this.el.addEventListener('mouseleave', () => this.startTimer());
     this.el.addEventListener('focusin',    () => this.stopTimer());
@@ -452,7 +548,6 @@ class Carousel {
       if (!this.el.contains(document.activeElement)) this.startTimer();
     });
 
-    /* Touch swipe */
     let startX = 0;
     this.track.addEventListener('touchstart', (e) => {
       startX = e.touches[0].clientX;

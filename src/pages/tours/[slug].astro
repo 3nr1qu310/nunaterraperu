@@ -4,6 +4,7 @@ import ProductCard from '@/components/cards/ProductCard.astro';
 import LucideIcon from '@/components/cards/LucideIcon.astro';
 import { getTours, getProductBySlug, getRelatedProducts, getTravelCategories, getProductPromotions } from '@/lib/content';
 import { site } from '@/lib/site';
+import { buildWaUrl, tourMessage } from '@/lib/whatsapp';
 import './TourDetail.scss';
 
 export const prerender = false;
@@ -21,6 +22,10 @@ const [related, allCategories, promotions] = await Promise.all([
 const productCategories = allCategories.filter(
   (cat) => product.categorySlugs?.includes(cat.slug)
 );
+
+const waMsg = tourMessage(product);
+const waUrl1 = buildWaUrl('51963797348', waMsg);
+const waUrl2 = buildWaUrl('51910757386', waMsg);
 ---
 
 <BaseLayout
@@ -57,7 +62,7 @@ const productCategories = allCategories.filter(
           Solicitar cotización
         </a>
         <a
-          href={site.whatsappUrl}
+          href={waUrl1}
           class="pkg-hero__btn pkg-hero__btn--ghost"
           target="_blank"
           rel="noopener noreferrer"
@@ -68,39 +73,53 @@ const productCategories = allCategories.filter(
     </div>
   </section>
 
-  <!-- SUMMARY STRIP -->
-  <div class="pkg-summary" aria-label="Resumen del tour">
-    <div class="container pkg-summary__inner">
-      {product.durationText && (
-        <div class="pkg-summary__item">
-          <span>Duración</span>
-          <strong>{product.durationText}</strong>
+  <!-- META CARD — flota entre hero y contenido -->
+  <div class="pkg-meta-wrap" aria-label="Detalles del tour">
+    <div class="container">
+      <div class="pkg-hero__meta">
+        {product.durationText && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="clock" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">Duración</span>
+            <strong class="pkg-meta-item__val">{product.durationText}</strong>
+          </div>
+        )}
+        {product.destinations?.length > 0 && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="map-pin" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">Destinos</span>
+            <strong class="pkg-meta-item__val">{product.destinations.join(', ')}</strong>
+          </div>
+        )}
+        {product.categories?.length > 0 && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="gem" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">Tipo</span>
+            <strong class="pkg-meta-item__val">{product.categories[0]}</strong>
+          </div>
+        )}
+        {product.serviceType && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="headphones" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">Servicio</span>
+            <strong class="pkg-meta-item__val">{product.serviceType}</strong>
+          </div>
+        )}
+        {product.difficulty && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="activity" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">Dificultad</span>
+            <strong class="pkg-meta-item__val">{product.difficulty}</strong>
+          </div>
+        )}
+        <div class="pkg-meta-item">
+          <LucideIcon name="globe" size={15} class="pkg-meta-item__icon" />
+          <span class="pkg-meta-item__label">Región</span>
+          <strong class="pkg-meta-item__val">
+            {product.region === 'sierra' ? 'Sierra' : product.region === 'costa' ? 'Costa' : 'Selva'}
+          </strong>
         </div>
-      )}
-      {product.destinations?.length > 0 && (
-        <div class="pkg-summary__item">
-          <span>Destinos</span>
-          <strong>{product.destinations.join(' · ')}</strong>
-        </div>
-      )}
-      {product.serviceType && (
-        <div class="pkg-summary__item">
-          <span>Servicio</span>
-          <strong>{product.serviceType}</strong>
-        </div>
-      )}
-      {product.difficulty && (
-        <div class="pkg-summary__item">
-          <span>Dificultad</span>
-          <strong>{product.difficulty}</strong>
-        </div>
-      )}
-      {product.categories?.length > 0 && (
-        <div class="pkg-summary__item">
-          <span>Estilo</span>
-          <strong>{product.categories[0]}</strong>
-        </div>
-      )}
+      </div>
     </div>
   </div>
 
@@ -406,12 +425,22 @@ const productCategories = allCategories.filter(
               Solicitar cotización
             </a>
             <a
-              href={site.whatsappUrl}
+              href={waUrl1}
               class="pkg-quote__btn pkg-quote__btn--wa"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Hablar por WhatsApp
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.541 5.875L.057 23.428a.5.5 0 0 0 .61.61l5.553-1.484A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.872 9.872 0 0 1-5.031-1.378l-.36-.214-3.733.998 1.011-3.695-.235-.38A9.836 9.836 0 0 1 2.118 12C2.118 6.533 6.533 2.118 12 2.118S21.882 6.533 21.882 12 17.467 21.882 12 21.882z"/></svg>
+              WhatsApp · 963 797 348
+            </a>
+            <a
+              href={waUrl2}
+              class="pkg-quote__btn pkg-quote__btn--wa"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.541 5.875L.057 23.428a.5.5 0 0 0 .61.61l5.553-1.484A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.872 9.872 0 0 1-5.031-1.378l-.36-.214-3.733.998 1.011-3.695-.235-.38A9.836 9.836 0 0 1 2.118 12C2.118 6.533 6.533 2.118 12 2.118S21.882 6.533 21.882 12 17.467 21.882 12 21.882z"/></svg>
+              WhatsApp · 910 757 386
             </a>
           </div>
 
@@ -430,15 +459,106 @@ const productCategories = allCategories.filter(
     <section class="pkg-related" aria-label="Tours relacionados">
       <div class="container">
         <div class="pkg-related__head">
-          <h2 class="pkg-related__title">También podrías vivir estas experiencias</h2>
+          <span class="pkg-related__eyebrow">También podrías vivir</span>
+          <h2 class="pkg-related__title">Experiencias compatibles</h2>
+          <p class="pkg-related__subtitle">Descubre otros tours que pueden complementar tu viaje y brindarte más aventuras increíbles.</p>
         </div>
-        <div class="pkg-related__grid">
-          {related.map((item) => (
-            <ProductCard product={item} />
-          ))}
+        
+        <div class="pkg-related__carousel" data-carousel="related">
+          <button class="pkg-related-nav pkg-related-nav--prev" aria-label="Tour anterior" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+          <div class="pkg-related__grid">
+            {related.map((item) => (
+              <div class="pkg-related__item">
+                <ProductCard product={item} />
+              </div>
+            ))}
+          </div>
+          <button class="pkg-related-nav pkg-related-nav--next" aria-label="Siguiente tour" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+          <div class="pkg-related-footer" aria-hidden="true">
+            <div class="pkg-related-track">
+              <div class="pkg-related-fill"></div>
+            </div>
+            <span class="pkg-related-count"></span>
+          </div>
         </div>
       </div>
     </section>
   )}
+
+  <script is:inline>
+    (() => {
+      document.querySelectorAll('[data-carousel="related"]').forEach((carousel) => {
+        const track = carousel.querySelector('.pkg-related__grid');
+        const prevBtn = carousel.querySelector('.pkg-related-nav--prev');
+        const nextBtn = carousel.querySelector('.pkg-related-nav--next');
+        const fill = carousel.querySelector('.pkg-related-fill');
+        const countEl = carousel.querySelector('.pkg-related-count');
+        const items = carousel.querySelectorAll('.pkg-related__item');
+
+        if (!track || !items.length) return;
+
+        const getItemWidth = () => {
+          const item = items[0];
+          if (!item) return 300;
+          const gap = parseInt(getComputedStyle(track).gap) || 22;
+          return item.offsetWidth + gap;
+        };
+
+        const update = () => {
+          const maxScroll = track.scrollWidth - track.clientWidth;
+          if (prevBtn) prevBtn.disabled = track.scrollLeft < 4;
+          if (nextBtn) nextBtn.disabled = track.scrollLeft >= maxScroll - 4;
+          if (fill) {
+            const pct = maxScroll <= 0 ? 100 : (track.scrollLeft / maxScroll) * 100;
+            fill.style.width = `${Math.max(8, Math.min(100, pct))}%`;
+          }
+          if (countEl) {
+            const w = getItemWidth();
+            const idx = w > 0 ? Math.round(track.scrollLeft / w) + 1 : 1;
+            countEl.textContent = `${Math.min(idx, items.length)} / ${items.length}`;
+          }
+        };
+
+        const checkScrollable = () => {
+          const scrollable = track.scrollWidth > track.clientWidth + 8;
+          carousel.toggleAttribute('data-scrollable', scrollable);
+          update();
+        };
+
+        prevBtn?.addEventListener('click', () => track.scrollBy({ left: -getItemWidth(), behavior: 'smooth' }));
+        nextBtn?.addEventListener('click', () => track.scrollBy({ left: getItemWidth(), behavior: 'smooth' }));
+        track.addEventListener('scroll', update, { passive: true });
+
+        let isDragging = false, startX = 0, startScroll = 0;
+        track.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startX = e.pageX - track.offsetLeft;
+          startScroll = track.scrollLeft;
+          track.classList.add('is-dragging');
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          track.scrollLeft = startScroll - (e.pageX - track.offsetLeft - startX);
+        });
+        window.addEventListener('mouseup', () => {
+          isDragging = false;
+          track.classList.remove('is-dragging');
+        });
+
+        checkScrollable();
+        if ('ResizeObserver' in window) new ResizeObserver(checkScrollable).observe(track);
+        countEl && (countEl.textContent = `1 / ${items.length}`);
+      });
+    })();
+  </script>
 
 </BaseLayout>

@@ -70,7 +70,19 @@ $selva: #5f9270;
   font-size: 0.74rem;
   font-weight: 900;
   letter-spacing: 0.02em;
+  text-decoration: none;
+  cursor: pointer;
   box-shadow: 0 10px 22px rgba(37, 37, 37, 0.04);
+  transition:
+    opacity 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover:not(.is-active) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(37, 37, 37, 0.10);
+    opacity: 1 !important;
+  }
 
   &::before {
     content: '';
@@ -541,6 +553,184 @@ $selva: #5f9270;
 }
 
 /* ─────────────────────────────────────────────
+   Navegación a otras regiones
+   ───────────────────────────────────────────── */
+
+.peru-map-section__other-regions {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(90, 62, 43, 0.10);
+}
+
+.peru-map-section__other-label {
+  margin: 0 0 10px;
+  color: rgba(37, 37, 37, 0.42);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.peru-map-section__region-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.region-nav-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  border-radius: 14px;
+  border: 1px solid rgba(90, 62, 43, 0.10);
+  background: rgba(255, 255, 255, 0.52);
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.22s $ease-soft;
+
+  &:hover:not(.is-current) {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(90, 62, 43, 0.20);
+    transform: translateX(4px);
+  }
+}
+
+.region-nav-card__img-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #e8dfc8;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.28s ease;
+  }
+}
+
+.region-nav-card:hover .region-nav-card__img-wrap img {
+  transform: scale(1.08);
+}
+
+.region-nav-card__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.region-nav-card__name {
+  display: block;
+  color: var(--color-earth);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.region-nav-card__headline {
+  display: block;
+  color: rgba(37, 37, 37, 0.52);
+  font-size: 0.66rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.region-nav-card__arrow {
+  flex-shrink: 0;
+  color: rgba(90, 62, 43, 0.38);
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.region-nav-card:hover .region-nav-card__arrow {
+  transform: translateX(3px);
+  color: var(--color-earth);
+}
+
+/* Región actual */
+
+.region-nav-card.is-current {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(90, 62, 43, 0.22);
+  cursor: default;
+  pointer-events: none;
+
+  .region-nav-card__name {
+    font-weight: 900;
+  }
+
+  .region-nav-card__arrow {
+    opacity: 0;
+  }
+}
+
+.region-nav-card.is-current::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-earth);
+}
+
+
+/* Color accent por región */
+
+.region-nav-card--costa {
+  &:hover:not(.is-current) {
+    border-color: rgba(214, 168, 51, 0.3);
+    background: rgba(214, 168, 51, 0.06);
+  }
+
+  &.is-current {
+    border-left-color: rgba(214, 168, 51, 0.5);
+
+    &::after { background: #c9963a; }
+  }
+}
+
+.region-nav-card--sierra {
+  &:hover:not(.is-current) {
+    border-color: rgba(154, 95, 44, 0.28);
+    background: rgba(154, 95, 44, 0.05);
+  }
+
+  &.is-current {
+    border-left-color: rgba(154, 95, 44, 0.4);
+
+    &::after { background: #9a5f2c; }
+  }
+}
+
+.region-nav-card--selva {
+  &:hover:not(.is-current) {
+    border-color: rgba(95, 146, 112, 0.32);
+    background: rgba(95, 146, 112, 0.06);
+  }
+
+  &.is-current {
+    border-left-color: rgba(95, 146, 112, 0.4);
+
+    &::after { background: #5f9270; }
+  }
+}
+
+/* ─────────────────────────────────────────────
    Reduce motion
    ───────────────────────────────────────────── */
 
@@ -552,7 +742,11 @@ $selva: #5f9270;
   .peru-map__pin,
   .peru-map__pin-dot,
   .peru-map__pin-card,
-  .peru-map__pin-photo {
+  .peru-map__pin-photo,
+  .legend-pill,
+  .region-nav-card,
+  .region-nav-card__img-wrap img,
+  .region-nav-card__arrow {
     transition: none;
   }
 }
