@@ -9,7 +9,11 @@ export default defineConfig({
 
   adapter: cloudflare(),
 
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      filter: (page) => !page.includes('/admin/'),
+    }),
+  ],
 
   vite: {
     resolve: {
