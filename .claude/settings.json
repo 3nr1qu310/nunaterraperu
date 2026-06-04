@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const fs = require\\('fs'\\); const p = 'src/pages/[locale]/regions/[slug].astro'; const c = fs.readFileSync\\(p, 'utf8'\\); const importLine = c.match\\(/import.*RegionDetail/\\); console.log\\(importLine?.[0]\\); const exists = fs.existsSync\\('src/pages/regiones/RegionDetail.scss'\\); console.log\\('SCSS exists:', exists\\);\")",
+      "PowerShell(cd \"c:\\\\Users\\\\ebell\\\\Documents\\\\nuna terra peru\\\\nuna-terra-astro\"; Get-ChildItem \"dist\" -Recurse | Where-Object { $_.Extension -eq \".css\" } | Select-Object FullName, Length | Sort-Object Length -Descending | Select-Object -First 10)",
+      "PowerShell(cd \"c:\\\\Users\\\\ebell\\\\Documents\\\\nuna terra peru\\\\nuna-terra-astro\"; Get-ChildItem \"dist\" -Recurse | Select-Object -First 30 | ForEach-Object { $_.FullName })"
+    ]
+  }
+}

@@ -11,7 +11,7 @@
     "@astrojs/check": "latest",
     "@astrojs/cloudflare": "13.5.4",
     "@astrojs/node": "latest",
-    "@astrojs/sitemap": "latest",
+    "@astrojs/sitemap": "^3.7.3",
     "@inlang/paraglide-js": "^2.18.0",
     "@supabase/supabase-js": "latest",
     "astro": "latest",
