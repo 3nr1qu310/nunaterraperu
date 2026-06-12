@@ -7,10 +7,10 @@ export const site = {
   email: 'info@nunaterraperu.com',
   location: 'Cusco, Perú',
   socials: {
-    instagram: '#',
+    instagram: 'https://www.instagram.com/nunaterraperu/',
     facebook: 'https://www.facebook.com/nunaterraperu/',
-    tiktok: '#',
-    tripadvisor: '#',
-    googleMaps: '#',
+    tiktok: 'https://www.tiktok.com/@nunaterraperu',
+    tripadvisor: 'https://www.tripadvisor.com/Attractions-g303447-Activities-c46-c12-s12-nuna_terra_peru.html',
+    googleMaps: 'https://maps.google.com/?q=Nuna+Terra+Perú',
   }
 };
