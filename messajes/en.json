@@ -12,5 +12,10 @@
   "from_price": "From",
   "duration": "Duration",
   "includes": "Includes",
-  "not_includes": "Does not include"
+  "not_includes": "Does not include",
+  "promotions_active_offer": "Active offer",
+  "promotions_valid_until": "Valid until",
+  "promotions_cta": "Claim this offer",
+  "promotions_per_person": "per person",
+  "promotions_consult": "Price on request"
 }

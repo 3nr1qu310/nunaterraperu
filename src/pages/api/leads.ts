@@ -110,7 +110,7 @@ function autoReplyHtml(name: string): string {
       <p style="margin:0 0 6px;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5A3E2B">¿Necesitas respuesta urgente?</p>
       <p style="margin:0;font-size:.9rem;color:rgba(37,37,37,.75)">
         Escríbenos por WhatsApp:
-        <a href="https://wa.me/51963797348" style="color:#2F5D50;font-weight:600;text-decoration:none">+51 963 797 348</a>
+        <a href="https://wa.me/51978388196" style="color:#2F5D50;font-weight:600;text-decoration:none">+51 978 388 196</a>
       </p>
     </div>
     <p style="margin:0;font-size:.85rem;color:rgba(37,37,37,.5)">— El equipo de Nuna Terra Perú</p>

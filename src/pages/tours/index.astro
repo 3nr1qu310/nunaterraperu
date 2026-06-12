@@ -2,20 +2,36 @@
 import BaseLayout from '@/components/layout/BaseLayout.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
 import LucideIcon from '@/components/cards/LucideIcon.astro';
-import { getTours, getTravelCategories } from '@/lib/content';
+import { getTours, getTravelCategories, getRegions } from '@/lib/content';
 import { getSiteSettings } from '@/lib/settings';
 import { site } from '@/lib/site';
 import './TourIndex.scss';
 
 export const prerender = false;
 
-const [tours, allCategories, settings] = await Promise.all([
+const [tours, allCategories, settings, dbRegions] = await Promise.all([
   getTours(),
   getTravelCategories(),
   getSiteSettings(['tours_hero_video']),
+  getRegions(),
 ]);
 
 const toursHeroVideo = settings['tours_hero_video'] || '';
+
+/* ── Hero con imágenes reales de los tours ── */
+const featuredHeroTour = tours.find((t) => t.featured) || tours[0] || null;
+
+const heroImage =
+  featuredHeroTour?.heroImage ||
+  featuredHeroTour?.cardImage ||
+  '/images/tours-hero.jpg';
+
+const customCtaImage = tours[1]?.heroImage || heroImage;
+
+const regionImage = (slug: string, fallback: string) => {
+  const region = dbRegions.find((r) => r.slug === slug);
+  return region?.cardImage || region?.heroImage || fallback;
+};
 
 const activeCategorySlugs = new Set(tours.flatMap((t) => t.categorySlugs || []));
 const activeCategories = allCategories.filter((cat) =>
@@ -38,7 +54,7 @@ const regions = [
     name: 'Sierra',
     tagline: 'Andes y altura',
     description: 'Cusco, el Valle Sagrado, Machu Picchu y el Lago Titicaca. Cultura inca viva, rutas milenarias y paisajes a más de 3 000 metros sobre el mar.',
-    image: 'https://picsum.photos/seed/andesperu2024/700/950',
+    image: regionImage('sierra', 'https://picsum.photos/seed/andesperu2024/700/950'),
     toursCount: tours.filter((t) => t.region === 'sierra').length,
   },
   {
@@ -46,7 +62,7 @@ const regions = [
     name: 'Costa',
     tagline: 'Litoral y misterio',
     description: 'Lima y su gastronomía de clase mundial, las enigmáticas líneas de Nazca, las pirámides de Caral y civilizaciones que precedieron a los incas.',
-    image: 'https://picsum.photos/seed/costaperu2024/700/950',
+    image: regionImage('costa', 'https://picsum.photos/seed/costaperu2024/700/950'),
     toursCount: tours.filter((t) => t.region === 'costa').length,
   },
   {
@@ -54,7 +70,7 @@ const regions = [
     name: 'Selva',
     tagline: 'Amazonía viva',
     description: 'Iquitos, el río Amazonas y el ecosistema más biodiverso del planeta. Una aventura verde e infinita que desafía todos los sentidos.',
-    image: 'https://picsum.photos/seed/amazoniaperu2024/700/950',
+    image: regionImage('selva', 'https://picsum.photos/seed/amazoniaperu2024/700/950'),
     toursCount: tours.filter((t) => t.region === 'selva').length,
   },
 ];
@@ -126,20 +142,21 @@ const trustItems = [
     {toursHeroVideo ? (
       <video
         class="tri-hero__bg"
-        src={toursHeroVideo}
-        autoplay
+        data-deferred-video={toursHeroVideo}
+        preload="none"
         muted
         loop
         playsinline
-        poster="/images/tours-hero.jpg"
+        poster={heroImage}
       />
     ) : (
       <img
         class="tri-hero__bg"
-        src="/images/tours-hero.jpg"
-        alt="Viajeros en una ruta de montaña en el Perú"
+        src={heroImage}
+        alt={featuredHeroTour?.title || 'Tours y experiencias en Perú'}
         loading="eager"
         fetchpriority="high"
+        decoding="async"
       />
     )}
     <div class="tri-hero__overlay" aria-hidden="true"></div>
@@ -334,39 +351,33 @@ const trustItems = [
             <div class="container">
               <div class="tcat-layout">
 
-                <!-- LEFT — sticky category intro -->
-                <div class="tcat-intro" data-section-index={gi}>
-                  <span class="tcat-seq" aria-hidden="true">
-                    {String(gi + 1).padStart(2, '0')}
-                  </span>
-
-                  <p class="tcat-intro__eyebrow">Estilo de viaje</p>
-
-                  <div class="tcat-icon-wrap" aria-hidden="true">
-                    <LucideIcon
-                      name={group.icon || 'compass'}
-                      size={22}
-                      class="tcat-icon"
-                    />
+                <!-- TOP — category header -->
+                <div class="tcat-header" data-section-index={gi}>
+                  <div class="tcat-header__meta">
+                    <p class="tcat-intro__eyebrow">Estilo de viaje</p>
+                    <div class="tcat-header__name-row">
+                      <div class="tcat-icon-wrap" aria-hidden="true">
+                        <LucideIcon
+                          name={group.icon || 'compass'}
+                          size={22}
+                          class="tcat-icon"
+                        />
+                      </div>
+                      <h3 class="tcat-name" id={`tcat-title-${group.slug}`}>
+                        {group.name}
+                      </h3>
+                    </div>
+                    {group.description && (
+                      <p class="tcat-desc">{group.description}</p>
+                    )}
                   </div>
-
-                  <div class="tcat-divider" aria-hidden="true"></div>
-
-                  <h3 class="tcat-name" id={`tcat-title-${group.slug}`}>
-                    {group.name}
-                  </h3>
-
-                  {group.description && (
-                    <p class="tcat-desc">{group.description}</p>
-                  )}
-
                   <div class="tcat-count">
                     <strong class="tcat-count__num">{group.tours.length}</strong>
                     <span>{group.tours.length === 1 ? 'tour' : 'tours'} disponibles</span>
                   </div>
                 </div>
 
-                <!-- RIGHT — tours carousel -->
+                <!-- BOTTOM — tours carousel -->
                 <div class="tcat-carousel-outer" data-carousel-id={group.slug}>
                   <button
                     class="tcat-nav tcat-nav--prev"
@@ -496,9 +507,10 @@ const trustItems = [
   <section class="tri-custom" aria-labelledby="tri-custom-title">
     <div class="tri-custom__bg" aria-hidden="true">
       <img
-        src="https://picsum.photos/seed/perucustom2024/1600/800"
+        src={customCtaImage}
         alt=""
         loading="lazy"
+        decoding="async"
       />
     </div>
     <div class="tri-custom__overlay" aria-hidden="true"></div>
@@ -567,7 +579,7 @@ const trustItems = [
           },
           { threshold: 0.12 }
         );
-        document.querySelectorAll('.tcat-intro').forEach((el) =>
+        document.querySelectorAll('.tcat-header').forEach((el) =>
           introObserver.observe(el)
         );
 
@@ -587,7 +599,7 @@ const trustItems = [
         );
       } else {
         document.querySelectorAll('.reveal-item').forEach((el) => el.classList.add('is-visible'));
-        document.querySelectorAll('.tcat-intro').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-header').forEach((el) => el.classList.add('is-visible'));
         document.querySelectorAll('.tcat-card-wrap').forEach((card) => card.classList.add('is-card-visible'));
       }
 
@@ -692,6 +704,23 @@ const trustItems = [
           new ResizeObserver(checkScrollable).observe(track);
         }
         countEl && (countEl.textContent = `1 / ${cards.length}`);
+
+        let autoTimer = null;
+        const autoAdvance = () => {
+          const maxScroll = track.scrollWidth - track.clientWidth;
+          if (maxScroll <= 0) return;
+          if (track.scrollLeft >= maxScroll - 4) {
+            track.scrollTo({ left: 0, behavior: 'smooth' });
+          } else {
+            track.scrollBy({ left: getCardWidth(), behavior: 'smooth' });
+          }
+        };
+        const startAuto = () => { if (autoTimer) return; autoTimer = setInterval(autoAdvance, 4500); };
+        const stopAuto = () => { clearInterval(autoTimer); autoTimer = null; };
+        outer.addEventListener('mouseenter', stopAuto);
+        outer.addEventListener('mouseleave', startAuto);
+        outer.addEventListener('touchstart', () => { stopAuto(); setTimeout(startAuto, 6000); }, { passive: true });
+        startAuto();
       });
 
       /* ── Smooth anchor scrolling ──────────────────────── */

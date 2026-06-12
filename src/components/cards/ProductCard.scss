@@ -318,3 +318,31 @@ $ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
     margin-top: 4px;
   }
 }
+
+@media (max-width: 480px) {
+  .product-card {
+    border-radius: 20px;
+  }
+
+  .product-card__body {
+    padding: 18px 16px;
+  }
+
+  .product-card__body::before {
+    inset: 0 16px auto;
+  }
+
+  .product-card__title {
+    font-size: clamp(1.5rem, 6vw, 1.9rem);
+  }
+
+  .product-card__subtitle {
+    font-size: 0.85rem;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .product-card__price {
+    font-size: 1.2rem;
+  }
+}

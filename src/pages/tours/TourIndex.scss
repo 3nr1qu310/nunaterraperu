@@ -511,53 +511,50 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
-/* ── Layout: intro left + tours right ── */
+/* ── Layout: header top + carousel below ── */
 .tcat-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: clamp(48px, 7vw, 96px);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-/* ── Category intro — sticky, premium card ── */
-.tcat-intro {
-  position: sticky;
-  top: 108px;
-  align-self: start;
-  background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(90, 62, 43, 0.1);
-  border-radius: 22px;
-  padding: 36px 30px 32px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  overflow: hidden;
+/* ── Category header — horizontal info bar ── */
+.tcat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 28px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(90, 62, 43, 0.1);
   opacity: 0;
-  transform: translateX(-18px);
+  transform: translateY(-12px);
   transition:
     opacity 0.6s $ease-spring,
     transform 0.6s $ease-spring;
-
-  /* Top accent gradient bar */
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(
-      90deg,
-      var(--color-earth) 0%,
-      var(--color-sand) 55%,
-      transparent 100%
-    );
-    border-radius: 22px 22px 0 0;
-  }
 
   &.is-visible {
     opacity: 1;
     transform: none;
   }
+}
+
+.tcat-header__meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.tcat-header__name-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 10px 0 12px;
+}
+
+.tcat-header .tcat-count {
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: 0;
 }
 
 .tcat-intro__eyebrow {
@@ -566,22 +563,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--color-green);
-  margin: 0 0 20px;
-}
-
-/* Ghost number — floats top-right as decorative backdrop */
-.tcat-seq {
-  position: absolute;
-  top: 12px;
-  right: 18px;
-  font-family: var(--font-display);
-  font-size: 5rem;
-  font-weight: 700;
-  line-height: 1;
-  color: rgba(90, 62, 43, 0.06);
-  letter-spacing: -0.04em;
-  pointer-events: none;
-  user-select: none;
+  margin: 0;
 }
 
 /* Solid green icon — feels intentional and premium */
@@ -605,23 +587,14 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   display: block;
 }
 
-/* Decorative separator between icon and title */
-.tcat-divider {
-  width: 36px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--color-earth), transparent);
-  border-radius: 2px;
-  margin: 22px 0;
-}
-
 .tcat-name {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-size: clamp(1.8rem, 2.5vw, 2.6rem);
   font-weight: 600;
   color: var(--color-earth);
   line-height: 1.03;
   letter-spacing: -0.022em;
-  margin: 0 0 12px;
+  margin: 0;
   text-wrap: balance;
 }
 
@@ -1093,15 +1066,30 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     align-self: auto;
   }
 
-  /* Category layout: stack intro above tours */
-  .tcat-layout {
-    grid-template-columns: 1fr;
-    gap: 32px;
+  /* 2 cards at tablet */
+  .tcat-carousel-outer .tcat-card-wrap {
+    flex: 0 0 calc((100% - 20px) / 2);
   }
 
-  .tcat-intro {
-    position: static;
-    /* Keep card but remove stickiness on tablet */
+  /* Apilar: la meta ocupa todo el ancho y el contador pasa debajo.
+     (Con flex-wrap el texto quedaba comprimido al lado del pill.) */
+  .tcat-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .tcat-header__meta {
+    width: 100%;
+  }
+
+  .tcat-header .tcat-count {
+    align-self: flex-start;
+  }
+
+  .tcat-desc {
+    max-width: 56ch;
+    margin-bottom: 0;
   }
 
   /* Single-card wide layout: switch to stacked */
@@ -1155,9 +1143,26 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     padding: 56px 0 72px;
   }
 
-  .tcat-tours {
-    grid-template-columns: 1fr;
+  .tcat-nav--prev { left: 4px; }
+  .tcat-nav--next { right: 4px; }
+}
+
+@media (max-width: 640px) {
+  .tcat-header {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
   }
+
+  .tcat-header__name-row {
+    gap: 12px;
+    margin: 8px 0 10px;
+  }
+
+  .tcat-carousel-outer .tcat-card-wrap {
+    flex: 0 0 calc(100vw - 48px);
+  }
+
+  .tcat-nav { display: none !important; }
 }
 
 @media (max-width: 640px) {
@@ -1256,6 +1261,12 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
 }
 
+@media (min-width: 641px) {
+  .tcat-carousel-outer .tcat-nav {
+    display: flex;
+  }
+}
+
 .tcat-carousel-outer .tcat-tours {
   display: flex;
   gap: 20px;
@@ -1273,7 +1284,7 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .tcat-carousel-outer .tcat-card-wrap {
-  flex: 0 0 clamp(280px, calc(50% - 10px), 400px);
+  flex: 0 0 calc((100% - 40px) / 3);
   scroll-snap-align: start;
 }
 
@@ -1362,15 +1373,6 @@ $ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   color: rgba(37, 37, 37, 0.34);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-@media (max-width: 720px) {
-  .tcat-carousel-outer .tcat-card-wrap {
-    flex: 0 0 clamp(260px, 82vw, 340px);
-  }
-
-  .tcat-nav--prev { left: -14px; }
-  .tcat-nav--next { right: -14px; }
 }
 
 @media (max-width: 480px) {

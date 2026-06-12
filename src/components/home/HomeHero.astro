@@ -15,7 +15,7 @@ const images = [
 ]
   .filter(Boolean)
   .filter((item, index, arr) => arr.indexOf(item) === index)
-  .slice(0, 10);
+  .slice(0, 6);
 
 const firstImage = images[0] || heroImage;
 ---
@@ -27,23 +27,35 @@ const firstImage = images[0] || heroImage;
 >
   <div class="home-hero__slider" aria-hidden="true">
     {heroVideo ? (
-      <video
-        class="home-hero__bg is-active"
-        src={heroVideo}
-        autoplay
-        muted
-        loop
-        playsinline
-        poster={firstImage}
-      />
+      <>
+        <img
+          src={firstImage}
+          alt=""
+          class="home-hero__bg is-active"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+        <video
+          class="home-hero__bg"
+          data-hero-video={heroVideo}
+          preload="none"
+          muted
+          loop
+          playsinline
+          poster={firstImage}
+        />
+      </>
     ) : (
       images.map((image, index) => (
         <img
-          src={image}
+          src={index === 0 ? image : undefined}
+          data-src={index === 0 ? undefined : image}
           alt=""
           class={`home-hero__bg ${index === 0 ? 'is-active' : ''}`}
           loading={index === 0 ? 'eager' : 'lazy'}
           fetchpriority={index === 0 ? 'high' : 'auto'}
+          decoding="async"
           data-hero-slide
         />
       ))
@@ -86,18 +98,53 @@ const firstImage = images[0] || heroImage;
   </div>
 
   <script is:inline>
-    const slides = document.querySelectorAll('[data-hero-slide]');
+    (() => {
+      const slides = document.querySelectorAll('[data-hero-slide]');
+      const video = document.querySelector('[data-hero-video]');
+      let rotationStarted = false;
 
-    if (slides.length > 1) {
-      let current = 0;
+      // Carga diferida: la primera imagen pinta el hero de inmediato;
+      // el resto de slides y el video se descargan recién cuando la
+      // página terminó de cargar, sin competir con el contenido visible.
+      function hydrateHeroMedia() {
+        slides.forEach((img) => {
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            delete img.dataset.src;
+          }
+        });
 
-      window.setInterval(() => {
-        slides[current].classList.remove('is-active');
-        current = (current + 1) % slides.length;
-        slides[current].classList.add('is-active');
-      }, 5200);
-    }
+        if (video && video.dataset.heroVideo) {
+          video.src = video.dataset.heroVideo;
+          video.autoplay = true;
+          video.addEventListener('playing', () => {
+            video.classList.add('is-active');
+            video.previousElementSibling?.classList.remove('is-active');
+          }, { once: true });
+          video.play().catch(() => {});
+        }
 
-    
+        startRotation();
+      }
+
+      function startRotation() {
+        if (rotationStarted || slides.length < 2) return;
+        rotationStarted = true;
+
+        let current = 0;
+
+        window.setInterval(() => {
+          slides[current].classList.remove('is-active');
+          current = (current + 1) % slides.length;
+          slides[current].classList.add('is-active');
+        }, 5200);
+      }
+
+      if (document.readyState === 'complete') {
+        hydrateHeroMedia();
+      } else {
+        window.addEventListener('load', hydrateHeroMedia, { once: true });
+      }
+    })();
   </script>
 </section>

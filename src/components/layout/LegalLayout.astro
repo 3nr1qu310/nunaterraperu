@@ -1,0 +1,86 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import './LegalLayout.scss';
+
+/**
+ * Layout para páginas legales (términos, privacidad).
+ * Recibe las secciones como data y las renderiza numeradas.
+ */
+interface LegalSection {
+  heading: string;
+  paragraphs?: string[];
+  items?: string[];
+}
+
+interface Props {
+  metaTitle: string;
+  description: string;
+  eyebrow: string;
+  title: string;
+  updatedLabel?: string;
+  sections: LegalSection[];
+  contactHeading?: string;
+  contactText?: string;
+}
+
+const {
+  metaTitle,
+  description,
+  eyebrow,
+  title,
+  updatedLabel,
+  sections = [],
+  contactHeading,
+  contactText,
+} = Astro.props;
+---
+
+<BaseLayout title={metaTitle} description={description}>
+  <section class="legal-hero">
+    <div class="container">
+      <p class="legal-hero__eyebrow">
+        <span aria-hidden="true"></span>
+        {eyebrow}
+      </p>
+      <h1 class="legal-hero__title">{title}</h1>
+      {updatedLabel && <p class="legal-hero__updated">{updatedLabel}</p>}
+    </div>
+  </section>
+
+  <section class="legal-body">
+    <div class="container legal-body__container">
+      {sections.map((section, index) => (
+        <div class="legal-section">
+          <h2 class="legal-section__heading">
+            <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            {section.heading}
+          </h2>
+
+          {section.paragraphs?.map((paragraph) => (
+            <p class="legal-section__text">{paragraph}</p>
+          ))}
+
+          {section.items && section.items.length > 0 && (
+            <ul class="legal-section__list">
+              {section.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
+
+      {contactHeading && contactText && (
+        <div class="legal-contact">
+          <h2>{contactHeading}</h2>
+          <p>{contactText}</p>
+          <p class="legal-contact__channels">
+            <a href="mailto:info@nunaterraperu.com">info@nunaterraperu.com</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://wa.me/51978388196" target="_blank" rel="noopener noreferrer">WhatsApp +51 978 388 196</a>
+          </p>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>

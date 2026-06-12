@@ -1,0 +1,95 @@
+---
+import LegalLayout from '@/components/layout/LegalLayout.astro';
+
+const sections = [
+  {
+    heading: 'Identidad de la empresa',
+    paragraphs: [
+      'Nuna Terra Perú es una agencia boutique de viajes con sede en Cusco, Perú, dedicada al diseño y operación de paquetes turísticos, tours y experiencias personalizadas por la costa, sierra y selva del Perú.',
+      'El uso de este sitio web (nunaterraperu.com) y la contratación de cualquiera de nuestros servicios implican la aceptación de los presentes términos y condiciones.',
+    ],
+  },
+  {
+    heading: 'Objeto de los servicios',
+    paragraphs: [
+      'Ofrecemos itinerarios de viaje de uno o varios días que pueden incluir transporte, alojamiento, guiado, entradas y otros servicios turísticos, según se detalle en cada paquete o tour publicado en el sitio.',
+      'Las descripciones, fotografías, duraciones y precios publicados tienen carácter informativo y pueden ajustarse al confirmar la reserva, por disponibilidad, temporada o cambios operativos.',
+    ],
+  },
+  {
+    heading: 'Reservas y confirmación',
+    paragraphs: [
+      'Las solicitudes de reserva se realizan a través de nuestros formularios de contacto, WhatsApp o correo electrónico. Una reserva se considera confirmada únicamente cuando un asesor de Nuna Terra Perú la confirma por escrito y, de aplicar, se recibe el adelanto acordado.',
+    ],
+    items: [
+      'Para confirmar la mayoría de servicios se requiere un adelanto, cuyo porcentaje se comunica al cotizar.',
+      'El saldo se cancela antes del inicio del servicio, salvo acuerdo distinto por escrito.',
+      'Los datos del viajero (nombre completo, documento, fecha de viaje) deben ser exactos; los errores pueden generar costos adicionales ante terceros (aerolíneas, trenes, entradas).',
+    ],
+  },
+  {
+    heading: 'Precios y medios de pago',
+    paragraphs: [
+      'Los precios se expresan en dólares americanos (USD) o soles (PEN), según se indique, y son por persona salvo que se especifique lo contrario. No incluyen servicios señalados expresamente como “no incluye”.',
+      'Los medios de pago disponibles (transferencia, pasarela de pago, efectivo) se informan al momento de la cotización. Las comisiones de terceros, cuando existan, se comunican antes del pago.',
+    ],
+  },
+  {
+    heading: 'Cambios y cancelaciones',
+    paragraphs: [
+      'Entendemos que un viaje puede cambiar. Las condiciones específicas de cambio o cancelación dependen de cada servicio y de los proveedores involucrados (por ejemplo, boletos a Machu Picchu, trenes o vuelos suelen ser no reembolsables).',
+    ],
+    items: [
+      'Cancelaciones comunicadas con suficiente anticipación pueden recibir reembolso parcial, descontando gastos ya incurridos y servicios no reembolsables de terceros.',
+      'Los cambios de fecha están sujetos a disponibilidad y a posibles diferencias de tarifa.',
+      'Nuna Terra Perú puede modificar un itinerario por causas de fuerza mayor (clima, cierres de vías, paros, disposiciones de autoridades), priorizando siempre la seguridad del viajero y ofreciendo alternativas equivalentes cuando sea posible.',
+    ],
+  },
+  {
+    heading: 'Obligaciones del viajero',
+    items: [
+      'Contar con documentación válida (pasaporte o documento de identidad vigente) y, de ser necesario, visas o permisos.',
+      'Llegar puntualmente a los puntos de encuentro indicados; las demoras pueden implicar la pérdida del servicio sin reembolso.',
+      'Informar condiciones médicas relevantes antes de contratar actividades de esfuerzo físico o altura.',
+      'Respetar las normas de los sitios visitados, el patrimonio cultural y las comunidades locales.',
+    ],
+  },
+  {
+    heading: 'Responsabilidad',
+    paragraphs: [
+      'Nuna Terra Perú actúa como organizador e intermediario entre el viajero y proveedores de servicios (transportes, hoteles, restaurantes, operadores locales). Hacemos una selección cuidadosa de proveedores, pero no respondemos por hechos imputables exclusivamente a terceros o por causas de fuerza mayor.',
+      'Recomendamos a todos los viajeros contar con un seguro de viaje que cubra asistencia médica, cancelaciones y pérdida de equipaje.',
+    ],
+  },
+  {
+    heading: 'Propiedad intelectual',
+    paragraphs: [
+      'Los contenidos de este sitio (textos, fotografías, itinerarios, logotipos y diseño) son propiedad de Nuna Terra Perú o se usan con autorización de sus titulares. No está permitida su reproducción con fines comerciales sin consentimiento previo y por escrito.',
+    ],
+  },
+  {
+    heading: 'Protección de datos',
+    paragraphs: [
+      'El tratamiento de los datos personales que nos proporciones se rige por nuestra Política de Privacidad, disponible en este mismo sitio, y por la Ley N.º 29733 — Ley de Protección de Datos Personales del Perú.',
+    ],
+  },
+  {
+    heading: 'Ley aplicable y reclamos',
+    paragraphs: [
+      'Estos términos se rigen por las leyes de la República del Perú. Cualquier controversia se someterá a los jueces y tribunales de Cusco, sin perjuicio de los derechos del consumidor reconocidos por el Código de Protección y Defensa del Consumidor (Ley N.º 29571) y de la posibilidad de acudir a INDECOPI.',
+      'Contamos con Libro de Reclamaciones conforme a la normativa peruana vigente.',
+    ],
+  },
+];
+---
+
+<LegalLayout
+  metaTitle="Términos y condiciones | Nuna Terra Perú"
+  description="Términos y condiciones de los servicios turísticos de Nuna Terra Perú: reservas, pagos, cambios, cancelaciones y responsabilidades."
+  eyebrow="Información legal"
+  title="Términos y condiciones"
+  updatedLabel="Última actualización: junio de 2026"
+  sections={sections}
+  contactHeading="¿Tienes dudas sobre estos términos?"
+  contactText="Escríbenos y un asesor te responderá en menos de 24 horas."
+/>

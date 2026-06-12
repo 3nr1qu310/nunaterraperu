@@ -1,6 +1,7 @@
 ---
 import Header from './Header.astro';
 import Footer from './Footer.astro';
+import FloatingButtons from './FloatingButtons.astro';
 import '@/styles/global.scss';
 import { getLocaleFromUrl } from '@/lib/i18n';
 
@@ -15,6 +16,9 @@ const {
 } = Astro.props;
 
 const locale = getLocaleFromUrl(Astro.url.pathname);
+
+// Preconnect al storage de Supabase: acelera la primera imagen/video.
+const supabaseOrigin = import.meta.env.PUBLIC_SUPABASE_URL || '';
 
 const skipLink = {
   es: 'Ir al contenido principal',
@@ -33,6 +37,9 @@ const skipLink = {
     <link rel="icon" type="image/svg+xml" href="/icons/isotopo.svg" />
     <link rel="shortcut icon" href="/icons/isotopo.svg" type="image/svg+xml" />
 
+    {supabaseOrigin && <link rel="preconnect" href={supabaseOrigin} crossorigin />}
+    {supabaseOrigin && <link rel="dns-prefetch" href={supabaseOrigin} />}
+
     <meta name="description" content={description} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -50,5 +57,27 @@ const skipLink = {
       <slot />
     </main>
     <Footer />
+    <FloatingButtons />
+
+    <script is:inline>
+      // Videos de fondo diferidos: el poster pinta el hero al instante y el
+      // video recién se descarga cuando la página terminó de cargar.
+      (() => {
+        function hydrateDeferredVideos() {
+          document.querySelectorAll('video[data-deferred-video]').forEach((video) => {
+            video.src = video.dataset.deferredVideo;
+            video.removeAttribute('data-deferred-video');
+            video.autoplay = true;
+            video.play().catch(() => {});
+          });
+        }
+
+        if (document.readyState === 'complete') {
+          hydrateDeferredVideos();
+        } else {
+          window.addEventListener('load', hydrateDeferredVideos, { once: true });
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -259,12 +259,71 @@ const regions = await getRegions(locale);
 const destinations = await getDestinations(locale);
 const packages = await getPackages(locale);
 const tours = await getTours(locale);
+
+// El hero usa las imágenes de los paquetes como protagonistas.
+const heroImages = [
+  ...packages.map((item) => item.heroImage || item.cardImage),
+  ...tours.map((item) => item.heroImage || item.cardImage),
+  ...regions.map((item) => item.heroImage || item.cardImage),
+].filter(Boolean);
+
+// Tour de prioridad alta para la sección destacada del home.
+const featuredTour =
+  tours.find((tour) => tour.featured) ||
+  tours[0] ||
+  packages.find((pkg) => pkg.featured) ||
+  null;
+
+const featuredTourHref = featuredTour
+  ? featuredTour.type === 'package'
+    ? `/${locale}/packages/${featuredTour.slug}`
+    : `/${locale}/tours/${featuredTour.slug}`
+  : '';
+
+const featuredCopy = {
+  en: {
+    eyebrow: 'Unmissable experience',
+    badge: 'Featured tour',
+    cta: 'View this tour',
+    secondary: 'Ask on WhatsApp',
+    from: 'From',
+    perPerson: 'per person',
+    duration: 'Duration',
+    destinations: 'Destinations',
+  },
+  pt: {
+    eyebrow: 'Experiência imperdível',
+    badge: 'Tour em destaque',
+    cta: 'Ver este tour',
+    secondary: 'Falar no WhatsApp',
+    from: 'A partir de',
+    perPerson: 'por pessoa',
+    duration: 'Duração',
+    destinations: 'Destinos',
+  },
+  fr: {
+    eyebrow: 'Expérience incontournable',
+    badge: 'Tour en vedette',
+    cta: 'Voir ce tour',
+    secondary: 'Écrire sur WhatsApp',
+    from: 'À partir de',
+    perPerson: 'par personne',
+    duration: 'Durée',
+    destinations: 'Destinations',
+  },
+}[locale];
 ---
 
 <BaseLayout title={copy.pageTitle} description={copy.pageDescription}>
-  <HomeHero copy={copy} heroImage="/images/home-hero.jpg" />
+  <HomeHero copy={copy} heroImage={heroImages[0] || '/images/home-hero.jpg'} heroImages={heroImages} />
 
-  <HomeValueProps props={copy.props} />
+  <HomeValueProps
+    props={copy.props}
+    tour={featuredTour}
+    tourHref={featuredTourHref}
+    whatsappUrl={site.whatsappUrl}
+    copy={featuredCopy}
+  />
 
   <HomeRegions
     regions={regions}

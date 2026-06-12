@@ -9,6 +9,7 @@ import type {
   TravelCategory,
 } from '@/types/content';
 import type { Locale } from '@/lib/i18n';
+import { optimizeImage, IMAGE_SIZES } from '@/lib/images';
 
 import { regions as mockRegions } from '@/data/regions';
 import { destinations as mockDestinations } from '@/data/destinations';
@@ -59,8 +60,8 @@ function mapRegion(row: any, locale: Locale = defaultLocale): Region {
       row.description,
       row.headline || ''
     ),
-    heroImage: row.hero_image_url || row.heroImage || fallbackImage,
-    cardImage: row.card_image_url || row.cardImage || row.hero_image_url || fallbackImage,
+    heroImage: optimizeImage(row.hero_image_url || row.heroImage || fallbackImage, IMAGE_SIZES.hero),
+    cardImage: optimizeImage(row.card_image_url || row.cardImage || row.hero_image_url || fallbackImage, IMAGE_SIZES.card),
     seoTitle: translation?.seo_title || row.seo_title || undefined,
     seoDescription: translation?.seo_description || row.seo_description || undefined,
   } as Region;
@@ -95,8 +96,8 @@ function mapDestination(row: any, locale: Locale = defaultLocale): Destination {
       row.description,
       row.short_description || ''
     ),
-    heroImage: row.hero_image_url || fallbackImage,
-    cardImage: row.card_image_url || row.hero_image_url || fallbackImage,
+    heroImage: optimizeImage(row.hero_image_url || fallbackImage, IMAGE_SIZES.hero),
+    cardImage: optimizeImage(row.card_image_url || row.hero_image_url || fallbackImage, IMAGE_SIZES.card),
     altitude: row.altitude || undefined,
     bestTime: translation?.best_time_to_visit || row.best_time_to_visit || undefined,
     recommendedDays: translation?.recommended_days || row.recommended_days || undefined,
@@ -280,7 +281,7 @@ const placeSlugs = placeRows.length
             meals: translation?.meals || day.meals || '',
             accommodation: translation?.accommodation || day.accommodation || '',
             activities: translation?.activities || day.activities || '',
-            imageUrl: day.image_url || undefined,
+            imageUrl: day.image_url ? optimizeImage(day.image_url, IMAGE_SIZES.gallery) : undefined,
           };
         })
     : row.itinerary || [];
@@ -305,7 +306,7 @@ const placeSlugs = placeRows.length
         .filter((image: any) => image.is_active !== false)
         .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
         .map((image: any) => ({
-          imageUrl: image.image_url,
+          imageUrl: optimizeImage(image.image_url, IMAGE_SIZES.gallery),
           altText: image.alt_text || '',
           caption: image.caption || '',
         }))
@@ -334,8 +335,8 @@ const placeSlugs = placeRows.length
         minPeople: promotion.min_people || undefined,
         maxPeople: promotion.max_people || undefined,
         isFeatured: Boolean(promotion.is_featured),
-        bannerImageUrl: promotion.banner_image_url || undefined,
-        cardImageUrl: promotion.card_image_url || undefined,
+        bannerImageUrl: promotion.banner_image_url ? optimizeImage(promotion.banner_image_url, IMAGE_SIZES.hero) : undefined,
+        cardImageUrl: promotion.card_image_url ? optimizeImage(promotion.card_image_url, IMAGE_SIZES.card) : undefined,
         notes: item.notes || '',
         customBadge: item.custom_badge || '',
         promotionalPrice: item.promotional_price ? Number(item.promotional_price) : undefined,
@@ -375,8 +376,8 @@ const placeSlugs = placeRows.length
     currency: row.currency || 'USD',
     serviceType: productTranslation?.service_type || row.service_type || undefined,
     difficulty: productTranslation?.difficulty_level || row.difficulty_level || undefined,
-    cardImage: row.card_image_url || fallbackImage,
-    heroImage: row.hero_image_url || row.card_image_url || fallbackImage,
+    cardImage: optimizeImage(row.card_image_url || fallbackImage, IMAGE_SIZES.card),
+    heroImage: optimizeImage(row.hero_image_url || row.card_image_url || fallbackImage, IMAGE_SIZES.hero),
     featured: Boolean(row.is_featured),
     itinerary,
     includes: included,
@@ -751,6 +752,7 @@ export async function getToursWithPromotions(
 
 export async function getProductPromotions(
   productSlug: string,
+  locale: Locale = defaultLocale,
 ): Promise<NonNullable<ProductExtended['promotions']>> {
   if (!supabase) {
     const product =
@@ -773,17 +775,18 @@ export async function getProductPromotions(
   }
   if (!productRow?.id) return [];
 
-  // Paso 2: obtener promotion_products + promotions via FK promotion_id → promotions.id
-  // No filtramos is_active a nivel DB para evitar problemas con valores NULL (default true)
+  // Paso 2: obtener promotion_products + promotions + traducciones
   const { data, error } = await supabase
     .from('promotion_products')
     .select(`
+      id,
       is_active,
       promotional_price,
       original_price,
       custom_badge,
       notes,
       sort_order,
+      promotion_product_translations(*),
       promotions(
         title,
         slug,
@@ -802,7 +805,8 @@ export async function getProductPromotions(
         is_featured,
         banner_image_url,
         card_image_url,
-        is_active
+        is_active,
+        promotion_translations(*)
       )
     `)
     .eq('product_id', productRow.id)
@@ -821,17 +825,20 @@ export async function getProductPromotions(
       const promo = item.promotions;
       if (!promo || promo.is_active === false) return null;
 
+      const promoT = pickTranslation(promo.promotion_translations, locale);
+      const ppT = pickTranslation(item.promotion_product_translations, locale);
+
       return {
         slug: promo.slug,
-        title: promo.title,
-        subtitle: promo.subtitle || '',
-        description: promo.description || '',
+        title: withFallback(promoT?.title, promo.title, ''),
+        subtitle: withFallback(promoT?.subtitle, promo.subtitle, ''),
+        description: withFallback(promoT?.description, promo.description, ''),
         promotionType: promo.promotion_type || '',
-        badgeText: promo.badge_text || '',
+        badgeText: withFallback(promoT?.badge_text, promo.badge_text, ''),
         discountType: promo.discount_type || '',
         discountValue: promo.discount_value ? Number(promo.discount_value) : undefined,
         currency: promo.currency || 'USD',
-        terms: promo.terms || '',
+        terms: withFallback(promoT?.terms, promo.terms, ''),
         startDate: promo.start_date || undefined,
         endDate: promo.end_date || undefined,
         minPeople: promo.min_people || undefined,
@@ -839,8 +846,8 @@ export async function getProductPromotions(
         isFeatured: Boolean(promo.is_featured),
         bannerImageUrl: promo.banner_image_url || undefined,
         cardImageUrl: promo.card_image_url || undefined,
-        notes: item.notes || '',
-        customBadge: item.custom_badge || '',
+        notes: withFallback(ppT?.notes, item.notes, ''),
+        customBadge: withFallback(ppT?.custom_badge, item.custom_badge, ''),
         promotionalPrice: item.promotional_price ? Number(item.promotional_price) : undefined,
         originalPrice: item.original_price ? Number(item.original_price) : undefined,
       };
@@ -959,8 +966,8 @@ export async function getTravelCategories(): Promise<TravelCategory[]> {
     slug: row.slug,
     description: row.description || '',
     icon: row.icon || '',
-    cardImage: row.cardImage || '',
-    heroImage: row.heroImage || '',
+    cardImage: optimizeImage(row.cardImage || '', IMAGE_SIZES.card),
+    heroImage: optimizeImage(row.heroImage || '', IMAGE_SIZES.hero),
   }));
 }
 
@@ -975,8 +982,10 @@ function mapPlace(row: any): DestinationPlace {
     subtitle: row.subtitle || undefined,
     shortDescription: row.short_description || undefined,
     description: row.description || undefined,
-    heroImage: row.hero_image_url || undefined,
-    cardImage: row.card_image_url || row.hero_image_url || undefined,
+    heroImage: row.hero_image_url ? optimizeImage(row.hero_image_url, IMAGE_SIZES.hero) : undefined,
+    cardImage: (row.card_image_url || row.hero_image_url)
+      ? optimizeImage(row.card_image_url || row.hero_image_url, IMAGE_SIZES.card)
+      : undefined,
     altitude: row.altitude || undefined,
     bestTime: row.best_time_to_visit || undefined,
     recommendedDays: row.recommended_days || undefined,

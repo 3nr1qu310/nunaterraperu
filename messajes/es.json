@@ -12,5 +12,10 @@
   "from_price": "Desde",
   "duration": "Duración",
   "includes": "Incluye",
-  "not_includes": "No incluye"
+  "not_includes": "No incluye",
+  "promotions_active_offer": "Oferta activa",
+  "promotions_valid_until": "Válido hasta",
+  "promotions_cta": "Aprovechar esta oferta",
+  "promotions_per_person": "por persona",
+  "promotions_consult": "A consultar"
 }

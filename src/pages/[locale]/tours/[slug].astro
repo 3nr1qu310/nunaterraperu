@@ -1,10 +1,12 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
-import { getProductBySlug, getTours } from '@/lib/content';
+import LucideIcon from '@/components/cards/LucideIcon.astro';
+import ProductItinerary from '@/components/sections/ProductItinerary.astro';
+import { getProductBySlug, getRelatedProducts, getTravelCategories, getProductPromotions } from '@/lib/content';
 import { isLocale, type Locale } from '@/lib/i18n';
+import { buildWaUrl, tourMessage } from '@/lib/whatsapp';
+import '../../tours/TourDetail.scss';
 
 export const prerender = false;
 
@@ -23,376 +25,596 @@ if (!product) {
   return Astro.redirect(`/${locale}/tours`);
 }
 
-const allTours = await getTours(locale);
-const related = allTours
-  .filter((item) => item.slug !== product.slug)
-  .slice(0, 3);
+const [related, allCategories, promotions] = await Promise.all([
+  getRelatedProducts(slug, locale, 3),
+  getTravelCategories(),
+  getProductPromotions(slug, locale),
+]);
 
-const mainDestination = product.destinations?.[0] || '';
+const productCategories = allCategories.filter(
+  (cat) => product.categorySlugs?.includes(cat.slug)
+);
+
+const waMsg = tourMessage(product);
+const waUrl1 = buildWaUrl('51978388196', waMsg);
 
 const copyByLocale = {
   en: {
+    backLink: '← Tours',
+    backHref: '/en/tours',
     eyebrow: 'Tour and experience',
     quote: 'Request a quote',
-    whatsapp: 'Chat on WhatsApp',
     duration: 'Duration',
-    departure: 'Departure',
+    destinations: 'Destinations',
+    type: 'Type',
     service: 'Service',
     difficulty: 'Difficulty',
-    serviceDefault: 'Private or shared',
-    difficultyDefault: 'Depends on the route',
-    experiencePrefix: 'An experience to enjoy',
-    experienceSuffix: 'in less time',
-    routeTitle: 'Tour route',
-    startTitle: 'Start of the tour',
-    startText: 'Pick-up or meeting point according to coordination.',
-    mainRouteTitle: 'Main route',
-    mainRouteText: 'Visits and activities indicated in the program.',
-    returnTitle: 'Return',
-    returnText: 'Approximate arrival at the final point of the service.',
+    region: 'Region',
+    regionSierra: 'Mountains',
+    regionCosta: 'Coast',
+    regionSelva: 'Jungle',
+    descriptionTitle: 'An experience to enjoy',
+    uniqueTitle: 'What makes this tour unique',
+    placesTitle: 'Places you will visit',
+    gallery: 'Gallery',
+    itinerary: 'Tour route',
+    meals: 'Meals',
+    accommodation: 'Accommodation',
+    activities: 'Activities',
     includesTitle: 'What this tour includes',
     includes: 'Includes',
     notIncludes: 'Does not include',
-    includedTransport: 'Tourist transportation',
-    includedAssistance: 'Assistance during the route',
-    includedServices: 'Indicated services',
-    notIncludedFood: 'Meals not mentioned',
-    notIncludedPersonal: 'Personal expenses',
-    notIncludedServices: 'Services not specified',
+    recommendations: 'Recommendations',
+    importantNotes: 'Important notes',
+    faqs: 'Frequently asked questions',
     from: 'From',
-    relatedTitle: 'You could also enjoy these experiences',
+    perPerson: 'per person',
+    consult: 'Price on request',
+    places: 'Places',
+    style: 'Style',
+    activeOffer: 'Active offer',
+    validUntil: 'Valid until',
+    takeOffer: 'Claim this offer',
+    relatedEyebrow: 'You may also like',
+    relatedTitle: 'Other experiences in Peru',
+    relatedSubtitle: 'Discover more tours and experiences that will let you live Peru in less time.',
+    noAdvisory: 'Free advisory. We respond in less than 24 h.',
     contactHref: '/en/contact',
+    dateLocale: 'en-US',
   },
-
   pt: {
+    backLink: '← Tours',
+    backHref: '/pt/tours',
     eyebrow: 'Tour e experiência',
     quote: 'Solicitar cotação',
-    whatsapp: 'Falar pelo WhatsApp',
     duration: 'Duração',
-    departure: 'Saída',
+    destinations: 'Destinos',
+    type: 'Tipo',
     service: 'Serviço',
     difficulty: 'Dificuldade',
-    serviceDefault: 'Privado ou compartilhado',
-    difficultyDefault: 'Depende da rota',
-    experiencePrefix: 'Uma experiência para viver',
-    experienceSuffix: 'em menos tempo',
-    routeTitle: 'Roteiro do tour',
-    startTitle: 'Início do tour',
-    startText: 'Busca ou ponto de encontro conforme coordenação.',
-    mainRouteTitle: 'Rota principal',
-    mainRouteText: 'Visitas e atividades indicadas no programa.',
-    returnTitle: 'Retorno',
-    returnText: 'Chegada aproximada ao ponto final do serviço.',
+    region: 'Região',
+    regionSierra: 'Serra',
+    regionCosta: 'Costa',
+    regionSelva: 'Selva',
+    descriptionTitle: 'Uma experiência para viver',
+    uniqueTitle: 'O que torna este tour único',
+    placesTitle: 'Lugares que você visitará',
+    gallery: 'Galeria',
+    itinerary: 'Roteiro do tour',
+    meals: 'Refeições',
+    accommodation: 'Hospedagem',
+    activities: 'Atividades',
     includesTitle: 'O que este tour inclui',
     includes: 'Inclui',
     notIncludes: 'Não inclui',
-    includedTransport: 'Transporte turístico',
-    includedAssistance: 'Assistência durante o percurso',
-    includedServices: 'Serviços indicados',
-    notIncludedFood: 'Alimentação não mencionada',
-    notIncludedPersonal: 'Gastos pessoais',
-    notIncludedServices: 'Serviços não especificados',
+    recommendations: 'Recomendações',
+    importantNotes: 'Notas importantes',
+    faqs: 'Perguntas frequentes',
     from: 'A partir de',
-    relatedTitle: 'Você também poderia viver estas experiências',
+    perPerson: 'por pessoa',
+    consult: 'Preço sob consulta',
+    places: 'Lugares',
+    style: 'Estilo',
+    activeOffer: 'Oferta ativa',
+    validUntil: 'Válido até',
+    takeOffer: 'Aproveitar esta oferta',
+    relatedEyebrow: 'Você também pode gostar',
+    relatedTitle: 'Outras experiências no Peru',
+    relatedSubtitle: 'Descubra mais tours e experiências que vão te permitir viver o Peru em menos tempo.',
+    noAdvisory: 'Assessoria gratuita. Respondemos em menos de 24 h.',
     contactHref: '/pt/contact',
+    dateLocale: 'pt-BR',
   },
-
   fr: {
+    backLink: '← Tours',
+    backHref: '/fr/tours',
     eyebrow: 'Tour et expérience',
     quote: 'Demander un devis',
-    whatsapp: 'Écrire sur WhatsApp',
     duration: 'Durée',
-    departure: 'Départ',
+    destinations: 'Destinations',
+    type: 'Type',
     service: 'Service',
     difficulty: 'Difficulté',
-    serviceDefault: 'Privé ou partagé',
-    difficultyDefault: 'Selon l’itinéraire',
-    experiencePrefix: 'Une expérience pour découvrir',
-    experienceSuffix: 'en moins de temps',
-    routeTitle: 'Parcours du tour',
-    startTitle: 'Début du tour',
-    startText: 'Prise en charge ou point de rencontre selon coordination.',
-    mainRouteTitle: 'Parcours principal',
-    mainRouteText: 'Visites et activités indiquées dans le programme.',
-    returnTitle: 'Retour',
-    returnText: 'Arrivée approximative au point final du service.',
+    region: 'Région',
+    regionSierra: 'Montagnes',
+    regionCosta: 'Côte',
+    regionSelva: 'Amazonie',
+    descriptionTitle: 'Une expérience à vivre',
+    uniqueTitle: 'Ce qui rend ce tour unique',
+    placesTitle: 'Lieux que vous visiterez',
+    gallery: 'Galerie',
+    itinerary: 'Parcours du tour',
+    meals: 'Repas',
+    accommodation: 'Hébergement',
+    activities: 'Activités',
     includesTitle: 'Ce que ce tour inclut',
     includes: 'Inclus',
     notIncludes: 'Non inclus',
-    includedTransport: 'Transport touristique',
-    includedAssistance: 'Assistance pendant le parcours',
-    includedServices: 'Services indiqués',
-    notIncludedFood: 'Repas non mentionnés',
-    notIncludedPersonal: 'Dépenses personnelles',
-    notIncludedServices: 'Services non spécifiés',
+    recommendations: 'Recommandations',
+    importantNotes: 'Notes importantes',
+    faqs: 'Foire aux questions',
     from: 'À partir de',
-    relatedTitle: 'Vous pourriez aussi vivre ces expériences',
+    perPerson: 'par personne',
+    consult: 'Prix sur demande',
+    places: 'Lieux',
+    style: 'Style',
+    activeOffer: 'Offre active',
+    validUntil: "Valable jusqu'au",
+    takeOffer: 'Profiter de cette offre',
+    relatedEyebrow: 'Vous pourriez aussi aimer',
+    relatedTitle: "D'autres expériences au Pérou",
+    relatedSubtitle: 'Découvrez plus de tours et expériences pour vivre le Pérou en moins de temps.',
+    noAdvisory: 'Conseil gratuit. Nous répondons en moins de 24 h.',
     contactHref: '/fr/contact',
+    dateLocale: 'fr-FR',
   },
 };
 
 const copy = copyByLocale[locale];
 
+const regionLabel =
+  product.region === 'sierra' ? copy.regionSierra
+  : product.region === 'costa' ? copy.regionCosta
+  : copy.regionSelva;
+
 const pageTitle = `${product.seoTitle || product.title} | Nuna Terra Perú`;
-const pageDescription = product.seoDescription || product.description || product.subtitle || '';
+const pageDescription = product.seoDescription || product.shortDescription || product.subtitle || '';
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription}>
-  <Hero
-    eyebrow={copy.eyebrow}
-    title={product.title}
-    subtitle={product.subtitle}
-    image={product.heroImage}
-    primaryText={copy.quote}
-    primaryHref={copy.contactHref}
-    secondaryText={copy.whatsapp}
-    secondaryHref={copy.contactHref}
-  />
 
-  <section class="section">
-    <div class="container detail-layout">
-      <div>
-        <div class="summary-grid">
-          <div>
-            <b>{copy.duration}</b>
-            <span>{product.durationText}</span>
-          </div>
+  <!-- HERO -->
+  <section class="pkg-hero" aria-labelledby="tour-hero-title">
+    <img
+      src={product.heroImage}
+      alt={product.title}
+      class="pkg-hero__img"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="pkg-hero__overlay" aria-hidden="true"></div>
 
-          <div>
-            <b>{copy.departure}</b>
-            <span>{mainDestination || '—'}</span>
-          </div>
+    <div class="container pkg-hero__content">
+      <nav class="pkg-breadcrumb" aria-label="Page location">
+        <a href={copy.backHref}>{copy.backLink}</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{product.title}</span>
+      </nav>
 
-          <div>
-            <b>{copy.service}</b>
-            <span>{product.serviceType || copy.serviceDefault}</span>
-          </div>
+      <p class="pkg-hero__eyebrow">{copy.eyebrow}</p>
+      <h1 class="pkg-hero__title" id="tour-hero-title">{product.title}</h1>
 
-          <div>
-            <b>{copy.difficulty}</b>
-            <span>{product.difficulty || copy.difficultyDefault}</span>
-          </div>
-        </div>
+      {product.subtitle && (
+        <p class="pkg-hero__subtitle">{product.subtitle}</p>
+      )}
 
-        <SectionHeading
-          title={`${copy.experiencePrefix} ${mainDestination || 'Peru'} ${copy.experienceSuffix}`}
-          subtitle={product.description}
-        />
-
-        <section class="section--tight">
-          <h2 class="h2 small">{copy.routeTitle}</h2>
-
-          {product.itinerary?.length > 0 ? (
-            <div class="timeline">
-              {product.itinerary.map((day) => (
-                <details open>
-                  <summary>
-                    <span>{day.day}</span>
-                    {day.title}
-                  </summary>
-                  <p>{day.description}</p>
-                </details>
-              ))}
-            </div>
-          ) : (
-            <div class="timeline">
-              <details open>
-                <summary>{copy.startTitle}</summary>
-                <p>{copy.startText}</p>
-              </details>
-
-              <details open>
-                <summary>{copy.mainRouteTitle}</summary>
-                <p>{copy.mainRouteText}</p>
-              </details>
-
-              <details open>
-                <summary>{copy.returnTitle}</summary>
-                <p>{copy.returnText}</p>
-              </details>
-            </div>
-          )}
-        </section>
-
-        <section class="section--tight">
-          <h2 class="h2 small">{copy.includesTitle}</h2>
-
-          <div class="two-cols">
-            <div class="list-card">
-              <h3>{copy.includes}</h3>
-
-              {product.includes?.length > 0 ? (
-                product.includes.map((item) => <p>✓ {item}</p>)
-              ) : (
-                <>
-                  <p>✓ {copy.includedTransport}</p>
-                  <p>✓ {copy.includedAssistance}</p>
-                  <p>✓ {copy.includedServices}</p>
-                </>
-              )}
-            </div>
-
-            <div class="list-card">
-              <h3>{copy.notIncludes}</h3>
-
-              {product.notIncludes?.length > 0 ? (
-                product.notIncludes.map((item) => <p>— {item}</p>)
-              ) : (
-                <>
-                  <p>— {copy.notIncludedFood}</p>
-                  <p>— {copy.notIncludedPersonal}</p>
-                  <p>— {copy.notIncludedServices}</p>
-                </>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {product.recommendations?.length > 0 && (
-          <section class="section--tight">
-            <h2 class="h2 small">Recommendations</h2>
-
-            <div class="list-card">
-              {product.recommendations.map((item) => (
-                <p>✓ {item}</p>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-
-      <aside class="quote-card">
-        <span>{copy.from}</span>
-        <strong>{product.currency} {product.priceFrom}</strong>
-        <p>{product.durationText}</p>
-
-        <a class="btn btn--primary" href={copy.contactHref}>
+      <div class="pkg-hero__actions">
+        <a href={copy.contactHref} class="pkg-hero__btn pkg-hero__btn--primary">
           {copy.quote}
         </a>
-
-        <a class="btn btn--outline-dark" href={copy.contactHref}>
-          WhatsApp
+        <a
+          href={waUrl1}
+          class="pkg-hero__btn pkg-hero__btn--ghost"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp ↗
         </a>
-      </aside>
+      </div>
     </div>
   </section>
 
-  {related.length > 0 && (
-    <section class="section">
-      <div class="container">
-        <SectionHeading title={copy.relatedTitle} />
+  <!-- META CARD -->
+  <div class="pkg-meta-wrap" aria-label="Tour details">
+    <div class="container">
+      <div class="pkg-hero__meta">
+        {product.durationText && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="clock" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">{copy.duration}</span>
+            <strong class="pkg-meta-item__val">{product.durationText}</strong>
+          </div>
+        )}
+        {product.destinations?.length > 0 && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="map-pin" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">{copy.destinations}</span>
+            <strong class="pkg-meta-item__val">{product.destinations.join(', ')}</strong>
+          </div>
+        )}
+        {product.categories?.length > 0 && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="gem" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">{copy.type}</span>
+            <strong class="pkg-meta-item__val">{product.categories[0]}</strong>
+          </div>
+        )}
+        {product.serviceType && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="headphones" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">{copy.service}</span>
+            <strong class="pkg-meta-item__val">{product.serviceType}</strong>
+          </div>
+        )}
+        {product.difficulty && (
+          <div class="pkg-meta-item">
+            <LucideIcon name="activity" size={15} class="pkg-meta-item__icon" />
+            <span class="pkg-meta-item__label">{copy.difficulty}</span>
+            <strong class="pkg-meta-item__val">{product.difficulty}</strong>
+          </div>
+        )}
+        <div class="pkg-meta-item">
+          <LucideIcon name="globe" size={15} class="pkg-meta-item__icon" />
+          <span class="pkg-meta-item__label">{copy.region}</span>
+          <strong class="pkg-meta-item__val">{regionLabel}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="grid grid--3">
-          {related.map((item) => (
-            <ProductCard product={item} />
-          ))}
+  <!-- MAIN DETAIL -->
+  <section class="pkg-detail">
+    <div class="container pkg-detail__layout">
+
+      <!-- MAIN CONTENT -->
+      <div class="pkg-main">
+
+        {product.description && (
+          <div>
+            <h2 class="pkg-section-title">
+              {product.destinations?.length > 0
+                ? `${copy.descriptionTitle} ${product.destinations[0]}`
+                : copy.descriptionTitle}
+            </h2>
+            <p class="pkg-desc">{product.description}</p>
+          </div>
+        )}
+
+        {productCategories.length > 0 && (
+          <div class="pkg-styles">
+            <h2 class="pkg-styles__title">{copy.uniqueTitle}</h2>
+            <div class="pkg-styles__grid">
+              {productCategories.map((cat) => (
+                <div class="pkg-style-item">
+                  <div class="pkg-style-item__icon-wrap" aria-hidden="true">
+                    <LucideIcon name={cat.icon || 'compass'} size={22} class="pkg-style-item__lucide" />
+                  </div>
+                  <h3 class="pkg-style-item__name">{cat.name}</h3>
+                  {cat.description && (
+                    <p class="pkg-style-item__desc">{cat.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {product.places && product.places.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">{copy.placesTitle}</h2>
+            <div class="pkg-places__list">
+              {product.places.map((place) => (
+                <span class="pkg-place-tag">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                  </svg>
+                  {place}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {product.gallery && product.gallery.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">{copy.gallery}</h2>
+            <div class="pkg-gallery">
+              {product.gallery.slice(0, 5).map((img) => (
+                <img
+                  src={img.imageUrl}
+                  alt={img.altText || product.title}
+                  loading="lazy"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {product.itinerary && product.itinerary.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">{copy.itinerary}</h2>
+            <ProductItinerary
+              itinerary={product.itinerary}
+              labels={{
+                day: locale === 'en' ? 'Day' : locale === 'pt' ? 'Dia' : 'Jour',
+                of: locale === 'en' ? 'of' : locale === 'pt' ? 'de' : 'sur',
+                meals: copy.meals,
+                accommodation: copy.accommodation,
+                activities: copy.activities,
+              }}
+            />
+          </div>
+        )}
+
+        {(product.includes?.length > 0 || product.notIncludes?.length > 0) && (
+          <div>
+            <h2 class="pkg-section-title">{copy.includesTitle}</h2>
+            <div class="pkg-inclusions">
+              {product.includes && product.includes.length > 0 && (
+                <div class="pkg-incl-col">
+                  <h3>{copy.includes}</h3>
+                  <ul>
+                    {product.includes.map((item) => (
+                      <li>
+                        <span class="pkg-check" aria-hidden="true">✓</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {product.notIncludes && product.notIncludes.length > 0 && (
+                <div class="pkg-incl-col pkg-incl-col--no">
+                  <h3>{copy.notIncludes}</h3>
+                  <ul>
+                    {product.notIncludes.map((item) => (
+                      <li>
+                        <span class="pkg-dash" aria-hidden="true">—</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {product.recommendations && product.recommendations.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">{copy.recommendations}</h2>
+            <ul class="pkg-recs">
+              {product.recommendations.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {product.importantNotes && product.importantNotes.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">{copy.importantNotes}</h2>
+            <ul class="pkg-recs">
+              {product.importantNotes.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {product.faqs && product.faqs.length > 0 && (
+          <div>
+            <h2 class="pkg-section-title">{copy.faqs}</h2>
+            <div class="pkg-faqs">
+              {product.faqs.map((faq) => (
+                <details class="pkg-faq">
+                  <summary>{faq.question}</summary>
+                  <p>{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside class="pkg-sidebar" aria-label="Quote and details">
+        <div class="pkg-quote">
+
+          <div class="pkg-quote__price">
+            <span class="pkg-quote__from">{copy.from}</span>
+            {product.priceFrom ? (
+              <strong class="pkg-quote__amount">
+                {product.currency} {product.priceFrom.toLocaleString()}
+              </strong>
+            ) : (
+              <strong class="pkg-quote__amount pkg-quote__amount--consult">
+                {copy.consult}
+              </strong>
+            )}
+            <span class="pkg-quote__per">{copy.perPerson}</span>
+          </div>
+
+          <dl class="pkg-quote__details">
+            <span class="pkg-quote__dt">{copy.duration}</span>
+            <span class="pkg-quote__dd">{product.durationText}</span>
+
+            {product.destinations?.length > 0 && (
+              <>
+                <span class="pkg-quote__dt">{copy.destinations}</span>
+                <span class="pkg-quote__dd">{product.destinations.join(' · ')}</span>
+              </>
+            )}
+
+            {product.places?.length > 0 && (
+              <>
+                <span class="pkg-quote__dt">{copy.places}</span>
+                <span class="pkg-quote__dd">{product.places.join(' · ')}</span>
+              </>
+            )}
+
+            {product.categories?.length > 0 && (
+              <>
+                <span class="pkg-quote__dt">{copy.style}</span>
+                <span class="pkg-quote__dd">{product.categories.join(', ')}</span>
+              </>
+            )}
+          </dl>
+
+          {promotions.length > 0 && (
+            <div class="pkg-sidebar-promos">
+              <div class="pkg-sidebar-promos__header">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <span>{copy.activeOffer}</span>
+              </div>
+
+              {promotions.map((promo) => {
+                const discount =
+                  promo.discountValue && promo.discountType === 'percentage'
+                    ? `${promo.discountValue}% OFF`
+                    : promo.discountValue && promo.discountType === 'fixed'
+                      ? `${product.currency} ${promo.discountValue} OFF`
+                      : null;
+                const badge = promo.customBadge || promo.badgeText || '';
+                const expiresLabel = promo.endDate
+                  ? `${copy.validUntil} ${new Date(promo.endDate).toLocaleDateString(copy.dateLocale, { day: 'numeric', month: 'long' })}`
+                  : null;
+
+                return (
+                  <div class="pkg-sidebar-promo-card">
+                    {(discount || badge) && (
+                      <div class="pkg-sidebar-promo-card__top">
+                        {discount && <span class="pkg-sidebar-promo-card__discount">{discount}</span>}
+                        {badge && <span class="pkg-sidebar-promo-card__badge">{badge}</span>}
+                      </div>
+                    )}
+                    <p class="pkg-sidebar-promo-card__title">{promo.title}</p>
+                    {promo.subtitle && <p class="pkg-sidebar-promo-card__sub">{promo.subtitle}</p>}
+                    {promo.notes && <p class="pkg-sidebar-promo-card__notes">{promo.notes}</p>}
+                    {expiresLabel && (
+                      <p class="pkg-sidebar-promo-card__expires">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {expiresLabel}
+                      </p>
+                    )}
+                    <a href={copy.contactHref} class="pkg-sidebar-promo-card__cta">
+                      {copy.takeOffer} <span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div class="pkg-quote__actions">
+            <a href={copy.contactHref} class="pkg-quote__btn pkg-quote__btn--primary">
+              {copy.quote}
+            </a>
+            <a href={waUrl1} class="pkg-quote__btn pkg-quote__btn--wa" target="_blank" rel="noopener noreferrer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.541 5.875L.057 23.428a.5.5 0 0 0 .61.61l5.553-1.484A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.872 9.872 0 0 1-5.031-1.378l-.36-.214-3.733.998 1.011-3.695-.235-.38A9.836 9.836 0 0 1 2.118 12C2.118 6.533 6.533 2.118 12 2.118S21.882 6.533 21.882 12 17.467 21.882 12 21.882z"/></svg>
+              WhatsApp · 978 388 196
+            </a>
+          </div>
+
+          <p class="pkg-quote__note">{copy.noAdvisory}</p>
+
+        </div>
+      </aside>
+
+    </div>
+  </section>
+
+  <!-- RELATED -->
+  {related.length > 0 && (
+    <section class="pkg-related" aria-label="Related tours">
+      <div class="container">
+        <div class="pkg-related__head">
+          <span class="pkg-related__eyebrow">{copy.relatedEyebrow}</span>
+          <h2 class="pkg-related__title">{copy.relatedTitle}</h2>
+          <p class="pkg-related__subtitle">{copy.relatedSubtitle}</p>
+        </div>
+
+        <div class="pkg-related__carousel" data-carousel="related">
+          <button class="pkg-related-nav pkg-related-nav--prev" aria-label="Previous" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="pkg-related__grid">
+            {related.map((item) => (
+              <div class="pkg-related__item">
+                <ProductCard product={item} />
+              </div>
+            ))}
+          </div>
+          <button class="pkg-related-nav pkg-related-nav--next" aria-label="Next" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <div class="pkg-related-footer" aria-hidden="true">
+            <div class="pkg-related-track"><div class="pkg-related-fill"></div></div>
+            <span class="pkg-related-count"></span>
+          </div>
         </div>
       </div>
     </section>
   )}
+
+  <script is:inline>
+    (() => {
+      document.querySelectorAll('[data-carousel="related"]').forEach((carousel) => {
+        const track = carousel.querySelector('.pkg-related__grid');
+        const prevBtn = carousel.querySelector('.pkg-related-nav--prev');
+        const nextBtn = carousel.querySelector('.pkg-related-nav--next');
+        const fill = carousel.querySelector('.pkg-related-fill');
+        const countEl = carousel.querySelector('.pkg-related-count');
+        const items = carousel.querySelectorAll('.pkg-related__item');
+        if (!track || !items.length) return;
+        const getItemWidth = () => {
+          const item = items[0];
+          if (!item) return 300;
+          const gap = parseInt(getComputedStyle(track).gap) || 22;
+          return item.offsetWidth + gap;
+        };
+        const update = () => {
+          const maxScroll = track.scrollWidth - track.clientWidth;
+          if (prevBtn) prevBtn.disabled = track.scrollLeft < 4;
+          if (nextBtn) nextBtn.disabled = track.scrollLeft >= maxScroll - 4;
+          if (fill) {
+            const pct = maxScroll <= 0 ? 100 : (track.scrollLeft / maxScroll) * 100;
+            fill.style.width = `${Math.max(8, Math.min(100, pct))}%`;
+          }
+          if (countEl) {
+            const w = getItemWidth();
+            const idx = w > 0 ? Math.round(track.scrollLeft / w) + 1 : 1;
+            countEl.textContent = `${Math.min(idx, items.length)} / ${items.length}`;
+          }
+        };
+        const checkScrollable = () => {
+          carousel.toggleAttribute('data-scrollable', track.scrollWidth > track.clientWidth + 8);
+          update();
+        };
+        prevBtn?.addEventListener('click', () => track.scrollBy({ left: -getItemWidth(), behavior: 'smooth' }));
+        nextBtn?.addEventListener('click', () => track.scrollBy({ left: getItemWidth(), behavior: 'smooth' }));
+        track.addEventListener('scroll', update, { passive: true });
+        let isDragging = false, startX = 0, startScroll = 0;
+        track.addEventListener('mousedown', (e) => { isDragging = true; startX = e.pageX - track.offsetLeft; startScroll = track.scrollLeft; track.classList.add('is-dragging'); });
+        window.addEventListener('mousemove', (e) => { if (!isDragging) return; e.preventDefault(); track.scrollLeft = startScroll - (e.pageX - track.offsetLeft - startX); });
+        window.addEventListener('mouseup', () => { isDragging = false; track.classList.remove('is-dragging'); });
+        checkScrollable();
+        if ('ResizeObserver' in window) new ResizeObserver(checkScrollable).observe(track);
+        countEl && (countEl.textContent = `1 / ${items.length}`);
+      });
+    })();
+  </script>
+
 </BaseLayout>
-
-<style lang="scss">
-  .detail-layout {
-    display: grid;
-    grid-template-columns: 1fr 330px;
-    gap: 34px;
-    align-items: start;
-  }
-
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 42px;
-  }
-
-  .summary-grid div,
-  .list-card,
-  .quote-card {
-    background: white;
-    border: 1px solid rgba(90, 62, 43, .12);
-    border-radius: var(--radius-md);
-    padding: 20px;
-    box-shadow: 0 10px 32px rgba(37, 37, 37, .06);
-  }
-
-  .summary-grid b {
-    display: block;
-    color: var(--color-earth);
-  }
-
-  .small {
-    font-size: 2.4rem;
-    margin-bottom: 20px;
-  }
-
-  .timeline {
-    border-left: 2px solid var(--color-sand);
-    padding-left: 22px;
-  }
-
-  .timeline details {
-    background: white;
-    border-radius: 18px;
-    margin: 14px 0;
-    padding: 18px;
-    border: 1px solid rgba(90, 62, 43, .12);
-  }
-
-  .timeline summary {
-    cursor: pointer;
-    font-weight: 800;
-    color: var(--color-earth);
-  }
-
-  .timeline summary span {
-    color: var(--color-green);
-    margin-right: 12px;
-  }
-
-  .two-cols {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
-  }
-
-  .quote-card {
-    position: sticky;
-    top: 130px;
-  }
-
-  .quote-card strong {
-    display: block;
-    font-family: var(--font-display);
-    font-size: 3rem;
-    color: var(--color-earth);
-    line-height: 1;
-  }
-
-  .quote-card .btn {
-    width: 100%;
-    margin-top: 12px;
-  }
-
-  @media(max-width: 900px) {
-    .detail-layout,
-    .two-cols {
-      grid-template-columns: 1fr;
-    }
-
-    .summary-grid {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .quote-card {
-      position: static;
-    }
-  }
-
-  @media(max-width: 600px) {
-    .summary-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>

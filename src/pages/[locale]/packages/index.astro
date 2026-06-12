@@ -1,10 +1,12 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
-import { getPackages } from '@/lib/content';
+import LucideIcon from '@/components/cards/LucideIcon.astro';
+import { getPackages, getTravelCategories } from '@/lib/content';
+import { getSiteSettings } from '@/lib/settings';
 import { isLocale, type Locale } from '@/lib/i18n';
+import { site } from '@/lib/site';
+import '../../paquetes/PackageIndex.scss';
 
 export const prerender = false;
 
@@ -16,66 +18,190 @@ if (!isLocale(localeParam)) {
 
 const locale = localeParam as Locale;
 
-const packages = await getPackages(locale);
+const [allPackages, allCategories, settings] = await Promise.all([
+  getPackages(locale),
+  getTravelCategories(),
+  getSiteSettings(['paquetes_hero_video']),
+]);
+
+const heroVideo = settings['paquetes_hero_video'] || '';
+
+/* Hero con imágenes reales de los paquetes */
+const featuredHeroPackage =
+  allPackages.find((pkg) => pkg.featured) || allPackages[0] || null;
+
+const heroImage =
+  featuredHeroPackage?.heroImage ||
+  featuredHeroPackage?.cardImage ||
+  '/images/packages-hero.jpg';
+
+const customCtaImage = allPackages[1]?.heroImage || heroImage;
+
+function normalizeStr(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+}
+
+const activeCategorySlugs = new Set(allPackages.flatMap((p) => p.categorySlugs || []));
+const activeCategories = allCategories.filter((cat) => activeCategorySlugs.has(cat.slug));
+const uniqueDestinations = new Set(allPackages.flatMap((p) => p.destinations || []));
+
+const baseMarquee =
+  uniqueDestinations.size >= 5
+    ? Array.from(uniqueDestinations)
+    : ['Cusco', 'Machu Picchu', 'Lago Titicaca', 'Arequipa', 'Lima', 'Nazca', 'Iquitos', 'Valle Sagrado', 'Cañón del Colca', 'Huaraz', 'Paracas', 'Trujillo'];
+const marqueeItems = [...baseMarquee, ...baseMarquee];
+const marqueeDuration = `${Math.max(32, baseMarquee.length * 4)}s`;
+
+const categoryGroups = activeCategories
+  .map((cat) => ({
+    ...cat,
+    packages: allPackages.filter((pkg) => {
+      const slugMatch = pkg.categorySlugs?.some((s) => normalizeStr(s) === normalizeStr(cat.slug));
+      const nameMatch = (pkg as { categories?: string[] }).categories?.some(
+        (c) => normalizeStr(c) === normalizeStr(cat.name)
+      );
+      return slugMatch || nameMatch;
+    }),
+  }))
+  .filter((g) => g.packages.length > 0);
 
 const copyByLocale = {
   en: {
     pageTitle: 'Travel packages in Peru | Nuna Terra Perú',
-    eyebrow: 'Travel packages in Peru',
-    title: 'Travel packages in Peru',
-    subtitle:
-      'Multi-day experiences designed to discover Peru’s coast, Andes and Amazon with organization, guidance and meaning.',
-    primaryText: 'View featured packages',
-    secondaryText: 'Design my trip',
-    catalogTitle: 'Choose your next experience',
-    catalogSubtitle:
-      'Filter by region, duration or travel style. These packages are loaded from Supabase; if the database is still empty, sample data will be shown.',
-    all: 'All',
-    coast: 'Coast',
-    andes: 'Andes',
-    amazon: 'Amazon',
-    family: 'Family',
-    premium: 'Premium',
+    pageDescription: 'Multi-day itineraries to discover the coast, Andes and Amazon with guides, accommodation and logistics included.',
+    heroAlt: 'Machu Picchu at dawn among clouds',
+    heroEyebrow: 'Travel packages',
+    heroTitle: 'Peru in\ndepth',
+    heroTitleEm: 'depth',
+    heroSubtitle: 'Multi-day itineraries with accommodation, local guide and complete logistics. For those who want to go beyond the surface.',
+    heroBtn: 'View packages',
+    heroWhatsapp: 'Ask on WhatsApp ↗',
+    statPackages: 'Packages available',
+    statDestinations: 'Destinations',
+    statStyles: 'Travel styles',
+    statDuration: 'Nights duration',
+    statGroup: 'People per group',
+    catalogEyebrow: 'Full catalogue',
+    catalogTitle: 'Find your journey',
+    catalogSubtitle: 'Each travel style has its own pace. Choose the experience that identifies you most and discover available itineraries.',
+    travelStyle: 'Travel style',
+    available: (n: number) => n === 1 ? '1 package available' : `${n} packages available`,
+    prevPkg: 'Previous package',
+    nextPkg: 'Next package',
+    emptyTitle: 'Catalogue in preparation',
+    emptyText: 'We will soon have packages available. Contact us to design your itinerary.',
+    processEyebrow: 'Simple by design',
+    processTitle: 'How it works',
+    steps: [
+      { num: '01', icon: 'search', title: 'Discover your itinerary', description: 'Explore the catalogue by travel style and duration. From 4-night circuits to two-week expeditions.' },
+      { num: '02', icon: 'message-circle', title: 'Coordinate the details', description: 'A Nuna Terra advisor responds within 24 h to confirm dates, adjust the group and customize stops.' },
+      { num: '03', icon: 'map', title: 'Live the journey', description: 'Local guides, carefully chosen accommodation and full logistics. You just enjoy — we handle the rest.' },
+    ],
+    trustEyebrow: 'Why choose us',
+    trustTitle: 'Every detail has a reason',
+    trustItems: [
+      { icon: 'compass', title: 'Itineraries with soul', description: "We don't build generic packages. Each route was designed by someone who knows the destination first-hand, with stops that appear in no guidebook." },
+      { icon: 'shield', title: 'All-inclusive price', description: 'Transport, accommodation, guide and entrances: everything is detailed before booking. No surprise charges upon arrival.' },
+      { icon: 'users', title: 'Small groups', description: 'Maximum 12 people per departure. More personal, more flexible trips with greater access to off-the-beaten-track experiences.' },
+      { icon: 'clock', title: 'Stress-free logistics', description: 'We coordinate transfers, lodging and special permits. If something changes en route, our team resolves it on the spot.' },
+    ],
+    customEyebrow: 'Custom itinerary',
+    customTitle: "Can't find\nwhat you're looking for?",
+    customSubtitle: "We design your itinerary from scratch according to your days, interests and group size. A Nuna Terra advisor works with you until the trip is exactly what you imagine.",
+    customBtn: 'Design my itinerary',
+    customWhatsapp: 'Chat on WhatsApp ↗',
     contactHref: '/en/contact',
   },
-
   pt: {
     pageTitle: 'Pacotes turísticos pelo Peru | Nuna Terra Perú',
-    eyebrow: 'Pacotes turísticos pelo Peru',
-    title: 'Pacotes turísticos pelo Peru',
-    subtitle:
-      'Experiências de vários dias para descobrir a costa, a serra e a selva do Peru com organização, acompanhamento e sentido.',
-    primaryText: 'Ver pacotes em destaque',
-    secondaryText: 'Desenhar minha viagem',
-    catalogTitle: 'Escolha sua próxima experiência',
-    catalogSubtitle:
-      'Filtre por região, duração ou estilo de viagem. Estes pacotes são carregados do Supabase; se a base ainda estiver vazia, serão exibidos dados de exemplo.',
-    all: 'Todos',
-    coast: 'Costa',
-    andes: 'Serra',
-    amazon: 'Selva',
-    family: 'Familiar',
-    premium: 'Premium',
+    pageDescription: 'Itinerários de vários dias para descobrir a costa, a serra e a selva do Peru com guias, hospedagem e logística incluídos.',
+    heroAlt: 'Machu Picchu ao amanhecer entre nuvens',
+    heroEyebrow: 'Pacotes turísticos',
+    heroTitle: 'O Peru em\nprofundidade',
+    heroTitleEm: 'profundidade',
+    heroSubtitle: 'Itinerários de vários dias com hospedagem, guia local e logística completa. Para quem quer ir além da superfície.',
+    heroBtn: 'Ver pacotes',
+    heroWhatsapp: 'Consultar pelo WhatsApp ↗',
+    statPackages: 'Pacotes disponíveis',
+    statDestinations: 'Destinos',
+    statStyles: 'Estilos de viagem',
+    statDuration: 'Noites de duração',
+    statGroup: 'Pessoas por grupo',
+    catalogEyebrow: 'Catálogo completo',
+    catalogTitle: 'Encontre sua viagem',
+    catalogSubtitle: 'Cada estilo de viagem tem seu próprio ritmo. Escolha a experiência que mais te identifica e descubra os itinerários disponíveis.',
+    travelStyle: 'Estilo de viagem',
+    available: (n: number) => n === 1 ? '1 pacote disponível' : `${n} pacotes disponíveis`,
+    prevPkg: 'Pacote anterior',
+    nextPkg: 'Próximo pacote',
+    emptyTitle: 'Catálogo em preparação',
+    emptyText: 'Em breve teremos pacotes disponíveis. Entre em contato para criar seu itinerário.',
+    processEyebrow: 'Simples por design',
+    processTitle: 'Como funciona',
+    steps: [
+      { num: '01', icon: 'search', title: 'Descubra seu itinerário', description: 'Explore o catálogo por estilo de viagem e duração. De circuitos de 4 noites a expedições de duas semanas.' },
+      { num: '02', icon: 'message-circle', title: 'Coordene os detalhes', description: 'Um consultor da Nuna Terra responde em menos de 24 h para confirmar datas, ajustar o grupo e personalizar paradas.' },
+      { num: '03', icon: 'map', title: 'Viva a viagem', description: 'Guias locais, hospedagens cuidadas e logística completa. Você só aproveita — nós cuidamos do resto.' },
+    ],
+    trustEyebrow: 'Por que nos escolher',
+    trustTitle: 'Cada detalhe tem uma razão',
+    trustItems: [
+      { icon: 'compass', title: 'Itinerários com alma', description: 'Não criamos pacotes genéricos. Cada rota foi desenhada por alguém que conhece o destino de primeira mão, com paradas que não aparecem em nenhum guia.' },
+      { icon: 'shield', title: 'Preço tudo incluído', description: 'Transporte, hospedagem, guia e entradas: tudo está detalhado antes de reservar. Sem cobranças surpresa na chegada.' },
+      { icon: 'users', title: 'Grupos reduzidos', description: 'Máximo 12 pessoas por saída. Viagens mais pessoais, mais flexíveis e com maior acesso a experiências fora da rota.' },
+      { icon: 'clock', title: 'Logística sem estresse', description: 'Coordenamos traslados, hospedagens e permissões especiais. Se algo mudar no percurso, nossa equipe resolve na hora.' },
+    ],
+    customEyebrow: 'Itinerário personalizado',
+    customTitle: 'Não encontrou\no que procura?',
+    customSubtitle: 'Criamos seu itinerário do zero de acordo com seus dias, interesses e tamanho do grupo. Um consultor da Nuna Terra trabalha com você até que a viagem seja exatamente o que imagina.',
+    customBtn: 'Criar meu itinerário',
+    customWhatsapp: 'Falar pelo WhatsApp ↗',
     contactHref: '/pt/contact',
   },
-
   fr: {
     pageTitle: 'Forfaits touristiques au Pérou | Nuna Terra Perú',
-    eyebrow: 'Forfaits touristiques au Pérou',
-    title: 'Forfaits touristiques au Pérou',
-    subtitle:
-      'Des expériences de plusieurs jours pour découvrir la côte, les Andes et l’Amazonie du Pérou avec organisation, accompagnement et sens.',
-    primaryText: 'Voir les forfaits en vedette',
-    secondaryText: 'Créer mon voyage',
-    catalogTitle: 'Choisissez votre prochaine expérience',
-    catalogSubtitle:
-      'Filtrez par région, durée ou style de voyage. Ces forfaits sont chargés depuis Supabase; si la base est encore vide, des données d’exemple seront affichées.',
-    all: 'Tous',
-    coast: 'Côte',
-    andes: 'Andes',
-    amazon: 'Amazonie',
-    family: 'Famille',
-    premium: 'Premium',
+    pageDescription: "Des itinéraires de plusieurs jours pour découvrir la côte, les Andes et l'Amazonie avec guides, hébergement et logistique inclus.",
+    heroAlt: "Le Machu Picchu à l'aube dans les nuages",
+    heroEyebrow: 'Forfaits touristiques',
+    heroTitle: 'Le Pérou en\nprofondeur',
+    heroTitleEm: 'profondeur',
+    heroSubtitle: "Des itinéraires de plusieurs jours avec hébergement, guide local et logistique complète. Pour ceux qui veulent aller au-delà de la surface.",
+    heroBtn: 'Voir les forfaits',
+    heroWhatsapp: 'Consulter sur WhatsApp ↗',
+    statPackages: 'Forfaits disponibles',
+    statDestinations: 'Destinations',
+    statStyles: 'Styles de voyage',
+    statDuration: 'Nuits de durée',
+    statGroup: 'Personnes par groupe',
+    catalogEyebrow: 'Catalogue complet',
+    catalogTitle: 'Trouvez votre voyage',
+    catalogSubtitle: `Chaque style de voyage a son propre rythme. Choisissez l'expérience qui vous correspond et découvrez les itinéraires disponibles.`,
+    travelStyle: 'Style de voyage',
+    available: (n: number) => n === 1 ? '1 forfait disponible' : `${n} forfaits disponibles`,
+    prevPkg: 'Forfait précédent',
+    nextPkg: 'Forfait suivant',
+    emptyTitle: 'Catalogue en préparation',
+    emptyText: 'Nous aurons bientôt des forfaits disponibles. Contactez-nous pour concevoir votre itinéraire.',
+    processEyebrow: 'Simple par conception',
+    processTitle: 'Comment ça fonctionne',
+    steps: [
+      { num: '01', icon: 'search', title: 'Découvrez votre itinéraire', description: 'Explorez le catalogue par style de voyage et durée. Des circuits de 4 nuits aux expéditions de deux semaines.' },
+      { num: '02', icon: 'message-circle', title: 'Coordonnez les détails', description: 'Un conseiller Nuna Terra vous répond en moins de 24 h pour confirmer les dates, ajuster le groupe et personnaliser les étapes.' },
+      { num: '03', icon: 'map', title: 'Vivez le voyage', description: 'Guides locaux, hébergements soigneusement choisis et logistique complète. Vous profitez — nous nous occupons du reste.' },
+    ],
+    trustEyebrow: 'Pourquoi nous choisir',
+    trustTitle: 'Chaque détail a une raison',
+    trustItems: [
+      { icon: 'compass', title: 'Itinéraires avec âme', description: "Nous ne construisons pas de forfaits génériques. Chaque itinéraire a été conçu par quelqu'un qui connaît la destination de première main, avec des étapes qui n'apparaissent dans aucun guide." },
+      { icon: 'shield', title: 'Prix tout compris', description: "Transport, hébergement, guide et entrées : tout est détaillé avant la réservation. Aucun frais surprise à l'arrivée." },
+      { icon: 'users', title: 'Petits groupes', description: "Maximum 12 personnes par départ. Des voyages plus personnels, plus flexibles et avec un meilleur accès aux expériences hors des sentiers battus." },
+      { icon: 'clock', title: 'Logistique sans stress', description: "Nous coordonnons les transferts, les hébergements et les permis spéciaux. Si quelque chose change en cours de route, notre équipe le règle sur le moment." },
+    ],
+    customEyebrow: 'Itinéraire sur mesure',
+    customTitle: "Vous ne trouvez pas\nce que vous cherchez ?",
+    customSubtitle: "Nous concevons votre itinéraire de A à Z selon vos jours, vos intérêts et la taille de votre groupe. Un conseiller Nuna Terra travaille avec vous jusqu'à ce que le voyage soit exactement ce que vous imaginez.",
+    customBtn: 'Concevoir mon itinéraire',
+    customWhatsapp: 'Parler sur WhatsApp ↗',
     contactHref: '/fr/contact',
   },
 };
@@ -83,63 +209,326 @@ const copyByLocale = {
 const copy = copyByLocale[locale];
 ---
 
-<BaseLayout title={copy.pageTitle} description={copy.subtitle}>
-  <Hero
-    eyebrow={copy.eyebrow}
-    title={copy.title}
-    subtitle={copy.subtitle}
-    image="/images/packages-hero.jpg"
-    primaryText={copy.primaryText}
-    primaryHref="#catalog"
-    secondaryText={copy.secondaryText}
-    secondaryHref={copy.contactHref}
-  />
+<BaseLayout title={copy.pageTitle} description={copy.pageDescription}>
 
-  <section class="section" id="catalog">
-    <div class="container">
-      <SectionHeading
-        title={copy.catalogTitle}
-        subtitle={copy.catalogSubtitle}
-      />
+  <!-- HERO -->
+  <section class="pri-hero" aria-label={copy.heroEyebrow}>
+    {heroVideo ? (
+      <video class="pri-hero__bg" data-deferred-video={heroVideo} preload="none" muted loop playsinline poster={heroImage} />
+    ) : (
+      <img class="pri-hero__bg" src={heroImage} alt={featuredHeroPackage?.title || copy.heroAlt} loading="eager" fetchpriority="high" decoding="async" />
+    )}
+    <div class="pri-hero__overlay" aria-hidden="true"></div>
 
-      <div class="filters">
-        <button>{copy.all}</button>
-        <button>{copy.coast}</button>
-        <button>{copy.andes}</button>
-        <button>{copy.amazon}</button>
-        <button>{copy.family}</button>
-        <button>{copy.premium}</button>
+    <div class="container pri-hero__content">
+      <p class="pri-hero__eyebrow">
+        <span class="pri-hero__dot" aria-hidden="true"></span>
+        {copy.heroEyebrow}
+      </p>
+      <h1 class="pri-hero__title" set:html={copy.heroTitle.replace(copy.heroTitleEm, `<em>${copy.heroTitleEm}</em>`).replace('\n', '<br />')} />
+      <p class="pri-hero__subtitle">{copy.heroSubtitle}</p>
+      <div class="pri-hero__actions">
+        <a href="#catalogo" class="pri-hero__btn pri-hero__btn--primary">{copy.heroBtn}</a>
+        <a href={site.whatsappUrl} class="pri-hero__btn pri-hero__btn--ghost" target="_blank" rel="noopener noreferrer">{copy.heroWhatsapp}</a>
       </div>
+    </div>
 
-      <div class="grid grid--3">
-        {packages.map((product) => (
-          <ProductCard product={product} />
+    <div class="pri-hero__scroll" aria-hidden="true">
+      <span class="pri-hero__scroll-line"></span>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="pri-marquee" aria-hidden="true">
+    <div class="pri-marquee__track" style={`--duration: ${marqueeDuration}`}>
+      {marqueeItems.map((dest) => (
+        <>
+          <span class="pri-marquee__item">{dest}</span>
+          <span class="pri-marquee__sep">✦</span>
+        </>
+      ))}
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="pri-stats">
+    <div class="container pri-stats__inner">
+      <div class="pri-stat">
+        <strong>{allPackages.length > 0 ? allPackages.length : '12'}</strong>
+        <span>{copy.statPackages}</span>
+      </div>
+      <div class="pri-stat">
+        <strong>{uniqueDestinations.size > 0 ? uniqueDestinations.size : '18'}</strong>
+        <span>{copy.statDestinations}</span>
+      </div>
+      {activeCategories.length > 0 && (
+        <div class="pri-stat">
+          <strong>{activeCategories.length}</strong>
+          <span>{copy.statStyles}</span>
+        </div>
+      )}
+      <div class="pri-stat">
+        <strong>4–14</strong>
+        <span>{copy.statDuration}</span>
+      </div>
+      <div class="pri-stat">
+        <strong>≤12</strong>
+        <span>{copy.statGroup}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATALOG -->
+  <div class="pri-catalog-wrap" id="catalogo">
+    <div class="container">
+      <div class="pri-catalog__head">
+        <div class="pri-catalog__head-left">
+          <p class="pri-catalog__eyebrow">{copy.catalogEyebrow}</p>
+          <h2 class="pri-catalog__title">{copy.catalogTitle}</h2>
+        </div>
+        <p class="pri-catalog__subtitle">{copy.catalogSubtitle}</p>
+      </div>
+    </div>
+
+    {categoryGroups.length > 1 && (
+      <div class="pri-filter-bar">
+        <div class="container">
+          <nav class="pri-filter-pills">
+            {categoryGroups.map((group) => (
+              <a href={`#tcat-section-${group.slug}`} class="pri-filter-pill" data-filter={group.slug}>
+                {group.name}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </div>
+    )}
+
+    {categoryGroups.length > 0 ? (
+      <div class="tcat-list">
+        {categoryGroups.map((group, gi) => (
+          <section class="tcat-section" id={`tcat-section-${group.slug}`} data-section-index={gi} aria-labelledby={`tcat-title-${group.slug}`}>
+            {group.heroImage && (
+              <div class="tcat-section__bg" aria-hidden="true">
+                <img src={group.heroImage} alt="" loading="lazy" />
+              </div>
+            )}
+            <div class="container">
+              <div class="tcat-layout">
+                <div class="tcat-header" data-section-index={gi}>
+                  <div class="tcat-header__meta">
+                    <p class="tcat-intro__eyebrow">{copy.travelStyle}</p>
+                    <div class="tcat-header__name-row">
+                      <div class="tcat-icon-wrap" aria-hidden="true">
+                        <LucideIcon name={group.icon || 'map'} size={22} class="tcat-icon" />
+                      </div>
+                      <h3 class="tcat-name" id={`tcat-title-${group.slug}`}>{group.name}</h3>
+                    </div>
+                    {group.description && <p class="tcat-desc">{group.description}</p>}
+                  </div>
+                  <div class="tcat-count">
+                    <strong class="tcat-count__num">{group.packages.length}</strong>
+                    <span>{copy.available(group.packages.length)}</span>
+                  </div>
+                </div>
+
+                <div class="tcat-carousel-outer" data-carousel-id={group.slug}>
+                  <button class="tcat-nav tcat-nav--prev" aria-label={copy.prevPkg} type="button" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                  </button>
+                  <div class="tcat-tours" id={`pkg-grid-${group.slug}`}>
+                    {group.packages.map((pkg, pi) => (
+                      <div class={`tcat-card-wrap${group.packages.length === 1 ? ' tcat-card-wrap--wide' : ''}`} data-card-i={pi}>
+                        <ProductCard product={pkg} />
+                      </div>
+                    ))}
+                  </div>
+                  <button class="tcat-nav tcat-nav--next" aria-label={copy.nextPkg} type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                  </button>
+                  <div class="tcat-progress" aria-hidden="true">
+                    <div class="tcat-progress__track"><div class="tcat-progress__fill"></div></div>
+                    <span class="tcat-progress__count"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <div class="container">
+        <div class="pri-empty">
+          <div class="pri-empty__icon" aria-hidden="true">⌖</div>
+          <h3 class="pri-empty__title">{copy.emptyTitle}</h3>
+          <p class="pri-empty__text">{copy.emptyText}</p>
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="pri-process" aria-labelledby="pri-process-title">
+    <div class="container">
+      <div class="pri-process__head">
+        <p class="pri-process__eyebrow">{copy.processEyebrow}</p>
+        <h2 class="pri-process__title" id="pri-process-title">{copy.processTitle}</h2>
+      </div>
+      <div class="pri-process__steps">
+        {copy.steps.map((step, i) => (
+          <div class="pri-step reveal-item" data-delay={i * 110}>
+            <div class="pri-step__num" aria-hidden="true">{step.num}</div>
+            <div class="pri-step__icon-wrap" aria-hidden="true">
+              <LucideIcon name={step.icon} size={22} class="pri-step__icon" />
+            </div>
+            <h3 class="pri-step__title">{step.title}</h3>
+            <p class="pri-step__desc">{step.description}</p>
+            {i < copy.steps.length - 1 && (
+              <div class="pri-step__connector" aria-hidden="true">
+                <span class="pri-step__connector-arrow">→</span>
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>
   </section>
+
+  <!-- WHY NUNA TERRA -->
+  <section class="pri-trust" aria-labelledby="pri-trust-title">
+    <div class="container">
+      <div class="pri-trust__head">
+        <p class="pri-trust__eyebrow">{copy.trustEyebrow}</p>
+        <h2 class="pri-trust__title" id="pri-trust-title">{copy.trustTitle}</h2>
+      </div>
+      <div class="pri-trust__grid">
+        {copy.trustItems.map((item, i) => (
+          <div class="pri-trust-item reveal-item" data-delay={i * 80}>
+            <div class="pri-trust-item__icon-wrap" aria-hidden="true">
+              <LucideIcon name={item.icon} size={20} class="pri-trust-item__icon" />
+            </div>
+            <h3 class="pri-trust-item__title">{item.title}</h3>
+            <p class="pri-trust-item__desc">{item.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CUSTOM CTA -->
+  <section class="pri-custom" aria-labelledby="pri-custom-title">
+    <div class="pri-custom__bg" aria-hidden="true">
+      <img src={customCtaImage} alt="" loading="lazy" decoding="async" />
+    </div>
+    <div class="pri-custom__overlay" aria-hidden="true"></div>
+    <div class="container pri-custom__content">
+      <p class="pri-custom__eyebrow">{copy.customEyebrow}</p>
+      <h2 class="pri-custom__title" id="pri-custom-title" set:html={copy.customTitle.replace('\n', '<br />')} />
+      <p class="pri-custom__subtitle">{copy.customSubtitle}</p>
+      <div class="pri-custom__actions">
+        <a href={copy.contactHref} class="pri-custom__btn pri-custom__btn--primary">{copy.customBtn}</a>
+        <a href={site.whatsappUrl} class="pri-custom__btn pri-custom__btn--ghost" target="_blank" rel="noopener noreferrer">{copy.customWhatsapp}</a>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (() => {
+      document.querySelectorAll('.tcat-tours').forEach((grid) => {
+        grid.querySelectorAll('.tcat-card-wrap').forEach((card, i) => {
+          card.style.setProperty('--card-delay', `${i * 100}ms`);
+        });
+      });
+
+      if ('IntersectionObserver' in window) {
+        const sectionObserver = new IntersectionObserver(
+          (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { const el = entry.target; const delay = parseInt(el.dataset.delay || '0', 10); setTimeout(() => el.classList.add('is-visible'), delay); sectionObserver.unobserve(el); } }); },
+          { threshold: 0.06, rootMargin: '0px 0px -20px 0px' }
+        );
+        document.querySelectorAll('.reveal-item').forEach((el) => sectionObserver.observe(el));
+
+        const introObserver = new IntersectionObserver(
+          (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); introObserver.unobserve(entry.target); } }); },
+          { threshold: 0.12 }
+        );
+        document.querySelectorAll('.tcat-header').forEach((el) => introObserver.observe(el));
+
+        const cardObserver = new IntersectionObserver(
+          (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-card-visible'); cardObserver.unobserve(entry.target); } }); },
+          { threshold: 0.04, rootMargin: '0px 0px -24px 0px' }
+        );
+        document.querySelectorAll('.tcat-card-wrap').forEach((card) => cardObserver.observe(card));
+      } else {
+        document.querySelectorAll('.reveal-item').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-header').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-card-wrap').forEach((card) => card.classList.add('is-card-visible'));
+      }
+
+      const filterBar = document.querySelector('.pri-filter-bar');
+      if (filterBar) {
+        const sentinel = document.createElement('div');
+        sentinel.style.cssText = 'height:1px;pointer-events:none;position:absolute;top:0;left:0;right:0;';
+        filterBar.parentElement.style.position = 'relative';
+        filterBar.parentElement.insertBefore(sentinel, filterBar);
+        new IntersectionObserver(([e]) => filterBar.classList.toggle('is-stuck', !e.isIntersecting), { threshold: 1 }).observe(sentinel);
+
+        const pills = document.querySelectorAll('.pri-filter-pill');
+        const sections = document.querySelectorAll('.tcat-section[id]');
+        sections.forEach((s) => {
+          new IntersectionObserver(([e]) => {
+            if (e.isIntersecting) { const id = e.target.id; pills.forEach((p) => { p.classList.toggle('is-active', p.getAttribute('href') === `#${id}`); }); }
+          }, { threshold: 0.35, rootMargin: '-10% 0px -55% 0px' }).observe(s);
+        });
+      }
+
+      document.querySelectorAll('.tcat-carousel-outer').forEach((outer) => {
+        const track = outer.querySelector('.tcat-tours');
+        const prevBtn = outer.querySelector('.tcat-nav--prev');
+        const nextBtn = outer.querySelector('.tcat-nav--next');
+        const fill = outer.querySelector('.tcat-progress__fill');
+        const countEl = outer.querySelector('.tcat-progress__count');
+        const cards = outer.querySelectorAll('.tcat-card-wrap');
+        if (!track || !cards.length) return;
+        const getCardWidth = () => { const c = cards[0]; if (!c) return 300; const gap = parseInt(getComputedStyle(track).gap) || 20; return c.offsetWidth + gap; };
+        const update = () => {
+          const maxScroll = track.scrollWidth - track.clientWidth;
+          if (prevBtn) prevBtn.disabled = track.scrollLeft < 4;
+          if (nextBtn) nextBtn.disabled = track.scrollLeft >= maxScroll - 4;
+          if (fill) { const pct = maxScroll <= 0 ? 100 : (track.scrollLeft / maxScroll) * 100; fill.style.width = `${Math.max(8, Math.min(100, pct))}%`; }
+          if (countEl) { const w = getCardWidth(); const idx = w > 0 ? Math.round(track.scrollLeft / w) + 1 : 1; countEl.textContent = `${Math.min(idx, cards.length)} / ${cards.length}`; }
+        };
+        const checkScrollable = () => { outer.toggleAttribute('data-scrollable', track.scrollWidth > track.clientWidth + 8); update(); };
+        prevBtn?.addEventListener('click', () => track.scrollBy({ left: -getCardWidth(), behavior: 'smooth' }));
+        nextBtn?.addEventListener('click', () => track.scrollBy({ left: getCardWidth(), behavior: 'smooth' }));
+        track.addEventListener('scroll', update, { passive: true });
+        let isDragging = false, startX = 0, startScroll = 0;
+        track.addEventListener('mousedown', (e) => { isDragging = true; startX = e.pageX - track.offsetLeft; startScroll = track.scrollLeft; track.classList.add('is-dragging'); });
+        window.addEventListener('mousemove', (e) => { if (!isDragging) return; e.preventDefault(); track.scrollLeft = startScroll - (e.pageX - track.offsetLeft - startX); });
+        window.addEventListener('mouseup', () => { isDragging = false; track.classList.remove('is-dragging'); });
+        checkScrollable();
+        if ('ResizeObserver' in window) new ResizeObserver(checkScrollable).observe(track);
+        countEl && (countEl.textContent = `1 / ${cards.length}`);
+
+        let autoTimer = null;
+        const autoAdvance = () => { const maxScroll = track.scrollWidth - track.clientWidth; if (maxScroll <= 0) return; if (track.scrollLeft >= maxScroll - 4) { track.scrollTo({ left: 0, behavior: 'smooth' }); } else { track.scrollBy({ left: getCardWidth(), behavior: 'smooth' }); } };
+        const startAuto = () => { if (autoTimer) return; autoTimer = setInterval(autoAdvance, 4500); };
+        const stopAuto = () => { clearInterval(autoTimer); autoTimer = null; };
+        outer.addEventListener('mouseenter', stopAuto);
+        outer.addEventListener('mouseleave', startAuto);
+        outer.addEventListener('touchstart', () => { stopAuto(); setTimeout(startAuto, 6000); }, { passive: true });
+        startAuto();
+      });
+
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const target = document.querySelector(a.getAttribute('href'));
+          if (!target) return;
+          e.preventDefault();
+          const top = target.getBoundingClientRect().top + window.scrollY - 56;
+          window.scrollTo({ top, behavior: 'smooth' });
+        });
+      });
+    })();
+  </script>
+
 </BaseLayout>
-
-<style lang="scss">
-  .filters {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-  }
-
-  .filters button {
-    border: 1px solid rgba(90, 62, 43, .18);
-    background: rgba(255, 255, 255, .45);
-    border-radius: 999px;
-    padding: 10px 16px;
-    color: var(--color-earth);
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .filters button:first-child {
-    background: var(--color-green);
-    color: var(--color-ivory);
-  }
-</style>

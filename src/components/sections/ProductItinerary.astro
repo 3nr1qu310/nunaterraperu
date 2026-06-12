@@ -1,0 +1,106 @@
+---
+import './ProductItinerary.scss';
+
+/**
+ * Itinerario de paquete/tour en formato timeline editorial:
+ * riel dorado con nodos por día, tarjetas expandibles con imagen
+ * del día y fichas de comidas / alojamiento / actividades.
+ */
+const { itinerary = [], labels = {} } = Astro.props;
+
+const t = {
+  day: 'Día',
+  of: 'de',
+  meals: 'Comidas',
+  accommodation: 'Alojamiento',
+  activities: 'Actividades',
+  ...labels,
+};
+
+const total = itinerary.length;
+---
+
+<div class="itin">
+  {itinerary.map((day, i) => {
+    const num = day.dayNumber || i + 1;
+
+    return (
+      <details class="itin-day" open={i === 0}>
+        <summary class="itin-day__head">
+          <span class="itin-day__node" aria-hidden="true">
+            <small>{t.day}</small>
+            <b>{num}</b>
+          </span>
+
+          <span class="itin-day__heading">
+            <span class="itin-day__label">{t.day} {num} {t.of} {total}</span>
+            <span class="itin-day__title">{day.title}</span>
+          </span>
+
+          <span class="itin-day__chev" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </span>
+        </summary>
+
+        <div class="itin-day__body">
+          {day.imageUrl && (
+            <figure class="itin-day__media">
+              <img
+                src={day.imageUrl}
+                alt={day.title}
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+          )}
+
+          <div class="itin-day__info">
+            {day.description && (
+              <p class="itin-day__desc">{day.description}</p>
+            )}
+
+            {(day.activities || day.meals || day.accommodation) && (
+              <ul class="itin-day__facts">
+                {day.activities && (
+                  <li>
+                    <span class="itin-day__fact-icon" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20L9 5l4 9 3-5 5 11H3z"/></svg>
+                    </span>
+                    <span class="itin-day__fact-text">
+                      <small>{t.activities}</small>
+                      {day.activities}
+                    </span>
+                  </li>
+                )}
+
+                {day.meals && (
+                  <li>
+                    <span class="itin-day__fact-icon" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+                    </span>
+                    <span class="itin-day__fact-text">
+                      <small>{t.meals}</small>
+                      {day.meals}
+                    </span>
+                  </li>
+                )}
+
+                {day.accommodation && (
+                  <li>
+                    <span class="itin-day__fact-icon" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>
+                    </span>
+                    <span class="itin-day__fact-text">
+                      <small>{t.accommodation}</small>
+                      {day.accommodation}
+                    </span>
+                  </li>
+                )}
+              </ul>
+            )}
+          </div>
+        </div>
+      </details>
+    );
+  })}
+</div>

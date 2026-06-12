@@ -27,15 +27,15 @@ const {
   {video ? (
     <video
       class="hero__bg"
-      src={video}
-      autoplay
+      data-deferred-video={video}
+      preload="none"
       muted
       loop
       playsinline
       poster={image}
     />
   ) : (
-    <img class="hero__bg" src={image} alt="Paisaje de Perú" loading="eager" />
+    <img class="hero__bg" src={image} alt="Paisaje de Perú" loading="eager" fetchpriority="high" decoding="async" />
   )}
   <div class="container hero__content fade-up">
     {eyebrow && <p class="eyebrow">{eyebrow}</p>}

@@ -1,0 +1,276 @@
+---
+import LegalLayout from '@/components/layout/LegalLayout.astro';
+import { isLocale, type Locale } from '@/lib/i18n';
+
+export function getStaticPaths() {
+  return [
+    { params: { locale: 'en' } },
+    { params: { locale: 'pt' } },
+    { params: { locale: 'fr' } },
+  ];
+}
+
+const localeParam = Astro.params.locale;
+
+if (!isLocale(localeParam) || localeParam === 'es') {
+  return Astro.redirect('/politica-de-privacidad');
+}
+
+const locale = localeParam as Locale;
+
+const copyByLocale = {
+  en: {
+    metaTitle: 'Privacy policy | Nuna Terra Perú',
+    description: 'Privacy policy of Nuna Terra Perú: what data we collect, why, who we share it with and how to exercise your rights.',
+    eyebrow: 'Legal information',
+    title: 'Privacy policy',
+    updatedLabel: 'Last updated: June 2026',
+    contactHeading: 'Questions about your personal data?',
+    contactText: 'Write to us to exercise your rights or resolve any privacy question.',
+    sections: [
+      {
+        heading: 'Data controller',
+        paragraphs: [
+          'Nuna Terra Perú, a travel agency based in Cusco, Peru, is responsible for processing the personal data you provide through this website, WhatsApp, email or social media.',
+          'This policy complies with Peruvian Law No. 29733 — Personal Data Protection Law and its regulations.',
+        ],
+      },
+      {
+        heading: 'Data we collect',
+        paragraphs: ['We only collect the data needed to answer your inquiry and organize your trip:'],
+        items: [
+          'Contact details: name, email, phone / WhatsApp and country.',
+          'Trip details: tentative dates, destinations of interest, number of travelers and preferences.',
+          'Data required to book third-party services: full name and ID/passport number (only when you confirm a booking).',
+          'Basic technical browsing data (device type, pages visited) for statistical purposes.',
+        ],
+      },
+      {
+        heading: 'Purpose of processing',
+        items: [
+          'Answer inquiries and send requested quotes.',
+          'Manage bookings, payments and the operation of contracted services.',
+          'Send information about your trip (confirmations, reminders, instructions).',
+          'With your consent, send you Nuna Terra Perú news and promotions.',
+          'Comply with legal, accounting and tax obligations.',
+        ],
+      },
+      {
+        heading: 'Legal basis and consent',
+        paragraphs: [
+          'We process your data based on your consent (when you submit a form or write to us), the performance of the contract when you book a service, and compliance with legal obligations.',
+          'You can withdraw your consent for commercial communications at any time by writing to us.',
+        ],
+      },
+      {
+        heading: 'Storage and retention',
+        paragraphs: [
+          'Your data is stored on secure cloud platforms that meet international security standards. We keep data while there is an active relationship with you and, afterwards, only for the periods required by Peruvian law.',
+        ],
+      },
+      {
+        heading: 'Who we share data with',
+        paragraphs: ['We do not sell or rent your personal data. We only share it when necessary to operate your trip:'],
+        items: [
+          'Travel providers involved in your itinerary (hotels, transport, operators, official ticket offices).',
+          'Technology providers that support our site and communications (web hosting, database, messaging).',
+          'Competent authorities when legally required.',
+        ],
+      },
+      {
+        heading: 'Cookies',
+        paragraphs: [
+          'This site uses technical cookies necessary for its operation and, eventually, statistical cookies to understand how the site is used. You can configure your browser to block or delete cookies; some features may be affected.',
+        ],
+      },
+      {
+        heading: 'Your rights',
+        paragraphs: [
+          'Under Law No. 29733 you may exercise your rights of Access, Rectification, Cancellation and Opposition at any time, as well as withdraw your consent.',
+          'To exercise them, write to info@nunaterraperu.com indicating your name, the right you wish to exercise and a contact channel. We will respond within the legal deadlines.',
+        ],
+      },
+      {
+        heading: 'Security and changes',
+        paragraphs: [
+          'We apply reasonable technical and organizational measures to protect your data: encrypted connections (HTTPS), restricted access and certified providers.',
+          'We may update this policy to reflect regulatory or operational changes. The current version will always be published on this page.',
+        ],
+      },
+    ],
+  },
+
+  pt: {
+    metaTitle: 'Política de privacidade | Nuna Terra Perú',
+    description: 'Política de privacidade da Nuna Terra Perú: quais dados coletamos, com que finalidade, com quem compartilhamos e como exercer seus direitos.',
+    eyebrow: 'Informações legais',
+    title: 'Política de privacidade',
+    updatedLabel: 'Última atualização: junho de 2026',
+    contactHeading: 'Dúvidas sobre seus dados pessoais?',
+    contactText: 'Escreva para nós para exercer seus direitos ou resolver qualquer dúvida sobre privacidade.',
+    sections: [
+      {
+        heading: 'Responsável pelo tratamento',
+        paragraphs: [
+          'A Nuna Terra Perú, agência de viagens com sede em Cusco, Peru, é responsável pelo tratamento dos dados pessoais que você fornece por este site, WhatsApp, e-mail ou redes sociais.',
+          'Esta política cumpre a Lei peruana N.º 29733 — Lei de Proteção de Dados Pessoais e seu regulamento.',
+        ],
+      },
+      {
+        heading: 'Dados que coletamos',
+        paragraphs: ['Coletamos apenas os dados necessários para responder à sua consulta e organizar sua viagem:'],
+        items: [
+          'Dados de contato: nome, e-mail, telefone / WhatsApp e país.',
+          'Dados da viagem: datas, destinos de interesse, número de viajantes e preferências.',
+          'Dados necessários para reservar serviços de terceiros: nome completo e número do documento (apenas ao confirmar uma reserva).',
+          'Dados técnicos básicos de navegação para fins estatísticos.',
+        ],
+      },
+      {
+        heading: 'Finalidade do tratamento',
+        items: [
+          'Responder consultas e enviar cotações solicitadas.',
+          'Gerenciar reservas, pagamentos e a operação dos serviços contratados.',
+          'Enviar informações sobre sua viagem (confirmações, lembretes, orientações).',
+          'Com seu consentimento, enviar novidades e promoções da Nuna Terra Perú.',
+          'Cumprir obrigações legais, contábeis e tributárias.',
+        ],
+      },
+      {
+        heading: 'Base legal e consentimento',
+        paragraphs: [
+          'Tratamos seus dados com base no seu consentimento, na execução do contrato quando você reserva um serviço e no cumprimento de obrigações legais.',
+          'Você pode retirar seu consentimento para comunicações comerciais a qualquer momento.',
+        ],
+      },
+      {
+        heading: 'Armazenamento e conservação',
+        paragraphs: [
+          'Seus dados são armazenados em plataformas seguras na nuvem que cumprem padrões internacionais de segurança. Conservamos os dados enquanto houver uma relação ativa e, depois, apenas pelos prazos exigidos pela lei peruana.',
+        ],
+      },
+      {
+        heading: 'Com quem compartilhamos',
+        paragraphs: ['Não vendemos nem alugamos seus dados pessoais. Compartilhamos apenas quando necessário para operar sua viagem:'],
+        items: [
+          'Fornecedores turísticos envolvidos no seu roteiro (hotéis, transportes, operadores, bilheterias oficiais).',
+          'Fornecedores de tecnologia que dão suporte ao site e às comunicações.',
+          'Autoridades competentes quando houver obrigação legal.',
+        ],
+      },
+      {
+        heading: 'Cookies',
+        paragraphs: [
+          'Este site usa cookies técnicos necessários para seu funcionamento e, eventualmente, cookies estatísticos. Você pode configurar seu navegador para bloqueá-los; algumas funções podem ser afetadas.',
+        ],
+      },
+      {
+        heading: 'Seus direitos',
+        paragraphs: [
+          'Conforme a Lei N.º 29733, você pode exercer a qualquer momento seus direitos de Acesso, Retificação, Cancelamento e Oposição, além de revogar seu consentimento.',
+          'Para exercê-los, escreva para info@nunaterraperu.com indicando seu nome, o direito desejado e um meio de contato.',
+        ],
+      },
+      {
+        heading: 'Segurança e mudanças',
+        paragraphs: [
+          'Aplicamos medidas técnicas e organizacionais razoáveis para proteger seus dados: conexões criptografadas (HTTPS), acessos restritos e fornecedores certificados.',
+          'Podemos atualizar esta política para refletir mudanças normativas ou operacionais. A versão vigente estará sempre publicada nesta página.',
+        ],
+      },
+    ],
+  },
+
+  fr: {
+    metaTitle: 'Politique de confidentialité | Nuna Terra Perú',
+    description: 'Politique de confidentialité de Nuna Terra Perú : quelles données nous collectons, pourquoi, avec qui nous les partageons et comment exercer vos droits.',
+    eyebrow: 'Informations légales',
+    title: 'Politique de confidentialité',
+    updatedLabel: 'Dernière mise à jour : juin 2026',
+    contactHeading: 'Des questions sur vos données personnelles ?',
+    contactText: 'Écrivez-nous pour exercer vos droits ou résoudre toute question de confidentialité.',
+    sections: [
+      {
+        heading: 'Responsable du traitement',
+        paragraphs: [
+          'Nuna Terra Perú, agence de voyage basée à Cusco, au Pérou, est responsable du traitement des données personnelles que vous fournissez via ce site, WhatsApp, e-mail ou les réseaux sociaux.',
+          'Cette politique respecte la loi péruvienne n° 29733 — Loi sur la protection des données personnelles et son règlement.',
+        ],
+      },
+      {
+        heading: 'Données collectées',
+        paragraphs: ['Nous ne collectons que les données nécessaires pour répondre à votre demande et organiser votre voyage :'],
+        items: [
+          'Coordonnées : nom, e-mail, téléphone / WhatsApp et pays.',
+          'Détails du voyage : dates envisagées, destinations, nombre de voyageurs et préférences.',
+          'Données nécessaires pour réserver des services tiers : nom complet et numéro de document (uniquement à la confirmation d’une réservation).',
+          'Données techniques de navigation de base à des fins statistiques.',
+        ],
+      },
+      {
+        heading: 'Finalités du traitement',
+        items: [
+          'Répondre aux demandes et envoyer les devis sollicités.',
+          'Gérer les réservations, les paiements et l’opération des services.',
+          'Envoyer des informations sur votre voyage (confirmations, rappels, indications).',
+          'Avec votre consentement, vous envoyer les nouveautés et promotions de Nuna Terra Perú.',
+          'Respecter les obligations légales, comptables et fiscales.',
+        ],
+      },
+      {
+        heading: 'Base légale et consentement',
+        paragraphs: [
+          'Nous traitons vos données sur la base de votre consentement, de l’exécution du contrat lorsque vous réservez un service et du respect des obligations légales.',
+          'Vous pouvez retirer votre consentement aux communications commerciales à tout moment.',
+        ],
+      },
+      {
+        heading: 'Conservation',
+        paragraphs: [
+          'Vos données sont stockées sur des plateformes cloud sécurisées conformes aux normes internationales. Nous les conservons pendant la relation active puis uniquement pendant les délais exigés par la loi péruvienne.',
+        ],
+      },
+      {
+        heading: 'Partage des données',
+        paragraphs: ['Nous ne vendons ni ne louons vos données personnelles. Nous les partageons uniquement lorsque cela est nécessaire pour opérer votre voyage :'],
+        items: [
+          'Prestataires touristiques de votre itinéraire (hôtels, transports, opérateurs, billetteries officielles).',
+          'Prestataires technologiques qui soutiennent le site et nos communications.',
+          'Autorités compétentes en cas d’obligation légale.',
+        ],
+      },
+      {
+        heading: 'Cookies',
+        paragraphs: [
+          'Ce site utilise des cookies techniques nécessaires à son fonctionnement et, éventuellement, des cookies statistiques. Vous pouvez configurer votre navigateur pour les bloquer ; certaines fonctions peuvent être affectées.',
+        ],
+      },
+      {
+        heading: 'Vos droits',
+        paragraphs: [
+          'Conformément à la loi n° 29733, vous pouvez exercer à tout moment vos droits d’accès, de rectification, d’annulation et d’opposition, ainsi que révoquer votre consentement.',
+          'Pour les exercer, écrivez à info@nunaterraperu.com en indiquant votre nom, le droit concerné et un moyen de contact.',
+        ],
+      },
+      {
+        heading: 'Sécurité et modifications',
+        paragraphs: [
+          'Nous appliquons des mesures techniques et organisationnelles raisonnables pour protéger vos données : connexions chiffrées (HTTPS), accès restreints et prestataires certifiés.',
+          'Nous pouvons mettre à jour cette politique pour refléter des changements réglementaires ou opérationnels. La version en vigueur sera toujours publiée sur cette page.',
+        ],
+      },
+    ],
+  },
+}[locale];
+---
+
+<LegalLayout
+  metaTitle={copyByLocale.metaTitle}
+  description={copyByLocale.description}
+  eyebrow={copyByLocale.eyebrow}
+  title={copyByLocale.title}
+  updatedLabel={copyByLocale.updatedLabel}
+  sections={copyByLocale.sections}
+  contactHeading={copyByLocale.contactHeading}
+  contactText={copyByLocale.contactText}
+/>

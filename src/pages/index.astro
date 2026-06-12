@@ -31,12 +31,21 @@ const allProducts = [...packages, ...tours];
 
 const destinationsWithProducts = destinations.slice(0, 5);
 
+// El hero usa las imágenes de los paquetes como protagonistas;
+// las regiones/destinos solo completan si hay pocos paquetes.
 const heroImages = [
-  ...regions.map((item) => item.heroImage || item.cardImage),
-  ...destinations.map((item) => item.heroImage || item.cardImage),
   ...packages.map((item) => item.heroImage || item.cardImage),
   ...tours.map((item) => item.heroImage || item.cardImage),
+  ...regions.map((item) => item.heroImage || item.cardImage),
+  ...destinations.map((item) => item.heroImage || item.cardImage),
 ].filter(Boolean);
+
+// Tour de prioridad alta para la sección destacada del home.
+const featuredTour =
+  tours.find((tour) => tour.featured) ||
+  tours[0] ||
+  packages.find((pkg) => pkg.featured) ||
+  null;
 
 const copy = {
   pageTitle: 'Nuna Terra Perú | El alma del Perú en cada destino',
@@ -79,6 +88,15 @@ const copy = {
     desc: 'Cuidamos cada detalle para que disfrutes más.',
   },
 ],
+  featuredEyebrow: 'Experiencia imperdible',
+  featuredBadge: 'Tour destacado',
+  featuredCta: 'Ver este tour',
+  featuredSecondary: 'Consultar por WhatsApp',
+  featuredFrom: 'Desde',
+  featuredPerPerson: 'por persona',
+  featuredDuration: 'Duración',
+  featuredDestinations: 'Destinos',
+
   regionsEyebrow: 'Costa, Sierra y Selva',
   regionsTitle: 'Descubre el Perú por regiones',
   regionsSubtitle:
@@ -151,12 +169,27 @@ const copy = {
 <BaseLayout title={copy.pageTitle} description={copy.pageDescription}>
   <HomeHero
     copy={copy}
-    heroImage="/images/home-hero.jpg"
+    heroImage={heroImages[0] || '/images/home-hero.jpg'}
     heroImages={heroImages}
     heroVideo={homeHeroVideo}
   />
 
-  <HomeValueProps props={copy.props} />
+  <HomeValueProps
+    props={copy.props}
+    tour={featuredTour}
+    tourHref={featuredTour ? `${featuredTour.type === 'package' ? '/paquetes' : '/tours'}/${featuredTour.slug}` : ''}
+    whatsappUrl={site.whatsappUrl}
+    copy={{
+      eyebrow: copy.featuredEyebrow,
+      badge: copy.featuredBadge,
+      cta: copy.featuredCta,
+      secondary: copy.featuredSecondary,
+      from: copy.featuredFrom,
+      perPerson: copy.featuredPerPerson,
+      duration: copy.featuredDuration,
+      destinations: copy.featuredDestinations,
+    }}
+  />
 
   <HomeRegions
     regions={regions}

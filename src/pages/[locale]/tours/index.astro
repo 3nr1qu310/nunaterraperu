@@ -1,10 +1,12 @@
 ---
 import BaseLayout from '@/components/layout/BaseLayout.astro';
-import Hero from '@/components/ui/Hero.astro';
-import SectionHeading from '@/components/sections/SectionHeading.astro';
 import ProductCard from '@/components/cards/ProductCard.astro';
-import { getTours } from '@/lib/content';
+import LucideIcon from '@/components/cards/LucideIcon.astro';
+import { getTours, getTravelCategories } from '@/lib/content';
+import { getSiteSettings } from '@/lib/settings';
 import { isLocale, type Locale } from '@/lib/i18n';
+import { site } from '@/lib/site';
+import '../../tours/TourIndex.scss';
 
 export const prerender = false;
 
@@ -16,69 +18,211 @@ if (!isLocale(localeParam)) {
 
 const locale = localeParam as Locale;
 
-const tours = await getTours(locale);
+const [tours, allCategories, settings] = await Promise.all([
+  getTours(locale),
+  getTravelCategories(),
+  getSiteSettings(['tours_hero_video']),
+]);
+
+const heroVideo = settings['tours_hero_video'] || '';
+
+/* Hero con imágenes reales de los tours */
+const featuredHeroTour = tours.find((t) => t.featured) || tours[0] || null;
+
+const heroImage =
+  featuredHeroTour?.heroImage ||
+  featuredHeroTour?.cardImage ||
+  '/images/tours-hero.jpg';
+
+const customCtaImage = tours[1]?.heroImage || heroImage;
+
+const activeCategorySlugs = new Set(tours.flatMap((t) => t.categorySlugs || []));
+const activeCategories = allCategories.filter((cat) => activeCategorySlugs.has(cat.slug));
+const uniqueDestinations = new Set(tours.flatMap((t) => t.destinations || []));
+
+const baseMarquee = uniqueDestinations.size >= 5
+  ? Array.from(uniqueDestinations)
+  : ['Cusco', 'Machu Picchu', 'Lago Titicaca', 'Arequipa', 'Lima', 'Nazca', 'Iquitos', 'Valle Sagrado', 'Cañón del Colca', 'Huaraz', 'Ollantaytambo'];
+const marqueeItems = [...baseMarquee, ...baseMarquee];
+const marqueeDuration = `${Math.max(32, baseMarquee.length * 4)}s`;
+
+const categoryGroups = activeCategories
+  .map((cat) => ({ ...cat, tours: tours.filter((t) => t.categorySlugs?.includes(cat.slug)) }))
+  .filter((g) => g.tours.length > 0);
 
 const copyByLocale = {
   en: {
     pageTitle: 'Tours in Peru | Nuna Terra Perú',
-    eyebrow: 'Tours and experiences',
-    title: 'Tours in Peru',
-    subtitle:
-      'One-day or two-day experiences to discover unique destinations with organization, guidance and personalized attention.',
-    primaryText: 'View featured tours',
-    secondaryText: 'Chat on WhatsApp',
-    catalogTitle: 'Find your ideal tour',
-    catalogSubtitle:
-      'Short, clear and well-organized experiences to make the most of your time.',
-    all: 'All',
-    fullDay: 'Full Day',
-    cusco: 'Cusco',
-    lima: 'Lima',
-    ica: 'Ica',
-    adventure: 'Adventure',
-    cultural: 'Cultural',
+    pageDescription: 'One-day experiences to discover the most emblematic destinations in Peru with guides, transport and organization included.',
+    heroAlt: 'Travelers on a mountain trail in Peru',
+    heroEyebrow: 'Tours and experiences',
+    heroTitle: 'Live Peru\nin every day',
+    heroTitleEm: 'in every day',
+    heroSubtitle: 'Excursions with transport, local guide and entrance fees included. Organized so you just enjoy.',
+    heroBtn: 'View all tours',
+    heroWhatsapp: 'Ask on WhatsApp ↗',
+    regionsEyebrow: 'Destinations',
+    regionsTitle: 'The Peru that awaits you',
+    regionsSubtitle: 'Three regions, three different worlds. Each with its own character, rhythm and landscapes unlike anything you have seen before.',
+    regions: [
+      { slug: 'sierra', name: 'Sierra', tagline: 'Andes & altitude', description: 'Cusco, the Sacred Valley, Machu Picchu and Lake Titicaca. Living Inca culture, ancient routes and landscapes above 3,000 metres.' },
+      { slug: 'costa', name: 'Coast', tagline: 'Coastline & mystery', description: 'Lima and its world-class gastronomy, the enigmatic Nazca Lines, the Caral pyramids and civilizations that preceded the Incas.' },
+      { slug: 'selva', name: 'Jungle', tagline: 'Living Amazon', description: 'Iquitos, the Amazon River and the most biodiverse ecosystem on the planet. A green, infinite adventure that challenges every sense.' },
+    ],
+    tourSingular: 'tour',
+    tourPlural: 'tours',
+    available: 'available',
+    exploreCta: 'Explore →',
+    statTours: 'Tours available',
+    statDestinations: 'Destinations',
+    statStyles: 'Travel styles',
+    statDuration: 'Days duration',
+    statGroup: 'People per group',
+    catalogEyebrow: 'Full catalogue',
+    catalogTitle: 'Find your experience',
+    catalogSubtitle: 'Each travel style has its own pace. Choose the experience that identifies you and discover the available options.',
+    travelStyle: 'Travel style',
+    available2: (n: number) => n === 1 ? '1 tour available' : `${n} tours available`,
+    prevTour: 'Previous tour',
+    nextTour: 'Next tour',
+    emptyTitle: 'Catalogue in preparation',
+    emptyText: 'We will soon have experiences available. Contact us for more information.',
+    processEyebrow: 'Simple by design',
+    processTitle: 'How it works',
+    steps: [
+      { num: '01', icon: 'search', title: 'Choose your experience', description: 'Browse the catalogue and filter by region, tour type or duration. Options from half-day to three full days.' },
+      { num: '02', icon: 'message-circle', title: 'Coordinate the details', description: 'A Nuna Terra advisor responds in less than 24 hours to confirm availability and adjust any detail.' },
+      { num: '03', icon: 'compass', title: 'Live Peru', description: 'Certified local guide, comfortable transport and entrance fees included. You just arrive — we handle the rest.' },
+    ],
+    trustEyebrow: 'Why choose us',
+    trustTitle: 'Every detail has a reason',
+    trustItems: [
+      { icon: 'compass', title: 'Guides with their own story', description: "We don't read scripts. Our guides grew up or worked for years at each destination. They know shortcuts, stories and perspectives no book has." },
+      { icon: 'shield', title: 'Clear price, no surprises', description: 'What you see is what you pay. Everything — transport, guide and entrances — is detailed before booking. No extra charges on arrival.' },
+      { icon: 'users', title: 'Small groups', description: 'Maximum 12 people per departure. A real experience, not a mass excursion where you are just another number in the queue.' },
+      { icon: 'clock', title: 'Punctuality as standard', description: 'Pick-up at your hotel at the agreed time. Modern vehicles with AC and drivers who know every bend of the route.' },
+    ],
+    customEyebrow: 'Unique experiences',
+    customTitle: "Looking for something\nnot in the catalogue?",
+    customSubtitle: 'We design custom excursions according to your days, interests and group size. A Nuna Terra advisor works with you to create the perfect route.',
+    customBtn: 'Design my tour',
+    customWhatsapp: 'Chat on WhatsApp ↗',
     contactHref: '/en/contact',
   },
-
   pt: {
     pageTitle: 'Tours pelo Peru | Nuna Terra Perú',
-    eyebrow: 'Tours e experiências',
-    title: 'Tours pelo Peru',
-    subtitle:
-      'Experiências de um ou dois dias para descobrir destinos únicos com organização, acompanhamento e atenção personalizada.',
-    primaryText: 'Ver tours em destaque',
-    secondaryText: 'Falar pelo WhatsApp',
-    catalogTitle: 'Encontre seu tour ideal',
-    catalogSubtitle:
-      'Experiências curtas, claras e bem organizadas para aproveitar melhor seu tempo.',
-    all: 'Todos',
-    fullDay: 'Full Day',
-    cusco: 'Cusco',
-    lima: 'Lima',
-    ica: 'Ica',
-    adventure: 'Aventura',
-    cultural: 'Cultural',
+    pageDescription: 'Experiências de um dia para descobrir os destinos mais emblemáticos do Peru com guias, transporte e organização incluídos.',
+    heroAlt: 'Viajantes numa trilha de montanha no Peru',
+    heroEyebrow: 'Tours e experiências',
+    heroTitle: 'Viva o Peru\nem cada dia',
+    heroTitleEm: 'em cada dia',
+    heroSubtitle: 'Excursões com transporte, guia local e entradas incluídas. Organizadas para que você só aproveite.',
+    heroBtn: 'Ver todos os tours',
+    heroWhatsapp: 'Consultar pelo WhatsApp ↗',
+    regionsEyebrow: 'Destinos',
+    regionsTitle: 'O Peru que te espera',
+    regionsSubtitle: 'Três regiões, três mundos distintos. Cada uma com seu caráter, ritmo e paisagens que não se parecem com nada que você já viu.',
+    regions: [
+      { slug: 'sierra', name: 'Serra', tagline: 'Andes e altitude', description: 'Cusco, o Vale Sagrado, Machu Picchu e o Lago Titicaca. Cultura inca viva, rotas milenares e paisagens a mais de 3.000 metros.' },
+      { slug: 'costa', name: 'Costa', tagline: 'Litoral e mistério', description: 'Lima e sua gastronomia de classe mundial, as enigmáticas linhas de Nazca, as pirâmides de Caral e civilizações que precederam os incas.' },
+      { slug: 'selva', name: 'Selva', tagline: 'Amazônia viva', description: 'Iquitos, o Rio Amazonas e o ecossistema mais biodiverso do planeta. Uma aventura verde e infinita que desafia todos os sentidos.' },
+    ],
+    tourSingular: 'tour',
+    tourPlural: 'tours',
+    available: 'disponíveis',
+    exploreCta: 'Explorar →',
+    statTours: 'Tours disponíveis',
+    statDestinations: 'Destinos',
+    statStyles: 'Estilos de viagem',
+    statDuration: 'Dias de duração',
+    statGroup: 'Pessoas por grupo',
+    catalogEyebrow: 'Catálogo completo',
+    catalogTitle: 'Encontre sua experiência',
+    catalogSubtitle: 'Cada estilo de viagem tem seu próprio ritmo. Escolha a experiência que mais te identifica e descubra as opções disponíveis.',
+    travelStyle: 'Estilo de viagem',
+    available2: (n: number) => n === 1 ? '1 tour disponível' : `${n} tours disponíveis`,
+    prevTour: 'Tour anterior',
+    nextTour: 'Próximo tour',
+    emptyTitle: 'Catálogo em preparação',
+    emptyText: 'Em breve teremos experiências disponíveis. Entre em contato para mais informações.',
+    processEyebrow: 'Simples por design',
+    processTitle: 'Como funciona',
+    steps: [
+      { num: '01', icon: 'search', title: 'Escolha sua experiência', description: 'Navegue pelo catálogo e filtre por região, tipo de tour ou duração. Saídas de meio dia a três dias completos.' },
+      { num: '02', icon: 'message-circle', title: 'Coordene os detalhes', description: 'Um consultor da Nuna Terra responde em menos de 24 horas para confirmar disponibilidade e ajustar qualquer detalhe.' },
+      { num: '03', icon: 'compass', title: 'Viva o Peru', description: 'Guia local certificado, transporte confortável e entradas incluídas. Você só chega — nós cuidamos do resto.' },
+    ],
+    trustEyebrow: 'Por que nos escolher',
+    trustTitle: 'Cada detalhe tem uma razão',
+    trustItems: [
+      { icon: 'compass', title: 'Guias com história própria', description: 'Não lemos roteiros. Nossos guias cresceram ou trabalharam por anos em cada destino. Conhecem atalhos, histórias e perspectivas que nenhum livro tem.' },
+      { icon: 'shield', title: 'Preço claro, sem surpresas', description: 'O que você vê é o que paga. Tudo — transporte, guia e entradas — está detalhado antes de reservar. Sem cobranças extras na chegada.' },
+      { icon: 'users', title: 'Grupos pequenos', description: 'Máximo 12 pessoas por saída. Uma experiência real, não uma excursão em massa onde você é apenas um número na fila.' },
+      { icon: 'clock', title: 'Pontualidade como norma', description: 'Busca no hotel no horário combinado. Veículos modernos com AC e motoristas que conhecem cada curva da rota.' },
+    ],
+    customEyebrow: 'Experiências únicas',
+    customTitle: 'Procura algo que\nnão está no catálogo?',
+    customSubtitle: 'Criamos excursões personalizadas de acordo com seus dias, interesses e tamanho do grupo. Um consultor da Nuna Terra trabalha com você para criar a rota perfeita.',
+    customBtn: 'Criar meu tour',
+    customWhatsapp: 'Falar pelo WhatsApp ↗',
     contactHref: '/pt/contact',
   },
-
   fr: {
     pageTitle: 'Tours au Pérou | Nuna Terra Perú',
-    eyebrow: 'Tours et expériences',
-    title: 'Tours au Pérou',
-    subtitle:
-      'Des expériences d’un ou deux jours pour découvrir des destinations uniques avec organisation, accompagnement et attention personnalisée.',
-    primaryText: 'Voir les tours en vedette',
-    secondaryText: 'Écrire sur WhatsApp',
-    catalogTitle: 'Trouvez votre tour idéal',
-    catalogSubtitle:
-      'Des expériences courtes, claires et bien organisées pour profiter au mieux de votre temps.',
-    all: 'Tous',
-    fullDay: 'Journée complète',
-    cusco: 'Cusco',
-    lima: 'Lima',
-    ica: 'Ica',
-    adventure: 'Aventure',
-    cultural: 'Culturel',
+    pageDescription: "Des expériences d'un jour pour découvrir les destinations les plus emblématiques du Pérou avec guides, transport et organisation inclus.",
+    heroAlt: 'Voyageurs sur un sentier de montagne au Pérou',
+    heroEyebrow: 'Tours et expériences',
+    heroTitle: 'Vivez le Pérou\nà chaque journée',
+    heroTitleEm: 'à chaque journée',
+    heroSubtitle: "Excursions avec transport, guide local et entrées incluses. Organisées pour que vous profitiez simplement.",
+    heroBtn: 'Voir tous les tours',
+    heroWhatsapp: 'Consulter sur WhatsApp ↗',
+    regionsEyebrow: 'Destinations',
+    regionsTitle: 'Le Pérou qui vous attend',
+    regionsSubtitle: "Trois régions, trois mondes différents. Chacune avec son caractère, son rythme et des paysages comme vous n'en avez jamais vus.",
+    regions: [
+      { slug: 'sierra', name: 'Sierra', tagline: 'Andes & altitude', description: 'Cusco, la Vallée Sacrée, le Machu Picchu et le lac Titicaca. Culture inca vivante, routes millénaires et paysages à plus de 3 000 mètres.' },
+      { slug: 'costa', name: 'Côte', tagline: 'Littoral & mystère', description: 'Lima et sa gastronomie de classe mondiale, les énigmatiques lignes de Nazca, les pyramides de Caral et des civilisations qui précédèrent les Incas.' },
+      { slug: 'selva', name: 'Amazonie', tagline: 'Amazonie vivante', description: "Iquitos, le fleuve Amazone et l'écosystème le plus biodiversifié de la planète. Une aventure verte et infinie qui défie tous les sens." },
+    ],
+    tourSingular: 'tour',
+    tourPlural: 'tours',
+    available: 'disponibles',
+    exploreCta: 'Explorer →',
+    statTours: 'Tours disponibles',
+    statDestinations: 'Destinations',
+    statStyles: 'Styles de voyage',
+    statDuration: 'Jours de durée',
+    statGroup: 'Personnes par groupe',
+    catalogEyebrow: 'Catalogue complet',
+    catalogTitle: 'Trouvez votre expérience',
+    catalogSubtitle: `Chaque style de voyage a son propre rythme. Choisissez l'expérience qui vous correspond et découvrez les options disponibles.`,
+    travelStyle: 'Style de voyage',
+    available2: (n: number) => n === 1 ? '1 tour disponible' : `${n} tours disponibles`,
+    prevTour: 'Tour précédent',
+    nextTour: 'Tour suivant',
+    emptyTitle: 'Catalogue en préparation',
+    emptyText: `Nous aurons bientôt des expériences disponibles. Contactez-nous pour plus d'informations.`,
+    processEyebrow: 'Simple par conception',
+    processTitle: 'Comment ça fonctionne',
+    steps: [
+      { num: '01', icon: 'search', title: 'Choisissez votre expérience', description: 'Parcourez le catalogue et filtrez par région, type de tour ou durée. Des sorties de demi-journée à trois jours complets.' },
+      { num: '02', icon: 'message-circle', title: 'Coordonnez les détails', description: 'Un conseiller Nuna Terra répond en moins de 24 heures pour confirmer les disponibilités et ajuster tout détail.' },
+      { num: '03', icon: 'compass', title: 'Vivez le Pérou', description: 'Guide local certifié, transport confortable et entrées incluses. Vous arrivez simplement — nous nous occupons du reste.' },
+    ],
+    trustEyebrow: 'Pourquoi nous choisir',
+    trustTitle: 'Chaque détail a une raison',
+    trustItems: [
+      { icon: 'compass', title: 'Guides avec leur propre histoire', description: "Nous ne lisons pas de scripts. Nos guides ont grandi ou travaillé pendant des années dans chaque destination. Ils connaissent des raccourcis, des histoires et des perspectives qu'aucun livre ne contient." },
+      { icon: 'shield', title: 'Prix clair, sans surprises', description: "Ce que vous voyez est ce que vous payez. Tout — transport, guide et entrées — est détaillé avant la réservation. Pas de frais supplémentaires à l'arrivée." },
+      { icon: 'users', title: 'Petits groupes', description: "Maximum 12 personnes par départ. Une vraie expérience, pas une excursion de masse où vous n'êtes qu'un numéro dans la file." },
+      { icon: 'clock', title: 'Ponctualité comme norme', description: "Prise en charge à votre hôtel à l'heure convenue. Véhicules modernes avec climatisation et conducteurs qui connaissent chaque virage de la route." },
+    ],
+    customEyebrow: 'Expériences uniques',
+    customTitle: "Vous cherchez quelque chose\nqui n'est pas au catalogue ?",
+    customSubtitle: "Nous concevons des excursions sur mesure selon vos jours, vos intérêts et la taille de votre groupe. Un conseiller Nuna Terra travaille avec vous pour créer le parcours parfait.",
+    customBtn: 'Concevoir mon tour',
+    customWhatsapp: 'Parler sur WhatsApp ↗',
     contactHref: '/fr/contact',
   },
 };
@@ -86,64 +230,367 @@ const copyByLocale = {
 const copy = copyByLocale[locale];
 ---
 
-<BaseLayout title={copy.pageTitle} description={copy.subtitle}>
-  <Hero
-    eyebrow={copy.eyebrow}
-    title={copy.title}
-    subtitle={copy.subtitle}
-    image="/images/tours-hero.jpg"
-    primaryText={copy.primaryText}
-    primaryHref="#catalog"
-    secondaryText={copy.secondaryText}
-    secondaryHref={copy.contactHref}
-  />
+<BaseLayout title={copy.pageTitle} description={copy.pageDescription}>
 
-  <section class="section" id="catalog">
-    <div class="container">
-      <SectionHeading
-        title={copy.catalogTitle}
-        subtitle={copy.catalogSubtitle}
-      />
+  <!-- HERO -->
+  <section class="tri-hero" aria-label={copy.heroEyebrow}>
+    {heroVideo ? (
+      <video class="tri-hero__bg" data-deferred-video={heroVideo} preload="none" muted loop playsinline poster={heroImage} />
+    ) : (
+      <img class="tri-hero__bg" src={heroImage} alt={featuredHeroTour?.title || copy.heroAlt} loading="eager" fetchpriority="high" decoding="async" />
+    )}
+    <div class="tri-hero__overlay" aria-hidden="true"></div>
 
-      <div class="filters">
-        <button>{copy.all}</button>
-        <button>{copy.fullDay}</button>
-        <button>{copy.cusco}</button>
-        <button>{copy.lima}</button>
-        <button>{copy.ica}</button>
-        <button>{copy.adventure}</button>
-        <button>{copy.cultural}</button>
+    <div class="container tri-hero__content">
+      <p class="tri-hero__eyebrow">
+        <span class="tri-hero__dot" aria-hidden="true"></span>
+        {copy.heroEyebrow}
+      </p>
+      <h1 class="tri-hero__title" set:html={copy.heroTitle.replace(copy.heroTitleEm, `<em>${copy.heroTitleEm}</em>`).replace('\n', '<br />')} />
+      <p class="tri-hero__subtitle">{copy.heroSubtitle}</p>
+      <div class="tri-hero__actions">
+        <a href="#catalogo" class="tri-hero__btn tri-hero__btn--primary">{copy.heroBtn}</a>
+        <a href={site.whatsappUrl} class="tri-hero__btn tri-hero__btn--ghost" target="_blank" rel="noopener noreferrer">{copy.heroWhatsapp}</a>
       </div>
+    </div>
 
-      <div class="grid grid--3">
-        {tours.map((product) => (
-          <ProductCard product={product} />
+    <div class="tri-hero__scroll" aria-hidden="true">
+      <span class="tri-hero__scroll-line"></span>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="tri-marquee" aria-hidden="true">
+    <div class="tri-marquee__track" style={`--duration: ${marqueeDuration}`}>
+      {marqueeItems.map((dest) => (
+        <>
+          <span class="tri-marquee__item">{dest}</span>
+          <span class="tri-marquee__sep">✦</span>
+        </>
+      ))}
+    </div>
+  </div>
+
+  <!-- REGIONS -->
+  <section class="tri-regions" aria-labelledby="tri-regions-title">
+    <div class="container">
+      <div class="tri-regions__head">
+        <p class="tri-regions__eyebrow">{copy.regionsEyebrow}</p>
+        <h2 class="tri-regions__title" id="tri-regions-title">{copy.regionsTitle}</h2>
+        <p class="tri-regions__subtitle">{copy.regionsSubtitle}</p>
+      </div>
+      <div class="tri-regions__grid">
+        {copy.regions.map((region, i) => {
+          const toursCount = tours.filter((t) => t.region === region.slug).length;
+          return (
+            <article class="tri-region-card reveal-item" data-delay={i * 100}>
+              <div class="tri-region-card__media">
+                <img
+                  src={`https://picsum.photos/seed/${region.slug}peru2024/700/950`}
+                  alt={`${region.name} — ${region.tagline}`}
+                  loading="lazy"
+                  class="tri-region-card__img"
+                />
+                <div class="tri-region-card__shade" aria-hidden="true"></div>
+              </div>
+              <div class="tri-region-card__body">
+                <p class="tri-region-card__tagline">{region.tagline}</p>
+                <h3 class="tri-region-card__name">{region.name}</h3>
+                <p class="tri-region-card__desc">{region.description}</p>
+                {toursCount > 0 && (
+                  <p class="tri-region-card__count">
+                    {toursCount} {toursCount === 1 ? copy.tourSingular : copy.tourPlural} {copy.available}
+                  </p>
+                )}
+                <a href="#catalogo" class="tri-region-card__cta">{copy.exploreCta}</a>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="tri-stats">
+    <div class="container tri-stats__inner">
+      <div class="tri-stat">
+        <strong>{tours.length}</strong>
+        <span>{copy.statTours}</span>
+      </div>
+      <div class="tri-stat">
+        <strong>{uniqueDestinations.size}</strong>
+        <span>{copy.statDestinations}</span>
+      </div>
+      {activeCategories.length > 0 && (
+        <div class="tri-stat">
+          <strong>{activeCategories.length}</strong>
+          <span>{copy.statStyles}</span>
+        </div>
+      )}
+      <div class="tri-stat">
+        <strong>1–3</strong>
+        <span>{copy.statDuration}</span>
+      </div>
+      <div class="tri-stat">
+        <strong>≤12</strong>
+        <span>{copy.statGroup}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATALOG -->
+  <div class="tri-catalog-wrap" id="catalogo">
+    <div class="container">
+      <div class="tri-catalog__head">
+        <div class="tri-catalog__head-left">
+          <p class="tri-catalog__eyebrow">{copy.catalogEyebrow}</p>
+          <h2 class="tri-catalog__title">{copy.catalogTitle}</h2>
+        </div>
+        <p class="tri-catalog__subtitle">{copy.catalogSubtitle}</p>
+      </div>
+    </div>
+
+    {categoryGroups.length > 1 && (
+      <div class="tri-filter-bar">
+        <div class="container">
+          <nav class="tri-filter-pills">
+            {categoryGroups.map((group) => (
+              <a href={`#tcat-section-${group.slug}`} class="tri-filter-pill" data-filter={group.slug}>
+                {group.name}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </div>
+    )}
+
+    {categoryGroups.length > 0 ? (
+      <div class="tcat-list">
+        {categoryGroups.map((group, gi) => (
+          <section class="tcat-section" id={`tcat-section-${group.slug}`} data-section-index={gi} aria-labelledby={`tcat-title-${group.slug}`}>
+            {group.heroImage && (
+              <div class="tcat-section__bg" aria-hidden="true">
+                <img src={group.heroImage} alt="" loading="lazy" />
+              </div>
+            )}
+            <div class="container">
+              <div class="tcat-layout">
+                <div class="tcat-header" data-section-index={gi}>
+                  <div class="tcat-header__meta">
+                    <p class="tcat-intro__eyebrow">{copy.travelStyle}</p>
+                    <div class="tcat-header__name-row">
+                      <div class="tcat-icon-wrap" aria-hidden="true">
+                        <LucideIcon name={group.icon || 'compass'} size={22} class="tcat-icon" />
+                      </div>
+                      <h3 class="tcat-name" id={`tcat-title-${group.slug}`}>{group.name}</h3>
+                    </div>
+                    {group.description && <p class="tcat-desc">{group.description}</p>}
+                  </div>
+                  <div class="tcat-count">
+                    <strong class="tcat-count__num">{group.tours.length}</strong>
+                    <span>{copy.available2(group.tours.length)}</span>
+                  </div>
+                </div>
+
+                <div class="tcat-carousel-outer" data-carousel-id={group.slug}>
+                  <button class="tcat-nav tcat-nav--prev" aria-label={copy.prevTour} type="button" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                  </button>
+                  <div class="tcat-tours" id={`tcat-tours-${group.slug}`}>
+                    {group.tours.map((tour, ti) => (
+                      <div class={`tcat-card-wrap${group.tours.length === 1 ? ' tcat-card-wrap--wide' : ''}`} data-card-i={ti}>
+                        <ProductCard product={tour} />
+                      </div>
+                    ))}
+                  </div>
+                  <button class="tcat-nav tcat-nav--next" aria-label={copy.nextTour} type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                  </button>
+                  <div class="tcat-progress" aria-hidden="true">
+                    <div class="tcat-progress__track"><div class="tcat-progress__fill"></div></div>
+                    <span class="tcat-progress__count"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <div class="container">
+        <div class="tri-empty">
+          <div class="tri-empty__icon" aria-hidden="true">⌖</div>
+          <h3 class="tri-empty__title">{copy.emptyTitle}</h3>
+          <p class="tri-empty__text">{copy.emptyText}</p>
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="tri-process" aria-labelledby="tri-process-title">
+    <div class="container">
+      <div class="tri-process__head">
+        <p class="tri-process__eyebrow">{copy.processEyebrow}</p>
+        <h2 class="tri-process__title" id="tri-process-title">{copy.processTitle}</h2>
+      </div>
+      <div class="tri-process__steps">
+        {copy.steps.map((step, i) => (
+          <div class="tri-step reveal-item" data-delay={i * 110}>
+            <div class="tri-step__num" aria-hidden="true">{step.num}</div>
+            <div class="tri-step__icon-wrap" aria-hidden="true">
+              <LucideIcon name={step.icon} size={22} class="tri-step__icon" />
+            </div>
+            <h3 class="tri-step__title">{step.title}</h3>
+            <p class="tri-step__desc">{step.description}</p>
+            {i < copy.steps.length - 1 && (
+              <div class="tri-step__connector" aria-hidden="true">
+                <span class="tri-step__connector-line"></span>
+                <span class="tri-step__connector-arrow">→</span>
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>
   </section>
+
+  <!-- WHY NUNA TERRA -->
+  <section class="tri-trust" aria-labelledby="tri-trust-title">
+    <div class="container">
+      <div class="tri-trust__head">
+        <p class="tri-trust__eyebrow">{copy.trustEyebrow}</p>
+        <h2 class="tri-trust__title" id="tri-trust-title">{copy.trustTitle}</h2>
+      </div>
+      <div class="tri-trust__grid">
+        {copy.trustItems.map((item, i) => (
+          <div class="tri-trust-item reveal-item" data-delay={i * 80}>
+            <div class="tri-trust-item__icon-wrap" aria-hidden="true">
+              <LucideIcon name={item.icon} size={20} class="tri-trust-item__icon" />
+            </div>
+            <h3 class="tri-trust-item__title">{item.title}</h3>
+            <p class="tri-trust-item__desc">{item.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CUSTOM CTA -->
+  <section class="tri-custom" aria-labelledby="tri-custom-title">
+    <div class="tri-custom__bg" aria-hidden="true">
+      <img src={customCtaImage} alt="" loading="lazy" decoding="async" />
+    </div>
+    <div class="tri-custom__overlay" aria-hidden="true"></div>
+    <div class="container tri-custom__content">
+      <p class="tri-custom__eyebrow">{copy.customEyebrow}</p>
+      <h2 class="tri-custom__title" id="tri-custom-title" set:html={copy.customTitle.replace('\n', '<br />')} />
+      <p class="tri-custom__subtitle">{copy.customSubtitle}</p>
+      <div class="tri-custom__actions">
+        <a href={copy.contactHref} class="tri-custom__btn tri-custom__btn--primary">{copy.customBtn}</a>
+        <a href={site.whatsappUrl} class="tri-custom__btn tri-custom__btn--ghost" target="_blank" rel="noopener noreferrer">{copy.customWhatsapp}</a>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (() => {
+      document.querySelectorAll('.tcat-tours').forEach((grid) => {
+        grid.querySelectorAll('.tcat-card-wrap').forEach((card, i) => {
+          card.style.setProperty('--card-delay', `${i * 100}ms`);
+        });
+      });
+
+      if ('IntersectionObserver' in window) {
+        const sectionObserver = new IntersectionObserver(
+          (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { const el = entry.target; const delay = parseInt(el.dataset.delay || '0', 10); setTimeout(() => el.classList.add('is-visible'), delay); sectionObserver.unobserve(el); } }); },
+          { threshold: 0.06, rootMargin: '0px 0px -20px 0px' }
+        );
+        document.querySelectorAll('.reveal-item').forEach((el) => sectionObserver.observe(el));
+
+        const introObserver = new IntersectionObserver(
+          (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); introObserver.unobserve(entry.target); } }); },
+          { threshold: 0.12 }
+        );
+        document.querySelectorAll('.tcat-header').forEach((el) => introObserver.observe(el));
+
+        const cardObserver = new IntersectionObserver(
+          (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-card-visible'); cardObserver.unobserve(entry.target); } }); },
+          { threshold: 0.04, rootMargin: '0px 0px -24px 0px' }
+        );
+        document.querySelectorAll('.tcat-card-wrap').forEach((card) => cardObserver.observe(card));
+      } else {
+        document.querySelectorAll('.reveal-item').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-header').forEach((el) => el.classList.add('is-visible'));
+        document.querySelectorAll('.tcat-card-wrap').forEach((card) => card.classList.add('is-card-visible'));
+      }
+
+      const filterBar = document.querySelector('.tri-filter-bar');
+      if (filterBar) {
+        const sentinel = document.createElement('div');
+        sentinel.style.cssText = 'height:1px;pointer-events:none;position:absolute;top:0;left:0;right:0;';
+        filterBar.parentElement.style.position = 'relative';
+        filterBar.parentElement.insertBefore(sentinel, filterBar);
+        new IntersectionObserver(([e]) => filterBar.classList.toggle('is-stuck', !e.isIntersecting), { threshold: 1 }).observe(sentinel);
+
+        const pills = document.querySelectorAll('.tri-filter-pill');
+        const sections = document.querySelectorAll('.tcat-section[id]');
+        sections.forEach((s) => {
+          new IntersectionObserver(([e]) => {
+            if (e.isIntersecting) { const id = e.target.id; pills.forEach((p) => { p.classList.toggle('is-active', p.getAttribute('href') === `#${id}`); }); }
+          }, { threshold: 0.35, rootMargin: '-10% 0px -55% 0px' }).observe(s);
+        });
+      }
+
+      document.querySelectorAll('.tcat-carousel-outer').forEach((outer) => {
+        const track = outer.querySelector('.tcat-tours');
+        const prevBtn = outer.querySelector('.tcat-nav--prev');
+        const nextBtn = outer.querySelector('.tcat-nav--next');
+        const fill = outer.querySelector('.tcat-progress__fill');
+        const countEl = outer.querySelector('.tcat-progress__count');
+        const cards = outer.querySelectorAll('.tcat-card-wrap');
+        if (!track || !cards.length) return;
+        const getCardWidth = () => { const c = cards[0]; if (!c) return 300; const gap = parseInt(getComputedStyle(track).gap) || 20; return c.offsetWidth + gap; };
+        const update = () => {
+          const maxScroll = track.scrollWidth - track.clientWidth;
+          if (prevBtn) prevBtn.disabled = track.scrollLeft < 4;
+          if (nextBtn) nextBtn.disabled = track.scrollLeft >= maxScroll - 4;
+          if (fill) { const pct = maxScroll <= 0 ? 100 : (track.scrollLeft / maxScroll) * 100; fill.style.width = `${Math.max(8, Math.min(100, pct))}%`; }
+          if (countEl) { const w = getCardWidth(); const idx = w > 0 ? Math.round(track.scrollLeft / w) + 1 : 1; countEl.textContent = `${Math.min(idx, cards.length)} / ${cards.length}`; }
+        };
+        const checkScrollable = () => { outer.toggleAttribute('data-scrollable', track.scrollWidth > track.clientWidth + 8); update(); };
+        prevBtn?.addEventListener('click', () => track.scrollBy({ left: -getCardWidth(), behavior: 'smooth' }));
+        nextBtn?.addEventListener('click', () => track.scrollBy({ left: getCardWidth(), behavior: 'smooth' }));
+        track.addEventListener('scroll', update, { passive: true });
+        let isDragging = false, startX = 0, startScroll = 0;
+        track.addEventListener('mousedown', (e) => { isDragging = true; startX = e.pageX - track.offsetLeft; startScroll = track.scrollLeft; track.classList.add('is-dragging'); });
+        window.addEventListener('mousemove', (e) => { if (!isDragging) return; e.preventDefault(); track.scrollLeft = startScroll - (e.pageX - track.offsetLeft - startX); });
+        window.addEventListener('mouseup', () => { isDragging = false; track.classList.remove('is-dragging'); });
+        checkScrollable();
+        if ('ResizeObserver' in window) new ResizeObserver(checkScrollable).observe(track);
+        countEl && (countEl.textContent = `1 / ${cards.length}`);
+
+        let autoTimer = null;
+        const autoAdvance = () => { const maxScroll = track.scrollWidth - track.clientWidth; if (maxScroll <= 0) return; if (track.scrollLeft >= maxScroll - 4) { track.scrollTo({ left: 0, behavior: 'smooth' }); } else { track.scrollBy({ left: getCardWidth(), behavior: 'smooth' }); } };
+        const startAuto = () => { if (autoTimer) return; autoTimer = setInterval(autoAdvance, 4500); };
+        const stopAuto = () => { clearInterval(autoTimer); autoTimer = null; };
+        outer.addEventListener('mouseenter', stopAuto);
+        outer.addEventListener('mouseleave', startAuto);
+        outer.addEventListener('touchstart', () => { stopAuto(); setTimeout(startAuto, 6000); }, { passive: true });
+        startAuto();
+      });
+
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const target = document.querySelector(a.getAttribute('href'));
+          if (!target) return;
+          e.preventDefault();
+          const top = target.getBoundingClientRect().top + window.scrollY - 56;
+          window.scrollTo({ top, behavior: 'smooth' });
+        });
+      });
+    })();
+  </script>
+
 </BaseLayout>
-
-<style lang="scss">
-  .filters {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-  }
-
-  .filters button {
-    border: 1px solid rgba(90, 62, 43, .18);
-    background: rgba(255, 255, 255, .45);
-    border-radius: 999px;
-    padding: 10px 16px;
-    color: var(--color-earth);
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .filters button:first-child {
-    background: var(--color-green);
-    color: var(--color-ivory);
-  }
-</style>
